@@ -1,4 +1,8 @@
-# agents-chart
+# flint-chart
+
+[![npm](https://img.shields.io/npm/v/flint-chart.svg)](https://www.npmjs.com/package/flint-chart)
+[![CI](https://github.com/microsoft/flint-chart/actions/workflows/ci.yml/badge.svg)](https://github.com/microsoft/flint-chart/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A semantic-level visualization library that compiles data + semantic annotations
 into chart specifications for multiple rendering backends. The LLM outputs only
@@ -9,8 +13,14 @@ templates — so charts look good *and* stay editable without calling the LLM ag
 
 Pure TypeScript · No UI framework dependencies · Data-in, spec-out
 
-> For full motivation & comparisons, see [docs/story.md](docs/story.md).
-> For architecture details, see [docs/design_v3.md](docs/design_v3.md).
+- **Demos:** [Gallery](https://microsoft.github.io/flint-chart/gallery/) · [Live editor](https://microsoft.github.io/flint-chart/editor/)
+- **Architecture:** [docs/design-semantics.md](docs/design-semantics.md) · [docs/design-stretch-model.md](docs/design-stretch-model.md) · [docs/color-decisions-summary.md](docs/color-decisions-summary.md)
+- **For contributors:** [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) · [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md)
+- **For AI agents:** [agents/skills/flint-chart-author/SKILL.md](agents/skills/flint-chart-author/SKILL.md) · [agents/mcp-server](agents/mcp-server/)
+
+```bash
+npm install flint-chart
+```
 
 ---
 
@@ -22,11 +32,11 @@ LLM-generated chart specs face a dilemma:
 |----------|:---:|:---:|:---:|:---:|
 | Library defaults | ✗ | ✓ | ✗ | 0 |
 | LLM-tuned spec | ✓ | ✗ | Sometimes | 1 LLM call |
-| **agents-chart** | **✓** | **✓** | **✓** | **0** |
+| **flint-chart** | **✓** | **✓** | **✓** | **0** |
 
 **Simple specs** are editable but look bad (wrong sizing, misleading
 encodings). **Polished specs** look great but are brittle (hard-coded
-values break on every field swap). agents-chart resolves this: when a user
+values break on every field swap). flint-chart resolves this: when a user
 swaps fields, changes chart type, or adds facets for exploration, the
 compiler re-derives all parameters automatically — no LLM call needed.
 
@@ -69,7 +79,7 @@ semantic type. No hard-coded constants go stale. No LLM call needed.
 ### Vega-Lite
 
 ```ts
-import { assembleVegaLite } from './lib/agents-chart';
+import { assembleVegaLite } from 'flint-chart';
 
 const spec = assembleVegaLite({
   data: { values: myData },
@@ -85,7 +95,7 @@ const spec = assembleVegaLite({
 ### ECharts
 
 ```ts
-import { assembleECharts } from './lib/agents-chart';
+import { assembleECharts } from 'flint-chart';
 
 const option = assembleECharts({
   data: { values: myData },
@@ -100,7 +110,7 @@ const option = assembleECharts({
 ### Chart.js
 
 ```ts
-import { assembleChartjs } from './lib/agents-chart';
+import { assembleChartjs } from 'flint-chart';
 
 const config = assembleChartjs({
   data: { values: myData },
@@ -114,30 +124,30 @@ const config = assembleChartjs({
 ## Architecture
 
 ```
-index.ts                ← public API (re-exports core/ + all backends)
+src/
+  index.ts                ← public API (re-exports core/ + all backends)
+  core/                   ← target-language-agnostic
+    types.ts              ← shared type definitions (ChartAssemblyInput, ChartTemplateDef, …)
+    semantic-types.ts     ← ~70 semantic types + VisCategory helpers
+    decisions.ts          ← pure decision functions (layout, encoding type)
+    resolve-semantics.ts  ← Phase 0: semantic resolution
+    compute-layout.ts     ← Phase 1: layout computation
+    filter-overflow.ts    ← overflow filtering
+  vegalite/               ← Vega-Lite backend
+  echarts/                ← ECharts backend
+  chartjs/                ← Chart.js backend
+  gofish/                 ← GoFish backend
+  test-data/              ← fixtures + generators (also drives the gallery)
 
-core/                   ← target-language-agnostic
-  types.ts              ← shared type definitions (ChartAssemblyInput, ChartTemplateDef, …)
-  semantic-types.ts     ← ~70 semantic types + VisCategory helpers
-  decisions.ts          ← pure decision functions (layout, encoding type)
-  resolve-semantics.ts  ← Phase 0: semantic resolution
-  compute-layout.ts     ← Phase 1: layout computation
-  filter-overflow.ts    ← overflow filtering
+examples/
+  gallery/                ← Vite+React gallery demo
+  editor/                 ← Vite+React live editor (Vega-Lite-style playground)
 
-vegalite/               ← Vega-Lite backend
-  assemble.ts           ← assembleVegaLite() orchestrator
-  instantiate-spec.ts   ← Phase 2: VL spec instantiation
-  templates/            ← chart templates (bar, scatter, bump, …)
-
-echarts/                ← ECharts backend
-  assemble.ts           ← assembleECharts() orchestrator
-  instantiate-spec.ts   ← Phase 2: EC option instantiation
-  templates/            ← chart templates
-
-chartjs/                ← Chart.js backend
-  assemble.ts           ← assembleChartjs() orchestrator
-  instantiate-spec.ts   ← Phase 2: CJS config instantiation
-  templates/            ← chart templates
+agents/
+  skills/                 ← Copilot/Claude SKILL.md bundles
+  prompts/                ← standalone system prompts
+  instructions/           ← .instructions.md drop-ins
+  mcp-server/             ← MCP server exposing flint-chart as agent tools
 ```
 
 ### Type resolution pipeline
@@ -159,9 +169,9 @@ Each backend has its own assembly function. All accept the same
 
 | Function | Output | Import |
 |----------|--------|--------|
-| `assembleVegaLite(input)` | Vega-Lite spec | `import { assembleVegaLite } from './lib/agents-chart'` |
-| `assembleECharts(input)` | ECharts option object | `import { assembleECharts } from './lib/agents-chart'` |
-| `assembleChartjs(input)` | Chart.js config object | `import { assembleChartjs } from './lib/agents-chart'` |
+| `assembleVegaLite(input)` | Vega-Lite spec | `import { assembleVegaLite } from 'flint-chart'` |
+| `assembleECharts(input)` | ECharts option object | `import { assembleECharts } from 'flint-chart'` |
+| `assembleChartjs(input)` | Chart.js config object | `import { assembleChartjs } from 'flint-chart'` |
 
 ### Input types
 
@@ -221,11 +231,11 @@ chart type name.
 
 ```ts
 // Example: list available Vega-Lite chart categories
-import { vlTemplateDefs } from './lib/agents-chart';
+import { vlTemplateDefs } from 'flint-chart';
 Object.keys(vlTemplateDefs); // ["Scatter & Point", "Bar", "Line & Area", ...]
 
 // Example: get channels for a specific chart type
-import { vlGetTemplateChannels } from './lib/agents-chart';
+import { vlGetTemplateChannels } from 'flint-chart';
 vlGetTemplateChannels('Scatter Plot'); // ["x", "y", "color", "size", "shape"]
 ```
 
@@ -261,7 +271,7 @@ import {
   // Layout constants
   channels,
   channelGroups,
-} from './lib/agents-chart';
+} from 'flint-chart';
 ```
 
 ---

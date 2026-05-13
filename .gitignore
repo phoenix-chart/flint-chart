@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+.tsup/
+
+# Test / coverage
+coverage/
+.nyc_output/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Editor / OS
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Examples build artifacts
+examples/**/dist/
+examples/**/node_modules/
+examples/**/.vite/
+
+# Agents build artifacts
+agents/**/dist/
+agents/**/node_modules/
+
+# Lockfile policy: keep root lockfile, ignore example/agent lockfiles
+examples/**/package-lock.json
+agents/**/package-lock.json
+
+# Local-only: reference copy of Data Formulator UI used during port
+df-reference/
+
+# Local-only WIP planning docs
+docs/HANDOFF.md
+docs/flint-spinout-plan.md

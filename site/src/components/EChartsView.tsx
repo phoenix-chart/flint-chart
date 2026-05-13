@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import * as echarts from 'echarts';
 
-export function EChartsView({ option }: { option: any }) {
+export function EChartsView({ option, height = 260 }: { option: any; height?: number }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!ref.current) return;
@@ -9,5 +9,5 @@ export function EChartsView({ option }: { option: any }) {
     chart.setOption(option);
     return () => chart.dispose();
   }, [option]);
-  return <div ref={ref} style={{ width: '100%', height: 260 }} />;
+  return <div ref={ref} style={{ width: '100%', height }} />;
 }

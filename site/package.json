@@ -1,9 +1,9 @@
 {
-  "name": "flint-chart-gallery",
+  "name": "flint-chart-site",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Visual gallery of every chart template across all flint-chart backends.",
+  "description": "Unified flint-chart demo site: landing page, chart gallery, and live editor.",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -11,12 +11,14 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@codemirror/lang-json": "^6.0.1",
+    "@uiw/react-codemirror": "^4.23.0",
     "chart.js": "^4.5.1",
     "echarts": "^6.0.0",
-    "flint-chart": "file:../..",
+    "flint-chart": "file:..",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-chartjs-2": "^5.2.0",
+    "react-router-dom": "^6.26.0",
     "vega": "^6.0.0",
     "vega-embed": "^7.1.0",
     "vega-lite": "^6.4.1"

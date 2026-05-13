@@ -13,7 +13,7 @@ templates — so charts look good *and* stay editable without calling the LLM ag
 
 Pure TypeScript · No UI framework dependencies · Data-in, spec-out
 
-- **Demos:** [Gallery](https://microsoft.github.io/flint-chart/gallery/) · [Live editor](https://microsoft.github.io/flint-chart/editor/)
+- **Demos:** [Site](https://microsoft.github.io/flint-chart/) — landing page, [gallery](https://microsoft.github.io/flint-chart/#/gallery), and [live editor](https://microsoft.github.io/flint-chart/#/editor) in one place.
 - **Architecture:** [docs/design-semantics.md](docs/design-semantics.md) · [docs/design-stretch-model.md](docs/design-stretch-model.md) · [docs/color-decisions-summary.md](docs/color-decisions-summary.md)
 - **For contributors:** [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) · [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md)
 - **For AI agents:** [agents/skills/flint-chart-author/SKILL.md](agents/skills/flint-chart-author/SKILL.md) · [agents/mcp-server](agents/mcp-server/)
@@ -139,9 +139,7 @@ src/
   gofish/                 ← GoFish backend
   test-data/              ← fixtures + generators (also drives the gallery)
 
-examples/
-  gallery/                ← Vite+React gallery demo
-  editor/                 ← Vite+React live editor (Vega-Lite-style playground)
+site/                     ← unified Vite+React demo (landing / gallery / editor routes)
 
 agents/
   skills/                 ← Copilot/Claude SKILL.md bundles

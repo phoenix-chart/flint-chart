@@ -24,11 +24,11 @@ npm install              # installs root + examples + agents via workspaces
 | `npm run test:watch` | re-run on save |
 | `npm run lint` | ESLint over `src/` |
 | `npm run build` | `tsup` → `dist/` (ESM + CJS + `.d.ts`) |
-| `npm run dev --workspace=@flint-chart/gallery` | gallery on http://localhost:5173 |
-| `npm run dev --workspace=@flint-chart/editor` | live editor on http://localhost:5174 |
+| `npm run site` | demo site (landing / gallery / editor) on http://localhost:5274/flint-chart/ |
+| `npm run site:build` | production build of the demo site → `site/dist/` |
 | `npm run build --workspace=@flint-chart/mcp-server` | build the MCP server |
 
-The example apps alias `flint-chart` directly to `src/index.ts` via
+The demo site aliases `flint-chart` directly to `src/index.ts` via
 Vite, so changes to the library are picked up immediately by HMR — no
 rebuild needed during development.
 
@@ -45,9 +45,7 @@ flint-chart/
 │   ├── gofish/              GoFish backend
 │   └── test-data/           fixtures + generators (also drives gallery)
 ├── tests/                   repo-level tests
-├── examples/
-│   ├── gallery/             Vite+React visual gallery
-│   └── editor/              Vite+React Vega-Lite-style live editor
+├── site/                    unified Vite+React demo (landing / gallery / editor routes)
 ├── agents/
 │   ├── skills/              Copilot/Claude SKILL.md bundles
 │   ├── prompts/             standalone system prompts

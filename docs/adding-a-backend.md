@@ -49,7 +49,7 @@ the decision belongs in `core/`.
    subpath bundle.
 3. Add a `./<backend>` subpath export to `package.json#exports`.
 4. Add to `agents/mcp-server/src/index.ts` so MCP clients can call it.
-5. Add a renderer component to `examples/gallery/src/components/` and
+5. Add a renderer component to `site/src/components/` and
    wire it into `TripleChart` (or rename it).
 6. Add at least one `gen<Backend>*Tests` generator to `src/test-data/`.
 

@@ -25,24 +25,16 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - name: Build gallery
+      - name: Build site
         run: |
-          npm --prefix examples/gallery install
-          npm --prefix examples/gallery run build
+          npm --prefix site install
+          npm --prefix site run build
         env:
-          VITE_BASE_PATH: /flint-chart/gallery/
-      - name: Build editor
-        run: |
-          npm --prefix examples/editor install
-          npm --prefix examples/editor run build
-        env:
-          VITE_BASE_PATH: /flint-chart/editor/
+          VITE_BASE_PATH: /flint-chart/
       - name: Compose site
         run: |
-          mkdir -p _site/gallery _site/editor
-          cp -R examples/gallery/dist/* _site/gallery/
-          cp -R examples/editor/dist/* _site/editor/
-          cp docs/landing.html _site/index.html
+          mkdir -p _site
+          cp -R site/dist/* _site/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

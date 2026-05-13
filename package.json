@@ -85,10 +85,8 @@
     "clean": "rimraf dist",
     "prepublishOnly": "npm run clean && npm run typecheck && npm run test && npm run build",
     "release": "npm publish --access public",
-    "gallery": "npm --prefix examples/gallery run dev",
-    "gallery:build": "npm --prefix examples/gallery run build",
-    "editor": "npm --prefix examples/editor run dev",
-    "editor:build": "npm --prefix examples/editor run build",
+    "site": "npm --prefix site run dev",
+    "site:build": "npm --prefix site run build",
     "mcp:build": "npm --prefix agents/mcp-server run build"
   },
   "peerDependencies": {

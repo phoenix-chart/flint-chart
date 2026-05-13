@@ -12,8 +12,8 @@
     "isolatedModules": true,
     "noEmit": true,
     "paths": {
-      "flint-chart": ["../../src/index.ts"],
-      "flint-chart/*": ["../../src/*"]
+      "flint-chart": ["../src/index.ts"],
+      "flint-chart/*": ["../src/*"]
     }
   },
   "include": ["src", "vite.config.ts"]

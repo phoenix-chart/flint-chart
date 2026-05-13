@@ -19,9 +19,7 @@ src/                         library source (published to npm)
   gofish/                    GoFish backend
   test-data/                 fixtures + generators (used by gallery + tests)
 tests/                       repo-level tests (unit + snapshot)
-examples/
-  gallery/                   visual gallery (Vite + React)
-  editor/                    live editor playground (Vite + React)
+site/                        unified demo app (Vite + React, landing / gallery / editor)
 agents/                      AI-agent assets (skills, MCP server, prompts)
 docs/                        design docs, planning, contributor how-tos
 ```

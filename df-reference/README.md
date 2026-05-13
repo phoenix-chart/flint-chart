@@ -13,7 +13,8 @@ wrapper that layers DF semantics on top of `assembleVegaLite`).
 |---|---|---|
 | `gallery/ChartGallery.tsx` | Main gallery page — renders each test case across all four backends with collapsible spec viewers. | `assembleVegaChart`, `channels`, `CHART_ICONS`, `Channel`/`EncodingItem` types |
 | `gallery/GallerySidebar.tsx` | Tree-style sidebar navigation backed by `GALLERY_TREE`. | `borderColor` token, `CHART_ICONS` |
-| `components/ChartTemplates.tsx` | Exports `channels` (full encoding-channel list) and `CHART_ICONS` (PNG/SVG asset map per chart type). | DF asset imports |
+| `components/ChartTemplates.tsx` | Exports `channels` (full encoding-channel list) and `CHART_ICONS` (PNG/SVG asset map per chart type). | DF asset imports — see `assets/` |
+| `assets/chart-icon-*.{png,svg}` | All 39 chart-type icons referenced by `CHART_ICONS` (e.g. `chart-icon-scatter-min.png`, `chart-icon-area.svg`). Copied verbatim from `data-formulator/src/assets/`. | None — these are static assets, ready to import as-is. |
 | `components/ComponentType.tsx` | DF's `Channel`, `EncodingItem`, `ChartTemplate` types. | None significant — but largely overlaps with what Flint already exports |
 | `app/utils.tsx` | Includes `assembleVegaChart` — the DF wrapper that expands DF encodings into a Flint `ChartAssemblyInput` and calls `assembleVegaLite`. The relevant function is the entry point; the rest of the file is unrelated DF helpers. | DF Field/Type model |
 | `app/tokens.ts` | DF's MUI palette/spacing tokens (`borderColor`, etc.). | None functionally — could be inlined in the Flint gallery. |
@@ -23,8 +24,8 @@ wrapper that layers DF semantics on top of `assembleVegaLite`).
 1. Strip DF dependencies:
    - Replace `assembleVegaChart(...)` calls with direct `assembleVegaLite(...)` (and friends) calls. `assembleVegaChart` exists only to bridge DF's encoding-shelf data structures to Flint's `ChartAssemblyInput`. The gallery's `TestCase` already carries `chartType + encodingMap + fields + data + metadata` — those map cleanly onto `ChartAssemblyInput`.
    - Drop `channels` import in favor of the channel list from `vlGetTemplateChannels` (already exported from Flint).
-   - Drop `CHART_ICONS` or replace with simple text labels / inline SVGs in v1.
    - Drop `borderColor` token — inline the color value.
+   - Either keep `CHART_ICONS` (the icon files in `assets/` are ready to use), or replace with simple text labels / inline SVGs for a leaner v1.
 
 2. Keep:
    - The collapsible "Spec Disclosure" UX.

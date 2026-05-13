@@ -29,8 +29,6 @@ jobs:
         run: |
           npm --prefix site install
           npm --prefix site run build
-        env:
-          VITE_BASE_PATH: /flint-chart/
       - name: Compose site
         run: |
           mkdir -p _site

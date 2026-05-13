@@ -2,9 +2,11 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'node:path';
 
-// Single-app deployment at /flint-chart/ on GitHub Pages.
-// Override with VITE_BASE_PATH for other hosts.
-const base = process.env.VITE_BASE_PATH ?? '/flint-chart/';
+// Use a relative base by default so the same build works for both
+// public Pages (`microsoft.github.io/flint-chart/`) and private Pages
+// (`<random>.pages.github.io/` at the host root).
+// Override with VITE_BASE_PATH if hosting at a specific absolute path.
+const base = process.env.VITE_BASE_PATH ?? './';
 
 export default defineConfig({
   plugins: [react()],

@@ -18,10 +18,23 @@ wrapper that layers DF semantics on top of `assembleVegaLite`).
 | `components/ComponentType.tsx` | DF's `Channel`, `EncodingItem`, `ChartTemplate` types. | None significant — but largely overlaps with what Flint already exports |
 | `app/utils.tsx` | Includes `assembleVegaChart` — the DF wrapper that expands DF encodings into a Flint `ChartAssemblyInput` and calls `assembleVegaLite`. The relevant function is the entry point; the rest of the file is unrelated DF helpers. | DF Field/Type model |
 | `app/tokens.ts` | DF's MUI palette/spacing tokens (`borderColor`, etc.). | None functionally — could be inlined in the Flint gallery. |
+| `data/types.ts` | DF's `Type` enum (`String`, `Number`, `Date`, `DateTime`, `Time`, `Auto`, ...) plus coerce helpers. **Required:** every file under Flint's `test-data/` and `gallery/` imports `Type` from here, so the extracted Flint subtree won't compile until this is either vendored into Flint or these imports are rewritten. | Self-contained, ~155 lines, no external deps. |
+| `infra/tsconfig.json`, `vitest.config.ts`, `eslint.config.js`, `package.json` | DF's TypeScript / test / lint / package config as a starting point for Flint's own infra. | DF-specific — strip React/MUI/redux pieces; keep TS strict flags + ESM module resolution + vitest config. |
 
 ## How to use this when building the standalone Flint gallery
 
-1. Strip DF dependencies:
+### Critical: fix Flint's broken external imports first
+
+Flint's `test-data/` and `gallery/` directories contain `import { Type } from '../../../data/types'` and `import { Channel, EncodingItem, FieldItem } from '../../../components/ComponentType'` — these paths don't exist in the spun-out repo. Pick one of:
+
+- **Vendor.** Move `data/types.ts` into Flint as `src/test-data/types.ts` (or similar), and add the small set of types Flint actually uses from `ComponentType.tsx` (`Channel`, `EncodingItem`, `FieldItem`) into the same place. Rewrite imports.
+- **Re-export.** Make Flint's `core/types.ts` export the needed types so test-data can import them via relative paths within Flint.
+
+The core library (`core/`, `vegalite/`, `echarts/`, `chartjs/`, `gofish/`) does **not** depend on these external imports — only `test-data/` and `gallery/` do.
+
+### Then build the gallery app
+
+1. Strip DF dependencies in the gallery code:
    - Replace `assembleVegaChart(...)` calls with direct `assembleVegaLite(...)` (and friends) calls. `assembleVegaChart` exists only to bridge DF's encoding-shelf data structures to Flint's `ChartAssemblyInput`. The gallery's `TestCase` already carries `chartType + encodingMap + fields + data + metadata` — those map cleanly onto `ChartAssemblyInput`.
    - Drop `channels` import in favor of the channel list from `vlGetTemplateChannels` (already exported from Flint).
    - Drop `borderColor` token — inline the color value.

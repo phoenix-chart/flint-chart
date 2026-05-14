@@ -30,7 +30,7 @@
 | 可借鉴点 | 对应本文章节 |
 |----------|----------------|
 | 侧栏多级分类（特性、场景案例、布局、交互等） | 第 5 节 Gallery、第 7 节导航 |
-| 缩略图与短标题、主区分组标题 | 第 5.2 节视觉层级 |
+| 缩略图与短标题、主区分组标题 | 第 5.3 节（主区内视觉层级） |
 | 顶栏：文档 / API / 示例 / 社区、搜索 | 第 7 节入口 |
 
 **图 2 — 单示例页：左导航、中大预览、右侧代码（JavaScript / Data 分 Tab）**
@@ -39,7 +39,7 @@
 
 | 可借鉴点 | 对应本文章节 |
 |----------|----------------|
-| 预览占据视觉中心 | 第 4 节 Editor、第 5.2 节 |
+| 预览占据视觉中心 | 第 4 节 Editor、第 5.3 节 |
 | 代码与 **数据** 分 Tab | `data` 与 `semantic_types` 分区展示的参考 |
 | 复制、运行、展开等工具条 | 第 8 节 P1 之后可增强 |
 
@@ -71,7 +71,7 @@
 
 | 观察 | 对 Flint 的启示 |
 |------|------------------|
-| 「View this example in the online editor」类链接 | 对应 Flint 第 5.3 节「Gallery → Editor」深链 |
+| 「View this example in the online editor」类链接 | 对应 Flint 第 5.1 / 5.4 节与第 7 节「Gallery → Editor」深链 |
 | 即使简单柱状图，spec 仍包含 `$schema`、`data`、`mark`、`encoding` 等完整结构 | 对应第 4 节：在 Editor 中并排展示 **Flint 输入** 与 **编译得到的 Vega-Lite**，用篇幅对比体现「少写」 |
 | 默认视觉偏文档演示风格 | Flint 若以默认观感与版式为卖点，需在 Gallery 用真实数据与统一主题证明 |
 
@@ -133,7 +133,7 @@
 | 观察 | 对 Flint 的启示 |
 |------|------------------|
 | 侧栏按图表类型分组并配小图标，当前类目高亮 | Gallery：**一眼可扫的分类 + 当前位置**；可与 generator / 场景树结合 |
-| 主区多列缩略图 + 短标题，同类目下变体丰富 | 第 5.2 节：以 **图优先** 的矩阵浏览，减少纯文字目录带来的冷启动成本 |
+| 主区多列缩略图 + 短标题，同类目下变体丰富 | 第 5.3 节：主区内 **图优先** 的卡片预览；侧栏「按类型」见第 7 节 |
 | 主内容区提供 **Dark mode** 等主题切换 | Flint Gallery / Editor 可提供浅色 / 深色预览，验证默认可读性与导出一致性 |
 
 **图 8 — 单示例在线编辑器：左侧 `option` 代码、右侧实时渲染**
@@ -142,7 +142,7 @@
 
 | 观察 | 对 Flint 的启示 |
 |------|------------------|
-| 经典 **左码右图** 分栏，与 Gallery 点进示例后的工作台一致 | 与第 4、5.3 节「Gallery → Editor」及并排对照布局一致，降低学习成本 |
+| 经典 **左码右图** 分栏，与 Gallery 点进示例后的工作台一致 | 与第 4、5.4、7 节「Gallery → Editor」及并排对照布局一致，降低学习成本 |
 | Tab：Edit Code / Full Code / Option Preview；语言 JS / TS；**Run** 显式触发刷新 | 可学习：**错误与运行反馈**、全量配置与「最小片段」切换；Flint 若以自动编译为主，仍可保留「手动刷新 / 防抖」选项 |
 | 基础折线亦需配置 `xAxis`、`yAxis`、`series` 等 | Editor 中展示 **Flint 输入 vs 生成的 ECharts option** 时，可并列说明「意图层」如何展开为轴与系列 |
 | 预览区附带下载、截图、分享、渲染耗时等 | 第 8 节 P1 之后可选增强，利于演示与 issue 复现 |
@@ -169,7 +169,7 @@
 
 ## 3. 与当前仓库实现的关系
 
-- **Gallery**：已有左侧 `TEST_GENERATORS` 键列表、`TripleChart` 三后端并排、`tests.slice(0, 6)` 限制展示条数；源码注释标明仍为 scaffold，可扩展树形侧栏与逐用例导航。
+- **Gallery**：已有左侧 `TEST_GENERATORS` 键列表、`TripleChart` 三后端并排、`tests.slice(0, 6)` 限制展示条数；源码注释标明仍为 scaffold。**规划变更（见第 7 节）**：左侧改为 **按图表类型** 的侧栏（类 ECharts），主区 **仍保留** 当前「用例标题 + 描述 + `TripleChart`」卡片形态；需在数据层维护 **图表类型 ↔ generator / 用例** 的映射（可从 `chart_spec.chartType`、generator 名规则或单独配置表推导，实现时选定唯一来源）。
 - **Editor**：左侧为 `ChartAssemblyInput` 的 JSON（CodeMirror），右侧为后端 Tab（Vega-Lite / ECharts / Chart.js）及可选编译 spec；内置示例见 `examples/editor/src/examples.ts`。
 - **语义设计文档**：`docs/design-semantics.md` 描述 T0 / T1 / T2 与降级策略，适合作为站外或 `/docs` 的权威说明；示例站内页以摘要与链接为主，避免重复维护长文。
 
@@ -200,24 +200,18 @@
 
 ---
 
-## 5. Gallery：如何呈现「相对手写 Vega-Lite 的收益」
+## 5. Gallery
 
-### 5.1 文案与模块位置（MVP）
+### 5.1 布局约束
 
-1. **页眉下方可折叠对比带（一句 + 链接）**  
-   建议表述方向：**在同类读图任务下，Flint 将版式与格式等决策收敛到语义层与装配逻辑，从单份输入生成完整 VL；若直接手写 VL，则往往需在 `encoding` / `scale` / `axis` / `legend` 等节点上显式补充才能达到相近可读性**（具体措辞需与产品实测一致，避免绝对化）。
-2. **用例卡片底部短句**  
-   以模板为主（可由测试元数据驱动），例如强调「分类顺序 / 货币格式 / 色板语义」等单点；精选少量用例可配固定文案，控制维护成本。
+- **全局**：全站 **顶部导航栏**（类 Vega-Lite：Gallery、Tutorials、Documentation、Usage / Getting started、Ecosystem、GitHub、Try / Editor 等，实现时可按 MVP 裁剪条目）。
+- **Gallery 页内**：**左侧** 为 **按图表类型** 分类的侧栏（类 ECharts：类目 + 可选小图标、当前选中高亮）；**右侧主区** **保持与当前 `examples/gallery` 相同** 的用例展示——即每个用例仍以 **标题、描述、`TripleChart`（或等价多后端预览）** 为主的纵向卡片流，**不**把主区改成 ECharts 官网那种纯缩略图矩阵（避免与「和现在 gallery 一样」冲突）。
+- **逐例进入 Editor**：在每个用例 **标题同一行末尾** 或 **标题下第一行**，放置与 Vega-Lite 单示例页同款的文案链：**「View this example in the online editor」**（中文站可并列或单独提供「在在线编辑器中打开」）。点击后 **进入当前 Editor 应用界面**（同仓库 `examples/editor`：开发时为另一 Vite 端口或子路径 `/editor`，上线时为统一域名下的 Editor 路由），并载入该用例对应的 `ChartAssemblyInput`（载荷方式见 §5.4）。
 
-### 5.2 视觉层级
+### 5.2 视觉层级（主区内）
 
 - **主预览**：默认突出单一后端（例如 Vega-Lite）或 Flint 首推导出效果；ECharts、Chart.js 作为 Tab 或次级折叠，避免三列长期同权导致「测试页」观感。
 - **多引擎**：以「另存为其他引擎」或「多引擎」Tab 呈现，强调能力边界而非首屏噪音。
-
-### 5.3 Gallery → Editor
-
-- 交互：每个用例卡片提供「在 Editor 中打开」。
-- 实现方向（编码阶段）：`editor` 路由接受 `load=gallery:generator:index` 等稳定键，或对较大 payload 使用 `sessionStorage` + 短 token，避免 query 过长；两端共享 `ChartAssemblyInput` 类型与序列化约定。
 
 ---
 
@@ -227,11 +221,11 @@
 
 | 方案 | 优点 | 缺点 |
 |------|------|------|
-| **A.** Gallery 侧栏底部固定入口 + 页内长折叠 | 曝光高 | 侧栏空间紧张 |
-| **B.** 独立路由（如 `/semantic-types`） | 内容易扩展 | 多一页导航与构建配置 |
+| **A.** Gallery 页侧栏 **图表类型区下方** 或主区顶部固定「Semantic types」入口 + 页内长折叠 | 曝光高；与第 7 节侧栏并存时需控制高度（可折叠「高级 / 语义」区） | 侧栏信息密度上升 |
+| **B.** 独立路由（如 `/semantic-types`） | 内容易扩展 | 多一页导航与构建配置；需放入顶栏 **Documentation** 子链或主导航 |
 | **C.** 仅链至 `docs/design-semantics.md` | 维护单点 | 离开示例站语境 |
 
-**MVP 建议：** **A**；内容膨胀后再引入 **B**。
+**MVP 建议：** **A**（与图表类型侧栏分区排版）；内容膨胀后再引入 **B**，并在顶栏 **Documentation** 中链入。
 
 ### 6.2 示例站页内大纲（精简）
 
@@ -242,21 +236,56 @@
 
 ---
 
-## 7. 信息架构（建议）
+## 7. 信息架构：顶栏（类 Vega-Lite）+ Gallery（侧栏类 ECharts、主区保持现状）
+
+### 7.1 全站顶部导航栏
+
+对齐 [Vega-Lite 文档站](https://vega.github.io/vega-lite/) 顶栏信息结构（不必逐项同名，但类目宜接近用户心智）：
+
+| 导航项 | 用途（建议） |
+|--------|----------------|
+| **Gallery**（或 **Examples**） | 进入示例画廊（本页为站内核心流量入口之一）。 |
+| **Tutorials** | 分步入门、常见数据集走通；MVP 可单页或外链。 |
+| **Documentation** | API / 装配输入 schema / 链至仓库 `docs/` 与 `design-semantics.md`。 |
+| **Usage**（或 **Getting started**） | 安装、一行代码渲染、与框架集成要点。 |
+| **Ecosystem** | 相关工具、后端矩阵、Roadmap；可精简为单页。 |
+| **GitHub** | 源码仓库。 |
+| **Try online** / **Editor** | **直达** 在线 **Editor** 根路由（空白或默认模板）；与 Gallery 内 **「View this example in the online editor」**（带用例上下文）区分。 |
+
+可选：**搜索**、**中 / 英文**（非 MVP 可后做）。
+
+### 7.2 Gallery 页：侧栏 + 主区
 
 ```
-Gallery（建议作为落地页）
-├── 按场景或 generator 浏览
-├── Semantic types（折叠或子页）
-└── 打开 Editor（深链）
+Gallery 路由（/ 或 /gallery）
+├── 顶栏（见 §7.1，全站一致）
+├── 左侧边栏
+│   ├── 按「图表类型」分组（参考 ECharts Examples：Line、Bar、Scatter…；类目映射见第 3 节）
+│   └── [可选] Semantic types 入口（见第 6 节）
+└── 主内容区（与当前实现一致）
+    └── 当前选中类型下的用例列表：标题 + 描述 + TripleChart（或等价）
+        └── 每例标题旁：「View this example in the online editor」→ Editor + 该例载荷
+```
 
-Editor
+- **侧栏**：负责 **「按图表类型找例」**；可保留图标、选中态、与 ECharts 类似的纵向类目列表。  
+- **主区**：**不改为**缩略图-only 的矩阵；延续 **大卡片 + 多后端预览**，以满足「图表展示还是和现在 gallery 一样」的产品要求。  
+- **逐例链接**：文案 **「View this example in the online editor」** 与 Vega-Lite 单例页一致，便于用户迁移习惯；点击跳转 **现有 Editor 界面**（见 §5.4）。
+
+### 7.3 Editor 路由（建议）
+
+```
+/editor（或独立子应用 + 统一域名）
 ├── Flint 输入（JSON）
-├── 生成的 Vega-Lite（只读对照）
+├── 生成的 Vega-Lite（只读对照，见第 4 节）
 └── 预览（主后端 + 多引擎 Tab）
 ```
 
-仓库 README 或 GitHub Pages：**一句话定位 + Gallery / Editor 两个入口按钮**。
+- 从 **顶栏 Try / Editor** 进入：无 `generator` / `case` 参数时加载默认空模板或内置第一个示例。  
+- 从 **Gallery 逐例链接** 进入：携带 §5.4 约定参数，自动填充该用例 `ChartAssemblyInput`。
+
+### 7.4 落地页与仓库入口
+
+- 对外首页或 GitHub Pages：**一句定位 + 顶栏或首屏 CTA** 指向 **Gallery** 与 **Editor**；与 Observable 式双按钮可并存，但 **全局顶栏** 为信息架构主轴。
 
 ---
 
@@ -265,7 +294,7 @@ Editor
 | 阶段 | 交付内容 | 验收要点 |
 |------|----------|----------|
 | **P0** | Editor 左栏：Flint 输入 + 只读生成 VL；Gallery 顶部对比折叠带 | 新用户能在约半分钟内理解「维护单份输入」 |
-| **P1** | Gallery「在 Editor 中打开」与 URL / 存储约定 | 任意展示用例可在 Editor 复现 |
+| **P1** | 全站 **顶栏**（Gallery / Tutorials / Documentation / …）；Gallery **按图表类型侧栏**；主区保持现有卡片 + `TripleChart`；每例标题处 **「View this example in the online editor」** 深链至 Editor 且可复现该例 | 任意展示用例一键进入 Editor 且状态一致 |
 | **P2** | Gallery 主图 + 多引擎 Tab；精选用例的补充说明 | 整体更接近产品站而非内部测试列表 |
 | **P3** | Semantic types 独立短页或小册式滚动区 + 图示 | 清楚区分「统计类型 Q/N/O/T」与 Flint「业务语义类型」的角色 |
 
@@ -281,9 +310,10 @@ Editor
 
 ## 10. 实现阶段可执行项（备忘）
 
-1. `examples/editor`：基于已有 `assembleVegaLite` 结果序列化至只读面板。  
-2. `examples/gallery` 与 `examples/editor`：抽取共享的「打开 Editor」载荷编码（可考虑 `examples/shared` 等小模块）。  
-3. 样式：提取有限 CSS 变量（背景、边框、主色），与 `docs/landing.html` 等品牌触点可选对齐。
+1. `examples/editor`：基于已有 `assembleVegaLite` 结果序列化至只读面板；解析 URL 查询参数或 `sessionStorage` token，**预填**来自 Gallery 的 `ChartAssemblyInput`。  
+2. `examples/gallery`：增加 **全站顶栏** 组件；左侧 **图表类型** 侧栏（数据源：类型 ↔ generator/用例映射）；主区沿用现有卡片结构；每例标题行渲染 **「View this example in the online editor」** 并指向 Editor（开发环境需处理跨端口 URL 或反向代理为同域）。  
+3. `examples/gallery` 与 `examples/editor`：抽取共享的注册表与「打开 Editor」载荷编码（可考虑 `examples/shared` 等小模块）。  
+4. 样式：提取有限 CSS 变量（背景、边框、主色），与 `docs/landing.html` 等品牌触点可选对齐。
 
 ---
 

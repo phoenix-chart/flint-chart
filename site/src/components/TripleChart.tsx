@@ -1,89 +1,88 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { TestCase } from 'flint-chart/test-data';
 import { assembleVegaLite, assembleECharts, assembleChartjs } from 'flint-chart';
 import { VegaLiteView } from './VegaLiteView';
 import { EChartsView } from './EChartsView';
 import { ChartjsView } from './ChartjsView';
+import { testCaseToAssemblyInput } from '../shared/test-case-utils';
+import { siteTheme } from '../shared/theme';
+
+type Backend = 'vegalite' | 'echarts' | 'chartjs';
+
+const BACKEND_LABELS: Record<Backend, string> = {
+  vegalite: 'Vega-Lite',
+  echarts: 'ECharts',
+  chartjs: 'Chart.js',
+};
 
 /**
- * Renders one TestCase across all three backends side-by-side.
- *
- * NOTE: the DF-flavored TestCase carries `encodingMap` keyed by fieldID +
- * an external `fields[]` list. The shim below resolves those into
- * library-flat encodings (channel → { field }). Once we drop DF-shaped
- * TestCase in favor of a leaner gallery-native shape, this shim goes away.
+ * Renders one TestCase with Vega-Lite as the primary preview; other backends
+ * available via tabs (P2 — avoids three-column "test bench" look).
  */
 export function TripleChart({ testCase }: { testCase: TestCase }) {
+  const [backend, setBackend] = useState<Backend>('vegalite');
   const input = useMemo(() => testCaseToAssemblyInput(testCase), [testCase]);
 
-  const vl = useMemo(() => safe(() => assembleVegaLite(input)), [input]);
-  const ec = useMemo(() => safe(() => assembleECharts(input)), [input]);
-  const cj = useMemo(() => safe(() => assembleChartjs(input)), [input]);
+  const compiled = useMemo(() => {
+    try {
+      if (backend === 'vegalite') return { ok: true as const, value: assembleVegaLite(input) };
+      if (backend === 'echarts') return { ok: true as const, value: assembleECharts(input) };
+      return { ok: true as const, value: assembleChartjs(input) };
+    } catch (err) {
+      return { ok: false as const, err };
+    }
+  }, [input, backend]);
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-      <Panel title="Vega-Lite">{vl.ok ? <VegaLiteView spec={vl.value} /> : <Err err={vl.err} />}</Panel>
-      <Panel title="ECharts">{ec.ok ? <EChartsView option={ec.value} /> : <Err err={ec.err} />}</Panel>
-      <Panel title="Chart.js">{cj.ok ? <ChartjsView config={cj.value} /> : <Err err={cj.err} />}</Panel>
+    <div>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+        {(['vegalite', 'echarts', 'chartjs'] as Backend[]).map((b) => (
+          <button
+            key={b}
+            type="button"
+            onClick={() => setBackend(b)}
+            style={{
+              padding: '3px 10px',
+              fontSize: 11,
+              border: `1px solid ${siteTheme.borderMuted}`,
+              borderRadius: 4,
+              background: backend === b ? siteTheme.accentBg : siteTheme.surface,
+              color: backend === b ? siteTheme.accent : siteTheme.textMuted,
+              cursor: 'pointer',
+              fontWeight: backend === b ? 600 : 400,
+            }}
+          >
+            {BACKEND_LABELS[b]}
+          </button>
+        ))}
+        {backend !== 'vegalite' && (
+          <span style={{ fontSize: 11, color: siteTheme.textMuted, alignSelf: 'center', marginLeft: 4 }}>
+            other engines
+          </span>
+        )}
+      </div>
+
+      <div
+        style={{
+          border: `1px solid ${siteTheme.border}`,
+          borderRadius: siteTheme.radius,
+          padding: 12,
+          background: siteTheme.surface,
+          minHeight: 280,
+        }}
+      >
+        {compiled.ok ? (
+          <>
+            {backend === 'vegalite' && <VegaLiteView spec={compiled.value} />}
+            {backend === 'echarts' && <EChartsView option={compiled.value} height={320} />}
+            {backend === 'chartjs' && <ChartjsView config={compiled.value} height={320} />}
+          </>
+        ) : (
+          <pre style={{ color: siteTheme.error, fontSize: 11, whiteSpace: 'pre-wrap', margin: 0 }}>
+            {String((compiled.err as Error)?.message ?? compiled.err)}
+          </pre>
+        )}
+      </div>
     </div>
   );
-}
-
-function Panel({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div style={{ border: '1px solid #eaeef2', borderRadius: 4, padding: 8 }}>
-      <div style={{ fontSize: 11, color: '#57606a', marginBottom: 4 }}>{title}</div>
-      {children}
-    </div>
-  );
-}
-
-function Err({ err }: { err: unknown }) {
-  return (
-    <pre style={{ color: '#cf222e', fontSize: 11, whiteSpace: 'pre-wrap', margin: 0 }}>
-      {String((err as Error)?.message ?? err)}
-    </pre>
-  );
-}
-
-function safe<T>(fn: () => T): { ok: true; value: T } | { ok: false; err: unknown } {
-  try {
-    return { ok: true, value: fn() };
-  } catch (err) {
-    return { ok: false, err };
-  }
-}
-
-// ---- TestCase → ChartAssemblyInput shim ------------------------------------
-
-function testCaseToAssemblyInput(t: TestCase) {
-  const idToName = new Map(t.fields.map((f) => [f.id, f.name]));
-  const encodings: Record<string, any> = {};
-  for (const [channel, e] of Object.entries(t.encodingMap)) {
-    if (!e?.fieldID) continue;
-    const field = idToName.get(e.fieldID) ?? e.fieldID;
-    encodings[channel] = {
-      field,
-      type: e.dtype,
-      aggregate: e.aggregate,
-      sortOrder: e.sortOrder,
-      sortBy: e.sortBy,
-      scheme: e.scheme,
-    };
-  }
-  const semantic_types: Record<string, string> = {};
-  for (const [k, m] of Object.entries(t.metadata)) semantic_types[k] = m.semanticType;
-
-  return {
-    data: { values: t.data },
-    semantic_types,
-    chart_spec: {
-      chartType: t.chartType,
-      encodings,
-      canvasSize: { width: 360, height: 240 },
-      chartProperties: t.chartProperties,
-    },
-    options: t.assembleOptions,
-    semantic_annotations: t.semanticAnnotations,
-  } as any;
 }

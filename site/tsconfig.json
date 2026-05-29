@@ -16,5 +16,5 @@
       "flint-chart/*": ["../src/*"]
     }
   },
-  "include": ["src", "vite.config.ts"]
+  "include": ["src"]
 }

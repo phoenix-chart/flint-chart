@@ -1,23 +1,55 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
 import { json } from '@codemirror/lang-json';
+import { EditorView } from '@codemirror/view';
 import { assembleVegaLite, assembleECharts, assembleChartjs } from 'flint-chart';
 import { SiteShell } from '../components/SiteShell';
 import { VegaLiteView } from '../components/VegaLiteView';
 import { EChartsView } from '../components/EChartsView';
 import { ChartjsView } from '../components/ChartjsView';
 import { EXAMPLES } from './editor-examples';
+import { loadEditorPayload, readEditorCaseParam, readGalleryCaseParams } from '../shared/editor-payload';
+import { testCaseToAssemblyInput } from '../shared/test-case-utils';
+import { TEST_GENERATORS } from 'flint-chart/test-data';
+import { siteTheme } from '../shared/theme';
 
 type Backend = 'vegalite' | 'echarts' | 'chartjs';
 
+const readOnlyTheme = EditorView.theme({
+  '&': { backgroundColor: '#f6f8fa' },
+  '.cm-content': { caretColor: 'transparent' },
+  '&.cm-focused .cm-cursor': { display: 'none' },
+});
+
 /**
- * Live editor — JSON ChartAssemblyInput on the left, rendered backend on the
- * right (toggle between Vega-Lite / ECharts / Chart.js, optional compiled spec).
+ * Live editor — left column: editable Flint input (top) + read-only compiled
+ * Vega-Lite (bottom); right column: backend preview with multi-engine tabs.
  */
 export function Editor() {
   const [text, setText] = useState<string>(JSON.stringify(EXAMPLES[0].input, null, 2));
   const [backend, setBackend] = useState<Backend>('vegalite');
-  const [showSpec, setShowSpec] = useState(false);
+  const [loadedFromGallery, setLoadedFromGallery] = useState(false);
+
+  useEffect(() => {
+    const galleryCase = readGalleryCaseParams();
+    if (galleryCase) {
+      const gen = TEST_GENERATORS[galleryCase.generator];
+      const testCase = gen?.()[galleryCase.index];
+      if (testCase) {
+        setText(JSON.stringify(testCaseToAssemblyInput(testCase), null, 2));
+        setLoadedFromGallery(true);
+        return;
+      }
+    }
+
+    const caseId = readEditorCaseParam();
+    if (!caseId) return;
+    const payload = loadEditorPayload(caseId);
+    if (payload) {
+      setText(JSON.stringify(payload, null, 2));
+      setLoadedFromGallery(true);
+    }
+  }, []);
 
   const parsed = useMemo(() => {
     try {
@@ -27,7 +59,24 @@ export function Editor() {
     }
   }, [text]);
 
-  const compiled = useMemo(() => {
+  const vlCompiled = useMemo(() => {
+    if (!parsed.ok) return { ok: false as const, err: parsed.err };
+    try {
+      return { ok: true as const, value: assembleVegaLite(parsed.value) };
+    } catch (err) {
+      return { ok: false as const, err };
+    }
+  }, [parsed]);
+
+  const vlText = useMemo(() => {
+    if (!vlCompiled.ok) {
+      const msg = String((vlCompiled.err as Error)?.message ?? vlCompiled.err);
+      return `// Compile error:\n// ${msg}`;
+    }
+    return JSON.stringify(vlCompiled.value, null, 2);
+  }, [vlCompiled]);
+
+  const previewCompiled = useMemo(() => {
     if (!parsed.ok) return { ok: false as const, err: parsed.err };
     try {
       const input = parsed.value;
@@ -40,116 +89,211 @@ export function Editor() {
   }, [parsed, backend]);
 
   return (
-    <SiteShell title="Editor">
+    <SiteShell>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', flex: 1, minHeight: 0 }}>
-        {/* ──────────────── editor pane ──────────────── */}
-        <section style={{ display: 'flex', flexDirection: 'column', borderRight: '1px solid #e1e4e8' }}>
-          <header
-            style={{
-              padding: '8px 12px',
-              borderBottom: '1px solid #e1e4e8',
-              background: '#fff',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-            }}
-          >
-            <span style={{ color: '#57606a' }}>example:</span>
-            <select
-              onChange={(e) => {
-                const ex = EXAMPLES.find((x) => x.name === e.target.value);
-                if (ex) setText(JSON.stringify(ex.input, null, 2));
-              }}
-              defaultValue={EXAMPLES[0].name}
-            >
-              {EXAMPLES.map((ex) => (
-                <option key={ex.name} value={ex.name}>
-                  {ex.name}
-                </option>
-              ))}
-            </select>
-          </header>
-          <CodeMirror
-            value={text}
-            height="100%"
-            style={{ flex: 1, overflow: 'auto', fontSize: 13 }}
-            extensions={[json()]}
+        {/* ── left: Flint input + Vega-Lite output ── */}
+        <section
+          style={{
+            display: 'grid',
+            gridTemplateRows: '1fr 1fr',
+            borderRight: `1px solid ${siteTheme.border}`,
+            minHeight: 0,
+          }}
+        >
+          <InputPane
+            label="Flint input"
+            hint="data · semantic_types · chart_spec"
+            loadedFromGallery={loadedFromGallery}
+            text={text}
             onChange={setText}
+            parseError={!parsed.ok ? String((parsed.err as Error).message) : null}
+            examples={EXAMPLES}
+            onSelectExample={(input) => {
+              setText(JSON.stringify(input, null, 2));
+              setLoadedFromGallery(false);
+            }}
           />
-          {!parsed.ok && (
-            <pre style={{ color: '#cf222e', margin: 0, padding: 8, borderTop: '1px solid #e1e4e8' }}>
-              JSON error: {String((parsed.err as Error).message)}
-            </pre>
-          )}
+
+          <OutputPane
+            label="Vega-Lite output (generated by Flint)"
+            text={vlText}
+            compileError={!vlCompiled.ok ? String((vlCompiled.err as Error)?.message ?? vlCompiled.err) : null}
+          />
         </section>
 
-        {/* ──────────────── render pane ──────────────── */}
-        <section style={{ display: 'flex', flexDirection: 'column' }}>
+        {/* ── right: preview ── */}
+        <section style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           <header
             style={{
               padding: '8px 12px',
-              borderBottom: '1px solid #e1e4e8',
-              background: '#fff',
+              borderBottom: `1px solid ${siteTheme.border}`,
+              background: siteTheme.surface,
               display: 'flex',
               gap: 8,
+              alignItems: 'center',
             }}
           >
+            <span style={{ fontSize: 12, color: siteTheme.textMuted, marginRight: 4 }}>Preview</span>
             {(['vegalite', 'echarts', 'chartjs'] as Backend[]).map((b) => (
               <button
                 key={b}
+                type="button"
                 onClick={() => setBackend(b)}
                 style={{
                   padding: '4px 10px',
-                  border: '1px solid #d0d7de',
+                  border: `1px solid ${siteTheme.borderMuted}`,
                   borderRadius: 4,
-                  background: backend === b ? '#0969da' : '#fff',
-                  color: backend === b ? '#fff' : '#1f2328',
+                  background: backend === b ? siteTheme.accent : siteTheme.surface,
+                  color: backend === b ? '#fff' : siteTheme.text,
                   cursor: 'pointer',
+                  fontSize: 12,
                 }}
               >
-                {b}
+                {b === 'vegalite' ? 'Vega-Lite' : b === 'echarts' ? 'ECharts' : 'Chart.js'}
               </button>
             ))}
-            <span style={{ flex: 1 }} />
-            <label style={{ fontSize: 12 }}>
-              <input
-                type="checkbox"
-                checked={showSpec}
-                onChange={(e) => setShowSpec(e.target.checked)}
-              />{' '}
-              show compiled spec
-            </label>
           </header>
 
-          <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
-            {compiled.ok ? (
+          <div style={{ flex: 1, overflow: 'auto', padding: 16, background: siteTheme.surface }}>
+            {previewCompiled.ok ? (
               <>
-                {backend === 'vegalite' && <VegaLiteView spec={compiled.value} />}
-                {backend === 'echarts' && <EChartsView option={compiled.value} height={360} />}
-                {backend === 'chartjs' && <ChartjsView config={compiled.value} height={360} />}
-                {showSpec && (
-                  <pre
-                    style={{
-                      marginTop: 16,
-                      padding: 12,
-                      background: '#f6f8fa',
-                      borderRadius: 4,
-                      overflow: 'auto',
-                      fontSize: 11,
-                    }}
-                  >
-                    {JSON.stringify(compiled.value, null, 2)}
-                  </pre>
-                )}
+                {backend === 'vegalite' && <VegaLiteView spec={previewCompiled.value} />}
+                {backend === 'echarts' && <EChartsView option={previewCompiled.value} height={400} />}
+                {backend === 'chartjs' && <ChartjsView config={previewCompiled.value} height={400} />}
               </>
             ) : (
-              <pre style={{ color: '#cf222e' }}>
-                Compile error: {String((compiled.err as Error)?.message ?? compiled.err)}
+              <pre style={{ color: siteTheme.error, fontSize: 13, whiteSpace: 'pre-wrap' }}>
+                Compile error: {String((previewCompiled.err as Error)?.message ?? previewCompiled.err)}
               </pre>
             )}
           </div>
         </section>
       </div>
     </SiteShell>
+  );
+}
+
+function InputPane({
+  label,
+  hint,
+  text,
+  onChange,
+  parseError,
+  examples,
+  onSelectExample,
+  loadedFromGallery,
+}: {
+  label: string;
+  hint: string;
+  text: string;
+  onChange: (v: string) => void;
+  parseError: string | null;
+  examples: typeof EXAMPLES;
+  onSelectExample: (input: unknown) => void;
+  loadedFromGallery: boolean;
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, borderBottom: `1px solid ${siteTheme.border}` }}>
+      <PaneHeader label={label} hint={hint}>
+        {loadedFromGallery ? (
+          <span style={{ fontSize: 11, color: siteTheme.accent }}>loaded from Gallery</span>
+        ) : (
+          <>
+            <span style={{ color: siteTheme.textMuted, fontSize: 12 }}>example:</span>
+            <select
+              style={{ fontSize: 12 }}
+              onChange={(e) => {
+                const ex = examples.find((x) => x.name === e.target.value);
+                if (ex) onSelectExample(ex.input);
+              }}
+              defaultValue={examples[0].name}
+            >
+              {examples.map((ex) => (
+                <option key={ex.name} value={ex.name}>
+                  {ex.name}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
+      </PaneHeader>
+      <CodeMirror
+        value={text}
+        height="100%"
+        style={{ flex: 1, overflow: 'auto', fontSize: 12, fontFamily: siteTheme.fontMono }}
+        extensions={[json()]}
+        onChange={onChange}
+      />
+      {parseError && (
+        <pre
+          style={{
+            color: siteTheme.error,
+            margin: 0,
+            padding: 8,
+            borderTop: `1px solid ${siteTheme.border}`,
+            fontSize: 11,
+          }}
+        >
+          JSON error: {parseError}
+        </pre>
+      )}
+    </div>
+  );
+}
+
+function OutputPane({
+  label,
+  text,
+  compileError,
+}: {
+  label: string;
+  text: string;
+  compileError: string | null;
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+      <PaneHeader label={label} hint="read-only · auto-updated">
+        {compileError && (
+          <span style={{ fontSize: 11, color: siteTheme.error }}>{compileError}</span>
+        )}
+      </PaneHeader>
+      <CodeMirror
+        value={text}
+        height="100%"
+        style={{ flex: 1, overflow: 'auto', fontSize: 12, fontFamily: siteTheme.fontMono }}
+        extensions={[json(), EditorView.editable.of(false), readOnlyTheme]}
+        editable={false}
+      />
+    </div>
+  );
+}
+
+function PaneHeader({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <header
+      style={{
+        padding: '8px 12px',
+        borderBottom: `1px solid ${siteTheme.border}`,
+        background: siteTheme.surface,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        flexShrink: 0,
+      }}
+    >
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 13, fontWeight: 600 }}>{label}</div>
+        <div style={{ fontSize: 11, color: siteTheme.textMuted }}>{hint}</div>
+      </div>
+      {children}
+    </header>
   );
 }

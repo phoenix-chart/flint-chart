@@ -1,60 +1,123 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { GITHUB_REPO, siteTheme } from '../shared/theme';
 
 /**
- * Shared chrome for non-landing routes: a slim top bar with nav back to
- * landing + cross-links, and the required Microsoft disclosures footer.
+ * Shared chrome: Vega-Lite-style top nav + page body + Microsoft disclosures.
  */
-export function SiteShell({ title, children }: { title: string; children: ReactNode }) {
+export function SiteShell({ children }: { children: ReactNode }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <NavBar title={title} />
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh',
+        fontFamily: siteTheme.fontSans,
+        color: siteTheme.text,
+        background: siteTheme.bg,
+      }}
+    >
+      <SiteNavBar />
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>{children}</div>
       <MicrosoftDisclosures />
     </div>
   );
 }
 
-function NavBar({ title }: { title: string }) {
-  const linkStyle: CSSProperties = {
-    color: '#57606a',
-    textDecoration: 'none',
-    fontSize: 13,
-  };
+export function SiteNavBar() {
+  const { pathname } = useLocation();
+
   return (
     <header
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 16,
-        padding: '8px 16px',
-        background: '#fff',
-        borderBottom: '1px solid #e1e4e8',
+        gap: 20,
+        padding: '0 20px',
+        height: 48,
+        background: siteTheme.surface,
+        borderBottom: `1px solid ${siteTheme.border}`,
+        flexShrink: 0,
       }}
     >
-      <Link to="/" style={{ ...linkStyle, fontWeight: 600, color: '#1f2328' }}>
+      <Link to="/" style={brandStyle}>
         flint-chart
       </Link>
-      <span style={{ color: '#d0d7de' }}>·</span>
-      <span style={{ fontSize: 13, color: '#1f2328' }}>{title}</span>
-      <span style={{ flex: 1 }} />
-      <Link to="/gallery" style={linkStyle}>
-        Gallery
-      </Link>
-      <Link to="/editor" style={linkStyle}>
-        Editor
-      </Link>
-      <a
-        href="https://github.com/microsoft/flint-chart"
-        style={linkStyle}
-        target="_blank"
-        rel="noreferrer"
-      >
-        GitHub
-      </a>
+
+      <nav style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1 }}>
+        <NavLink to="/gallery" active={pathname === '/gallery'}>
+          Gallery
+        </NavLink>
+        <NavLink to="/tutorials/quick-start" active={pathname.startsWith('/tutorials')}>
+          Tutorials
+        </NavLink>
+        <NavLink to="/documentation/overview" active={pathname.startsWith('/documentation')}>
+          Documentation
+        </NavLink>
+        {/* <NavLink to="/tutorials/quick-start" active={pathname === '/tutorials/quick-start'}>
+          Usage
+        </NavLink>
+        <NavLinkExternal href={`${GITHUB_REPO}#ecosystem`} label="Ecosystem" /> */}
+      </nav>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <a href={GITHUB_REPO} style={navLinkStyle} target="_blank" rel="noreferrer">
+          GitHub
+        </a>
+        <Link
+          to="/editor"
+          style={{
+            ...navLinkStyle,
+            padding: '4px 12px',
+            background: siteTheme.accent,
+            color: '#fff',
+            borderRadius: siteTheme.radius,
+            fontWeight: 500,
+          }}
+        >
+          Try online
+        </Link>
+      </div>
     </header>
   );
 }
+
+function NavLink({ to, active, children }: { to: string; active: boolean; children: ReactNode }) {
+  return (
+    <Link
+      to={to}
+      style={{
+        ...navLinkStyle,
+        color: active ? siteTheme.accent : siteTheme.textMuted,
+        fontWeight: active ? 600 : 400,
+      }}
+    >
+      {children}
+    </Link>
+  );
+}
+
+function NavLinkExternal({ href, label }: { href: string; label: string }) {
+  return (
+    <a href={href} style={navLinkStyle} target="_blank" rel="noreferrer">
+      {label}
+    </a>
+  );
+}
+
+const brandStyle: CSSProperties = {
+  color: siteTheme.text,
+  textDecoration: 'none',
+  fontWeight: 700,
+  fontSize: 15,
+  letterSpacing: '-0.01em',
+};
+
+const navLinkStyle: CSSProperties = {
+  color: siteTheme.textMuted,
+  textDecoration: 'none',
+  fontSize: 13,
+};
 
 /**
  * Required Microsoft site disclosures.
@@ -64,7 +127,7 @@ function NavBar({ title }: { title: string }) {
  */
 export function MicrosoftDisclosures() {
   const linkStyle: CSSProperties = {
-    color: '#57606a',
+    color: siteTheme.textMuted,
     textDecoration: 'none',
     marginRight: 12,
   };
@@ -72,14 +135,15 @@ export function MicrosoftDisclosures() {
     <footer
       style={{
         padding: '6px 12px',
-        borderTop: '1px solid #e1e4e8',
-        background: '#fff',
-        color: '#57606a',
+        borderTop: `1px solid ${siteTheme.border}`,
+        background: siteTheme.surface,
+        color: siteTheme.textMuted,
         fontSize: 11,
         display: 'flex',
         flexWrap: 'wrap',
         alignItems: 'center',
         gap: 4,
+        flexShrink: 0,
       }}
     >
       <span style={{ marginRight: 12 }}>© 2026 Microsoft</span>

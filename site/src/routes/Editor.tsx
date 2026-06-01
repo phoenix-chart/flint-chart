@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import CodeMirror from '@uiw/react-codemirror';
-import { json } from '@codemirror/lang-json';
-import { EditorView } from '@codemirror/view';
 import { assembleVegaLite, assembleECharts, assembleChartjs } from 'flint-chart';
 import { SiteShell } from '../components/SiteShell';
+import { JsonCodeMirror } from '../components/JsonCodeMirror';
+import { ResizeSplit } from '../components/ResizeSplit';
 import { VegaLiteView } from '../components/VegaLiteView';
 import { EChartsView } from '../components/EChartsView';
 import { ChartjsView } from '../components/ChartjsView';
@@ -15,20 +14,33 @@ import { siteTheme } from '../shared/theme';
 
 type Backend = 'vegalite' | 'echarts' | 'chartjs';
 
-const readOnlyTheme = EditorView.theme({
-  '&': { backgroundColor: '#f6f8fa' },
-  '.cm-content': { caretColor: 'transparent' },
-  '&.cm-focused .cm-cursor': { display: 'none' },
-});
+const BACKENDS: Backend[] = ['vegalite', 'echarts', 'chartjs'];
+
+const BACKEND_LABELS: Record<Backend, string> = {
+  vegalite: 'Vega-Lite',
+  echarts: 'ECharts',
+  chartjs: 'Chart.js',
+};
+
+type CompileResult<T> = { ok: true; value: T } | { ok: false; err: unknown };
+
+function compile<T>(fn: () => T): CompileResult<T> {
+  try {
+    return { ok: true, value: fn() };
+  } catch (err) {
+    return { ok: false, err };
+  }
+}
 
 /**
- * Live editor — left column: editable Flint input (top) + read-only compiled
- * Vega-Lite (bottom); right column: backend preview with multi-engine tabs.
+ * Live editor — left: Flint input; right top: chart preview; right bottom:
+ * compiled spec for the backend selected in Preview tabs.
  */
 export function Editor() {
   const [text, setText] = useState<string>(JSON.stringify(EXAMPLES[0].input, null, 2));
   const [backend, setBackend] = useState<Backend>('vegalite');
   const [loadedFromGallery, setLoadedFromGallery] = useState(false);
+  const [inputFoldKey, setInputFoldKey] = useState(0);
 
   useEffect(() => {
     const galleryCase = readGalleryCaseParams();
@@ -38,6 +50,7 @@ export function Editor() {
       if (testCase) {
         setText(JSON.stringify(testCaseToAssemblyInput(testCase), null, 2));
         setLoadedFromGallery(true);
+        setInputFoldKey((k) => k + 1);
         return;
       }
     }
@@ -48,6 +61,7 @@ export function Editor() {
     if (payload) {
       setText(JSON.stringify(payload, null, 2));
       setLoadedFromGallery(true);
+      setInputFoldKey((k) => k + 1);
     }
   }, []);
 
@@ -59,47 +73,45 @@ export function Editor() {
     }
   }, [text]);
 
-  const vlCompiled = useMemo(() => {
+  const compiledByBackend = useMemo(() => {
     if (!parsed.ok) return { ok: false as const, err: parsed.err };
-    try {
-      return { ok: true as const, value: assembleVegaLite(parsed.value) };
-    } catch (err) {
-      return { ok: false as const, err };
-    }
+    const input = parsed.value;
+    return {
+      ok: true as const,
+      value: {
+        vegalite: compile(() => assembleVegaLite(input)),
+        echarts: compile(() => assembleECharts(input)),
+        chartjs: compile(() => assembleChartjs(input)),
+      },
+    };
   }, [parsed]);
 
-  const vlText = useMemo(() => {
-    if (!vlCompiled.ok) {
-      const msg = String((vlCompiled.err as Error)?.message ?? vlCompiled.err);
-      return `// Compile error:\n// ${msg}`;
-    }
-    return JSON.stringify(vlCompiled.value, null, 2);
-  }, [vlCompiled]);
+  const activeCompiled = compiledByBackend.ok ? compiledByBackend.value[backend] : null;
 
-  const previewCompiled = useMemo(() => {
-    if (!parsed.ok) return { ok: false as const, err: parsed.err };
-    try {
-      const input = parsed.value;
-      if (backend === 'vegalite') return { ok: true as const, value: assembleVegaLite(input) };
-      if (backend === 'echarts') return { ok: true as const, value: assembleECharts(input) };
-      return { ok: true as const, value: assembleChartjs(input) };
-    } catch (err) {
-      return { ok: false as const, err };
+  const backendCodeText = useMemo(() => {
+    if (!parsed.ok) {
+      return `// JSON parse error:\n// ${String((parsed.err as Error).message)}`;
     }
-  }, [parsed, backend]);
+    if (!compiledByBackend.ok) {
+      return `// Compile error:\n// ${String((compiledByBackend.err as Error)?.message ?? compiledByBackend.err)}`;
+    }
+    const result = compiledByBackend.value[backend];
+    if (!result.ok) {
+      return `// ${BACKEND_LABELS[backend]} compile error:\n// ${String((result.err as Error)?.message ?? result.err)}`;
+    }
+    return JSON.stringify(result.value, null, 2);
+  }, [parsed, compiledByBackend, backend]);
+
+  const codeFoldKey = `${backend}:${backendCodeText}`;
 
   return (
     <SiteShell>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', flex: 1, minHeight: 0 }}>
-        {/* ── left: Flint input + Vega-Lite output ── */}
-        <section
-          style={{
-            display: 'grid',
-            gridTemplateRows: '1fr 1fr',
-            borderRight: `1px solid ${siteTheme.border}`,
-            minHeight: 0,
-          }}
-        >
+      <ResizeSplit
+        direction="horizontal"
+        initialRatio={42}
+        storageKey="flint-editor-split-h"
+      >
+        <section style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
           <InputPane
             label="Flint input"
             hint="data · semantic_types · chart_spec"
@@ -111,64 +123,36 @@ export function Editor() {
             onSelectExample={(input) => {
               setText(JSON.stringify(input, null, 2));
               setLoadedFromGallery(false);
+              setInputFoldKey((k) => k + 1);
             }}
+            foldKey={inputFoldKey}
+          />
+        </section>
+
+        <ResizeSplit
+          direction="vertical"
+          initialRatio={52}
+          storageKey="flint-editor-split-v"
+        >
+          <PreviewPane
+            backend={backend}
+            onBackendChange={setBackend}
+            parsed={parsed}
+            compiled={activeCompiled}
           />
 
           <OutputPane
-            label="Vega-Lite output (generated by Flint)"
-            text={vlText}
-            compileError={!vlCompiled.ok ? String((vlCompiled.err as Error)?.message ?? vlCompiled.err) : null}
+            label={`${BACKEND_LABELS[backend]} output (generated by Flint)`}
+            text={backendCodeText}
+            foldKey={codeFoldKey}
+            compileError={
+              activeCompiled && !activeCompiled.ok
+                ? String((activeCompiled.err as Error)?.message ?? activeCompiled.err)
+                : null
+            }
           />
-        </section>
-
-        {/* ── right: preview ── */}
-        <section style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-          <header
-            style={{
-              padding: '8px 12px',
-              borderBottom: `1px solid ${siteTheme.border}`,
-              background: siteTheme.surface,
-              display: 'flex',
-              gap: 8,
-              alignItems: 'center',
-            }}
-          >
-            <span style={{ fontSize: 12, color: siteTheme.textMuted, marginRight: 4 }}>Preview</span>
-            {(['vegalite', 'echarts', 'chartjs'] as Backend[]).map((b) => (
-              <button
-                key={b}
-                type="button"
-                onClick={() => setBackend(b)}
-                style={{
-                  padding: '4px 10px',
-                  border: `1px solid ${siteTheme.borderMuted}`,
-                  borderRadius: 4,
-                  background: backend === b ? siteTheme.accent : siteTheme.surface,
-                  color: backend === b ? '#fff' : siteTheme.text,
-                  cursor: 'pointer',
-                  fontSize: 12,
-                }}
-              >
-                {b === 'vegalite' ? 'Vega-Lite' : b === 'echarts' ? 'ECharts' : 'Chart.js'}
-              </button>
-            ))}
-          </header>
-
-          <div style={{ flex: 1, overflow: 'auto', padding: 16, background: siteTheme.surface }}>
-            {previewCompiled.ok ? (
-              <>
-                {backend === 'vegalite' && <VegaLiteView spec={previewCompiled.value} />}
-                {backend === 'echarts' && <EChartsView option={previewCompiled.value} height={400} />}
-                {backend === 'chartjs' && <ChartjsView config={previewCompiled.value} height={400} />}
-              </>
-            ) : (
-              <pre style={{ color: siteTheme.error, fontSize: 13, whiteSpace: 'pre-wrap' }}>
-                Compile error: {String((previewCompiled.err as Error)?.message ?? previewCompiled.err)}
-              </pre>
-            )}
-          </div>
-        </section>
-      </div>
+        </ResizeSplit>
+      </ResizeSplit>
     </SiteShell>
   );
 }
@@ -182,6 +166,7 @@ function InputPane({
   examples,
   onSelectExample,
   loadedFromGallery,
+  foldKey,
 }: {
   label: string;
   hint: string;
@@ -191,9 +176,10 @@ function InputPane({
   examples: typeof EXAMPLES;
   onSelectExample: (input: unknown) => void;
   loadedFromGallery: boolean;
+  foldKey: number;
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, borderBottom: `1px solid ${siteTheme.border}` }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
       <PaneHeader label={label} hint={hint}>
         {loadedFromGallery ? (
           <span style={{ fontSize: 11, color: siteTheme.accent }}>loaded from Gallery</span>
@@ -217,13 +203,7 @@ function InputPane({
           </>
         )}
       </PaneHeader>
-      <CodeMirror
-        value={text}
-        height="100%"
-        style={{ flex: 1, overflow: 'auto', fontSize: 12, fontFamily: siteTheme.fontMono }}
-        extensions={[json()]}
-        onChange={onChange}
-      />
+      <JsonCodeMirror value={text} onChange={onChange} foldKey={foldKey} />
       {parseError && (
         <pre
           style={{
@@ -241,29 +221,91 @@ function InputPane({
   );
 }
 
+function PreviewPane({
+  backend,
+  onBackendChange,
+  parsed,
+  compiled,
+}: {
+  backend: Backend;
+  onBackendChange: (b: Backend) => void;
+  parsed: { ok: true; value: unknown } | { ok: false; err: unknown };
+  compiled: CompileResult<unknown> | null;
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
+      <header
+        style={{
+          padding: '8px 12px',
+          borderBottom: `1px solid ${siteTheme.border}`,
+          background: siteTheme.surface,
+          display: 'flex',
+          gap: 8,
+          alignItems: 'center',
+          flexShrink: 0,
+        }}
+      >
+        <span style={{ fontSize: 12, color: siteTheme.textMuted, marginRight: 4 }}>Preview</span>
+        {BACKENDS.map((b) => (
+          <button
+            key={b}
+            type="button"
+            onClick={() => onBackendChange(b)}
+            style={{
+              padding: '4px 10px',
+              border: `1px solid ${siteTheme.borderMuted}`,
+              borderRadius: 4,
+              background: backend === b ? siteTheme.accent : siteTheme.surface,
+              color: backend === b ? '#fff' : siteTheme.text,
+              cursor: 'pointer',
+              fontSize: 12,
+            }}
+          >
+            {BACKEND_LABELS[b]}
+          </button>
+        ))}
+      </header>
+
+      <div style={{ flex: 1, overflow: 'auto', padding: 16, background: siteTheme.surface }}>
+        {!parsed.ok ? (
+          <pre style={{ color: siteTheme.error, fontSize: 13, whiteSpace: 'pre-wrap', margin: 0 }}>
+            JSON error: {String((parsed.err as Error).message)}
+          </pre>
+        ) : compiled?.ok ? (
+          <>
+            {backend === 'vegalite' && <VegaLiteView spec={compiled.value} />}
+            {backend === 'echarts' && <EChartsView option={compiled.value} height={320} />}
+            {backend === 'chartjs' && <ChartjsView config={compiled.value} height={320} />}
+          </>
+        ) : (
+          <pre style={{ color: siteTheme.error, fontSize: 13, whiteSpace: 'pre-wrap', margin: 0 }}>
+            Compile error: {String((compiled?.err as Error)?.message ?? compiled?.err ?? 'Unknown error')}
+          </pre>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function OutputPane({
   label,
   text,
   compileError,
+  foldKey,
 }: {
   label: string;
   text: string;
   compileError: string | null;
+  foldKey: string;
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-      <PaneHeader label={label} hint="read-only · auto-updated">
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
+      <PaneHeader label={label} hint="read-only · follows Preview tab">
         {compileError && (
           <span style={{ fontSize: 11, color: siteTheme.error }}>{compileError}</span>
         )}
       </PaneHeader>
-      <CodeMirror
-        value={text}
-        height="100%"
-        style={{ flex: 1, overflow: 'auto', fontSize: 12, fontFamily: siteTheme.fontMono }}
-        extensions={[json(), EditorView.editable.of(false), readOnlyTheme]}
-        editable={false}
-      />
+      <JsonCodeMirror value={text} readOnly foldKey={foldKey} />
     </div>
   );
 }

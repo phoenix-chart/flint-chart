@@ -205,8 +205,9 @@ export const ecLineChartDef: ChartTemplateDef = {
             option.series.push({
                 type: 'line',
                 data: lineData,
-                itemStyle: { color: '#cccccc' },
-                lineStyle: { color: '#cccccc' },
+                z: 1,
+                itemStyle: { color: '#888888' },
+                lineStyle: { color: '#888888' },
                 showSymbol: false,
                 symbol: 'none',
                 ...(smooth ? { smooth: true } : {}),
@@ -215,6 +216,7 @@ export const ecLineChartDef: ChartTemplateDef = {
             option.series.push({
                 type: 'scatter',
                 data: pointData,
+                z: 2,
                 symbol: 'circle',
                 symbolSize: 7,
                 itemStyle: { opacity: 1 },

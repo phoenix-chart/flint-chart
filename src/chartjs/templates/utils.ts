@@ -216,6 +216,51 @@ export function detectAxes(
 }
 
 /**
+ * Map a numeric value into a sequential palette (for continuous color channels).
+ */
+export function interpolateSequentialColor(
+    value: number,
+    min: number,
+    max: number,
+    palette: string[],
+): string {
+    if (!palette.length) return '#74c476';
+    if (!Number.isFinite(value)) return palette[0];
+    if (max <= min) return palette[palette.length - 1];
+
+    const t = Math.max(0, Math.min(1, (value - min) / (max - min)));
+    const pos = t * (palette.length - 1);
+    const i0 = Math.floor(pos);
+    const i1 = Math.min(palette.length - 1, i0 + 1);
+    const f = pos - i0;
+
+    const c0 = hexToRgb(palette[i0]) ?? { r: 116, g: 196, b: 118 };
+    const c1 = hexToRgb(palette[i1]) ?? c0;
+    const r = Math.round(c0.r + (c1.r - c0.r) * f);
+    const g = Math.round(c0.g + (c1.g - c0.g) * f);
+    const b = Math.round(c0.b + (c1.b - c0.b) * f);
+    return `rgb(${r}, ${g}, ${b})`;
+}
+
+/** Sort rows by a field (temporal dates or comparable values). */
+export function sortRowsByField(
+    table: any[],
+    field: string,
+    fieldType: string | undefined,
+): any[] {
+    const temporal = fieldType === 'temporal';
+    return [...table].sort((a, b) => {
+        const av = a[field];
+        const bv = b[field];
+        if (temporal) return new Date(av).getTime() - new Date(bv).getTime();
+        const na = Number(av);
+        const nb = Number(bv);
+        if (!isNaN(na) && !isNaN(nb) && Number.isFinite(na) && Number.isFinite(nb)) return na - nb;
+        return String(av).localeCompare(String(bv));
+    });
+}
+
+/**
  * Build category-aligned data array for a subset of rows.
  * Returns values indexed by category position (null for missing).
  */

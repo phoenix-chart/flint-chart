@@ -52,4 +52,60 @@ describe('public API smoke', () => {
     const spec = assembleGoFish(INPUT) as any;
     expect(spec).toBeDefined();
   });
+
+  it('line chart with quantitative color uses gray line + colored points layer', () => {
+    const spec = assembleVegaLite({
+      data: {
+        values: [
+          { Date: '2019-12-31', Value: 117, ColorVal: 2.4 },
+          { Date: '2020-02-05', Value: 109, ColorVal: 1.9 },
+        ],
+      },
+      semantic_types: { Date: 'Date', Value: 'Quantity', ColorVal: 'Quantity' },
+      chart_spec: {
+        chartType: 'Line Chart',
+        encodings: {
+          x: { field: 'Date' },
+          y: { field: 'Value' },
+          color: { field: 'ColorVal' },
+        },
+        canvasSize: { width: 480, height: 320 },
+      },
+    }) as any;
+
+    expect(spec.layer).toHaveLength(2);
+    expect(spec.layer[0].mark.type ?? spec.layer[0].mark).toBe('line');
+    expect(spec.layer[0].mark.color).toBe('#888888');
+    expect(spec.layer[0].encoding?.color).toBeUndefined();
+    expect(spec.encoding.x?.field).toBe('Date');
+    expect(spec.encoding.y?.field).toBe('Value');
+    expect(spec.layer[1].mark.type).toBe('circle');
+    expect(spec.layer[1].encoding.color?.field).toBe('ColorVal');
+  });
+
+  it('chart.js line with quantitative color uses neutral stroke + per-point fill on one dataset', () => {
+    const config = assembleChartjs({
+      data: {
+        values: [
+          { Date: '2019-12-31', Value: 117, ColorVal: 2.4 },
+          { Date: '2020-02-05', Value: 109, ColorVal: 9.5 },
+        ],
+      },
+      semantic_types: { Date: 'Date', Value: 'Quantity', ColorVal: 'Quantity' },
+      chart_spec: {
+        chartType: 'Line Chart',
+        encodings: {
+          x: { field: 'Date' },
+          y: { field: 'Value' },
+          color: { field: 'ColorVal' },
+        },
+        canvasSize: { width: 480, height: 320 },
+      },
+    }) as any;
+
+    expect(config.data.datasets).toHaveLength(1);
+    expect(config.data.datasets[0].borderColor).toBe('#888888');
+    expect(config.data.datasets[0].pointRadius).toBe(4);
+    expect(config.data.datasets[0].pointBackgroundColor).toHaveLength(2);
+  });
 });

@@ -165,6 +165,52 @@ export const defaultBuildEncodings = (spec: any, encodings: Record<string, any>)
     }
 };
 
+/** True when color encodes a continuous field (Quantity, Date, etc.). */
+export function isContinuousColorEncoding(enc: unknown): boolean {
+    if (!enc || typeof enc !== 'object') return false;
+    const type = (enc as { type?: string }).type;
+    return type === 'quantitative' || type === 'temporal';
+}
+
+/**
+ * Continuous color on line charts: VL layered spec with shared x/y encoding,
+ * neutral line layer first, colored circles on top (idiomatic VL pattern).
+ */
+export function buildContinuousColorLineLayerSpec(
+    spec: any,
+    ctx: InstantiateContext,
+    baseLineMark: Record<string, unknown>,
+    chartProperties?: Record<string, any>,
+): void {
+    const { x, y, color, column, row, strokeDash, detail, opacity } = ctx.resolvedEncodings;
+
+    let lineMark: any = { ...baseLineMark, color: '#888888', strokeWidth: 2 };
+    if (chartProperties?.interpolate) {
+        lineMark = setMarkProp(lineMark, 'interpolate', chartProperties.interpolate);
+    }
+
+    spec.encoding = {};
+    if (x) spec.encoding.x = x;
+    if (y) spec.encoding.y = y;
+    if (opacity) spec.encoding.opacity = opacity;
+    if (column) spec.encoding.column = column;
+    if (row) spec.encoding.row = row;
+
+    const lineLayer: Record<string, unknown> = { mark: lineMark };
+    const lineEnc: Record<string, unknown> = {};
+    if (strokeDash) lineEnc.strokeDash = strokeDash;
+    if (detail) lineEnc.detail = detail;
+    if (Object.keys(lineEnc).length > 0) lineLayer.encoding = lineEnc;
+
+    const circleLayer: Record<string, unknown> = {
+        mark: { type: 'circle', filled: true, size: 60 },
+    };
+    if (color) circleLayer.encoding = { color };
+
+    spec.layer = [lineLayer, circleLayer];
+    delete spec.mark;
+}
+
 // ---------------------------------------------------------------------------
 // Mark sizing helpers (used by v2 instantiate hooks)
 // ---------------------------------------------------------------------------

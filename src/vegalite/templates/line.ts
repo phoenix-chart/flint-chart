@@ -2,7 +2,12 @@
 // Licensed under the MIT License.
 
 import { ChartTemplateDef, ChartPropertyDef } from '../../core/types';
-import { defaultBuildEncodings, setMarkProp } from './utils';
+import {
+    defaultBuildEncodings,
+    setMarkProp,
+    isContinuousColorEncoding,
+    buildContinuousColorLineLayerSpec,
+} from './utils';
 
 const interpolateConfigProperty: ChartPropertyDef = {
     key: "interpolate", label: "Curve", type: "discrete", options: [
@@ -32,8 +37,13 @@ export const lineChartDef: ChartTemplateDef = {
         paramOverrides: { continuousMarkCrossSection: { x: 100, y: 20, seriesCountAxis: 'auto' }, facetAspectRatioResistance: 0.5 },
     }),
     instantiate: (spec, ctx) => {
-        defaultBuildEncodings(spec, ctx.resolvedEncodings);
-        applyInterpolate(spec, ctx.chartProperties);
+        const colorEnc = ctx.resolvedEncodings.color;
+        if (isContinuousColorEncoding(colorEnc)) {
+            buildContinuousColorLineLayerSpec(spec, ctx, { type: 'line' }, ctx.chartProperties);
+        } else {
+            defaultBuildEncodings(spec, ctx.resolvedEncodings);
+            applyInterpolate(spec, ctx.chartProperties);
+        }
     },
     properties: [interpolateConfigProperty],
 };
@@ -47,8 +57,13 @@ export const dottedLineChartDef: ChartTemplateDef = {
         paramOverrides: { continuousMarkCrossSection: { x: 100, y: 20, seriesCountAxis: 'auto' }, facetAspectRatioResistance: 0.5 },
     }),
     instantiate: (spec, ctx) => {
-        defaultBuildEncodings(spec, ctx.resolvedEncodings);
-        applyInterpolate(spec, ctx.chartProperties);
+        const colorEnc = ctx.resolvedEncodings.color;
+        if (isContinuousColorEncoding(colorEnc)) {
+            buildContinuousColorLineLayerSpec(spec, ctx, { type: 'line' }, ctx.chartProperties);
+        } else {
+            defaultBuildEncodings(spec, ctx.resolvedEncodings);
+            applyInterpolate(spec, ctx.chartProperties);
+        }
     },
     properties: [interpolateConfigProperty],
 };

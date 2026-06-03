@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { TEST_GENERATORS } from 'flint-chart/test-data';
 import { Link } from 'react-router-dom';
 import { SiteShell } from '../components/SiteShell';
+import { FlintInputSummary } from '../components/FlintInputSummary';
 import { LazyTripleChart } from '../components/LazyTripleChart';
 import { BACKEND_GENERATORS, CHART_CATEGORIES } from '../shared/chart-categories';
 import { buildGalleryEditorHref } from '../shared/editor-payload';
@@ -223,7 +224,17 @@ export function Gallery() {
                     <p style={{ margin: '0 0 12px', color: siteTheme.textMuted, fontSize: 13 }}>
                       {t.description}
                     </p>
-                    <LazyTripleChart testCase={t} />
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'minmax(180px, 240px) minmax(0, 1fr)',
+                        gap: 16,
+                        alignItems: 'stretch',
+                      }}
+                    >
+                      <FlintInputSummary testCase={t} />
+                      <LazyTripleChart testCase={t} />
+                    </div>
                   </article>
                 ))}
               </div>

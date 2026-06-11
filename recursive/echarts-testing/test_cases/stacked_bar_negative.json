@@ -1,0 +1,59 @@
+{
+  "test_id": "stacked_bar_negative",
+  "description": "Stacked bar chart with negative values (diverging)",
+  "input": {
+    "data": {
+      "values": [
+        {
+          "cat": "Q1",
+          "group": "Revenue",
+          "value": 100
+        },
+        {
+          "cat": "Q1",
+          "group": "Cost",
+          "value": -60
+        },
+        {
+          "cat": "Q2",
+          "group": "Revenue",
+          "value": 120
+        },
+        {
+          "cat": "Q2",
+          "group": "Cost",
+          "value": -80
+        },
+        {
+          "cat": "Q3",
+          "group": "Revenue",
+          "value": 90
+        },
+        {
+          "cat": "Q3",
+          "group": "Cost",
+          "value": -50
+        }
+      ]
+    },
+    "semantic_types": {
+      "cat": "Category",
+      "group": "Category",
+      "value": "Quantity"
+    },
+    "chart_spec": {
+      "chartType": "Stacked Bar Chart",
+      "encodings": {
+        "x": {
+          "field": "cat"
+        },
+        "y": {
+          "field": "value"
+        },
+        "color": {
+          "field": "group"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "test_id": "treemap_basic",
+  "description": "Basic treemap (2-level hierarchy)",
+  "input": {
+    "data": {
+      "values": [
+        {
+          "category": "Tech",
+          "subcategory": "Hardware",
+          "value": 30
+        },
+        {
+          "category": "Tech",
+          "subcategory": "Software",
+          "value": 45
+        },
+        {
+          "category": "Tech",
+          "subcategory": "Services",
+          "value": 25
+        },
+        {
+          "category": "Health",
+          "subcategory": "Pharma",
+          "value": 40
+        },
+        {
+          "category": "Health",
+          "subcategory": "Devices",
+          "value": 20
+        },
+        {
+          "category": "Finance",
+          "subcategory": "Banking",
+          "value": 35
+        },
+        {
+          "category": "Finance",
+          "subcategory": "Insurance",
+          "value": 28
+        }
+      ]
+    },
+    "semantic_types": {
+      "category": "Category",
+      "subcategory": "Category",
+      "value": "Quantity"
+    },
+    "chart_spec": {
+      "chartType": "Treemap",
+      "encodings": {
+        "color": {
+          "field": "category"
+        },
+        "size": {
+          "field": "value"
+        },
+        "detail": {
+          "field": "subcategory"
+        }
+      }
+    }
+  }
+}

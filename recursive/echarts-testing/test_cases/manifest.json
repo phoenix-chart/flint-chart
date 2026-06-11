@@ -1,0 +1,226 @@
+[
+  {
+    "test_id": "area_basic",
+    "description": "Basic area chart"
+  },
+  {
+    "test_id": "area_stacked",
+    "description": "Stacked area chart (3 series)"
+  },
+  {
+    "test_id": "bar_basic_5",
+    "description": "Basic bar chart with 5 categories"
+  },
+  {
+    "test_id": "bar_colored",
+    "description": "Bar chart with color encoding (3 groups)"
+  },
+  {
+    "test_id": "bar_faceted_3panels",
+    "description": "Bar chart with 3 facet panels"
+  },
+  {
+    "test_id": "bar_long_labels",
+    "description": "Bar chart with very long category labels"
+  },
+  {
+    "test_id": "bar_many_cats_20",
+    "description": "Bar chart with 20 categories - label overflow test"
+  },
+  {
+    "test_id": "bar_narrow",
+    "description": "Bar chart on narrow canvas (300x400)"
+  },
+  {
+    "test_id": "bar_single_point",
+    "description": "Bar chart with single data point"
+  },
+  {
+    "test_id": "bar_small_canvas",
+    "description": "Bar chart on small canvas (250x200)"
+  },
+  {
+    "test_id": "boxplot_basic",
+    "description": "Basic boxplot (4 groups)"
+  },
+  {
+    "test_id": "boxplot_many",
+    "description": "Boxplot with 10 groups"
+  },
+  {
+    "test_id": "boxplot_single",
+    "description": "Boxplot with a single group (edge case)"
+  },
+  {
+    "test_id": "candlestick_basic",
+    "description": "Basic candlestick (20 trading days)"
+  },
+  {
+    "test_id": "candlestick_volatile",
+    "description": "Candlestick with highly volatile data (large wicks)"
+  },
+  {
+    "test_id": "density_basic",
+    "description": "Basic density plot (200 values)"
+  },
+  {
+    "test_id": "funnel_basic",
+    "description": "Basic funnel (5 stages)"
+  },
+  {
+    "test_id": "funnel_many_stages",
+    "description": "Funnel chart with 10 stages"
+  },
+  {
+    "test_id": "gauge_basic",
+    "description": "Basic gauge"
+  },
+  {
+    "test_id": "grouped_bar_basic",
+    "description": "Grouped bar with 4 cats \u00d7 3 groups"
+  },
+  {
+    "test_id": "grouped_bar_legend_stress",
+    "description": "Grouped bar with 10 groups to stress-test legend"
+  },
+  {
+    "test_id": "grouped_bar_many",
+    "description": "Grouped bar with 6 cats \u00d7 5 groups (crowding test)"
+  },
+  {
+    "test_id": "heatmap_basic",
+    "description": "Basic heatmap 6\u00d75"
+  },
+  {
+    "test_id": "heatmap_large",
+    "description": "Large heatmap 12\u00d710"
+  },
+  {
+    "test_id": "heatmap_sparse",
+    "description": "Heatmap with sparse/missing cells"
+  },
+  {
+    "test_id": "histogram_basic",
+    "description": "Basic histogram (100 values)"
+  },
+  {
+    "test_id": "histogram_small_n",
+    "description": "Histogram with few data points (20)"
+  },
+  {
+    "test_id": "line_all_zeros",
+    "description": "Line chart where all values are 0"
+  },
+  {
+    "test_id": "line_basic",
+    "description": "Basic line chart, 30 data points"
+  },
+  {
+    "test_id": "line_dense",
+    "description": "Dense line chart (100 points) - label congestion test"
+  },
+  {
+    "test_id": "line_faceted_4panels",
+    "description": "Line chart with 4 facet panels (wrapping test)"
+  },
+  {
+    "test_id": "line_multi_series",
+    "description": "Multi-series line chart (4 series)"
+  },
+  {
+    "test_id": "line_small_canvas",
+    "description": "Line chart on small canvas"
+  },
+  {
+    "test_id": "line_wide_canvas",
+    "description": "Line chart on very wide canvas (900px)"
+  },
+  {
+    "test_id": "lollipop_basic",
+    "description": "Basic lollipop (8 categories)"
+  },
+  {
+    "test_id": "pie_basic",
+    "description": "Basic pie chart (5 slices)"
+  },
+  {
+    "test_id": "pie_many_slices",
+    "description": "Pie chart with 12 slices (legend test)"
+  },
+  {
+    "test_id": "pie_small",
+    "description": "Pie chart on small canvas"
+  },
+  {
+    "test_id": "pie_uneven",
+    "description": "Pie chart with one dominant slice and many small ones"
+  },
+  {
+    "test_id": "radar_basic",
+    "description": "Radar chart (5 axes, 2 series)"
+  },
+  {
+    "test_id": "radar_many_axes",
+    "description": "Radar chart with 8 axes and 3 series"
+  },
+  {
+    "test_id": "rose_basic",
+    "description": "Rose chart (6 petals)"
+  },
+  {
+    "test_id": "sankey_basic",
+    "description": "Basic sankey diagram"
+  },
+  {
+    "test_id": "scatter_basic",
+    "description": "Basic scatter plot (50 points)"
+  },
+  {
+    "test_id": "scatter_colored",
+    "description": "Scatter with color (80 points, 3 groups)"
+  },
+  {
+    "test_id": "scatter_dense",
+    "description": "Dense scatter (200 points)"
+  },
+  {
+    "test_id": "scatter_faceted",
+    "description": "Scatter plot with 2 facet panels"
+  },
+  {
+    "test_id": "scatter_outliers",
+    "description": "Scatter plot with extreme outlier values"
+  },
+  {
+    "test_id": "scatter_sized",
+    "description": "Bubble chart (scatter with size + color)"
+  },
+  {
+    "test_id": "stacked_bar_basic",
+    "description": "Stacked bar with 5 cats \u00d7 3 groups"
+  },
+  {
+    "test_id": "stacked_bar_many_groups",
+    "description": "Stacked bar with 8 groups (legend overflow test)"
+  },
+  {
+    "test_id": "stacked_bar_negative",
+    "description": "Stacked bar chart with negative values (diverging)"
+  },
+  {
+    "test_id": "streamgraph_basic",
+    "description": "Basic streamgraph (4 series)"
+  },
+  {
+    "test_id": "sunburst_basic",
+    "description": "Basic sunburst (2-level hierarchy)"
+  },
+  {
+    "test_id": "treemap_basic",
+    "description": "Basic treemap (2-level hierarchy)"
+  },
+  {
+    "test_id": "waterfall_basic",
+    "description": "Basic waterfall chart"
+  }
+]

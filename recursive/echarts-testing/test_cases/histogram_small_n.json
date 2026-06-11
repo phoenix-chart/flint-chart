@@ -1,0 +1,81 @@
+{
+  "test_id": "histogram_small_n",
+  "description": "Histogram with few data points (20)",
+  "input": {
+    "data": {
+      "values": [
+        {
+          "value": 28.2
+        },
+        {
+          "value": 36.6
+        },
+        {
+          "value": 62.2
+        },
+        {
+          "value": 62.9
+        },
+        {
+          "value": 69.1
+        },
+        {
+          "value": 29.2
+        },
+        {
+          "value": 37.3
+        },
+        {
+          "value": 48.6
+        },
+        {
+          "value": 68.4
+        },
+        {
+          "value": 79.8
+        },
+        {
+          "value": 55.6
+        },
+        {
+          "value": 86.0
+        },
+        {
+          "value": 37.8
+        },
+        {
+          "value": 48.5
+        },
+        {
+          "value": 58.7
+        },
+        {
+          "value": 54.7
+        },
+        {
+          "value": 61.6
+        },
+        {
+          "value": 46.7
+        },
+        {
+          "value": 35.4
+        },
+        {
+          "value": 35.4
+        }
+      ]
+    },
+    "semantic_types": {
+      "value": "Quantity"
+    },
+    "chart_spec": {
+      "chartType": "Histogram",
+      "encodings": {
+        "x": {
+          "field": "value"
+        }
+      }
+    }
+  }
+}

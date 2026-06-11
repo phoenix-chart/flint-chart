@@ -1,0 +1,329 @@
+{
+  "test_id": "area_stacked",
+  "description": "Stacked area chart (3 series)",
+  "input": {
+    "data": {
+      "values": [
+        {
+          "date": "2024-01-01",
+          "value": 65,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-01",
+          "value": 54,
+          "series": "Series 2"
+        },
+        {
+          "date": "2024-01-01",
+          "value": 43,
+          "series": "Series 3"
+        },
+        {
+          "date": "2024-01-02",
+          "value": 72,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-02",
+          "value": 46,
+          "series": "Series 2"
+        },
+        {
+          "date": "2024-01-02",
+          "value": 65,
+          "series": "Series 3"
+        },
+        {
+          "date": "2024-01-03",
+          "value": 83,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-03",
+          "value": 43,
+          "series": "Series 2"
+        },
+        {
+          "date": "2024-01-03",
+          "value": 61,
+          "series": "Series 3"
+        },
+        {
+          "date": "2024-01-04",
+          "value": 33,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-04",
+          "value": 40,
+          "series": "Series 2"
+        },
+        {
+          "date": "2024-01-04",
+          "value": 64,
+          "series": "Series 3"
+        },
+        {
+          "date": "2024-01-05",
+          "value": 33,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-05",
+          "value": 41,
+          "series": "Series 2"
+        },
+        {
+          "date": "2024-01-05",
+          "value": 84,
+          "series": "Series 3"
+        },
+        {
+          "date": "2024-01-06",
+          "value": 19,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-06",
+          "value": 26,
+          "series": "Series 2"
+        },
+        {
+          "date": "2024-01-06",
+          "value": 38,
+          "series": "Series 3"
+        },
+        {
+          "date": "2024-01-07",
+          "value": 61,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-07",
+          "value": 27,
+          "series": "Series 2"
+        },
+        {
+          "date": "2024-01-07",
+          "value": 46,
+          "series": "Series 3"
+        },
+        {
+          "date": "2024-01-08",
+          "value": 58,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-08",
+          "value": 37,
+          "series": "Series 2"
+        },
+        {
+          "date": "2024-01-08",
+          "value": 36,
+          "series": "Series 3"
+        },
+        {
+          "date": "2024-01-09",
+          "value": 52,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-09",
+          "value": 70,
+          "series": "Series 2"
+        },
+        {
+          "date": "2024-01-09",
+          "value": 82,
+          "series": "Series 3"
+        },
+        {
+          "date": "2024-01-10",
+          "value": 49,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-10",
+          "value": 21,
+          "series": "Series 2"
+        },
+        {
+          "date": "2024-01-10",
+          "value": 41,
+          "series": "Series 3"
+        },
+        {
+          "date": "2024-01-11",
+          "value": 77,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-11",
+          "value": 61,
+          "series": "Series 2"
+        },
+        {
+          "date": "2024-01-11",
+          "value": 80,
+          "series": "Series 3"
+        },
+        {
+          "date": "2024-01-12",
+          "value": 74,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-12",
+          "value": 48,
+          "series": "Series 2"
+        },
+        {
+          "date": "2024-01-12",
+          "value": 40,
+          "series": "Series 3"
+        },
+        {
+          "date": "2024-01-13",
+          "value": 41,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-13",
+          "value": 44,
+          "series": "Series 2"
+        },
+        {
+          "date": "2024-01-13",
+          "value": 64,
+          "series": "Series 3"
+        },
+        {
+          "date": "2024-01-14",
+          "value": 61,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-14",
+          "value": 77,
+          "series": "Series 2"
+        },
+        {
+          "date": "2024-01-14",
+          "value": 72,
+          "series": "Series 3"
+        },
+        {
+          "date": "2024-01-15",
+          "value": 66,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-15",
+          "value": 23,
+          "series": "Series 2"
+        },
+        {
+          "date": "2024-01-15",
+          "value": 65,
+          "series": "Series 3"
+        },
+        {
+          "date": "2024-01-16",
+          "value": 52,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-16",
+          "value": 35,
+          "series": "Series 2"
+        },
+        {
+          "date": "2024-01-16",
+          "value": 41,
+          "series": "Series 3"
+        },
+        {
+          "date": "2024-01-17",
+          "value": 79,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-17",
+          "value": 22,
+          "series": "Series 2"
+        },
+        {
+          "date": "2024-01-17",
+          "value": 38,
+          "series": "Series 3"
+        },
+        {
+          "date": "2024-01-18",
+          "value": 36,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-18",
+          "value": 49,
+          "series": "Series 2"
+        },
+        {
+          "date": "2024-01-18",
+          "value": 43,
+          "series": "Series 3"
+        },
+        {
+          "date": "2024-01-19",
+          "value": 40,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-19",
+          "value": 28,
+          "series": "Series 2"
+        },
+        {
+          "date": "2024-01-19",
+          "value": 40,
+          "series": "Series 3"
+        },
+        {
+          "date": "2024-01-20",
+          "value": 74,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-20",
+          "value": 24,
+          "series": "Series 2"
+        },
+        {
+          "date": "2024-01-20",
+          "value": 44,
+          "series": "Series 3"
+        }
+      ]
+    },
+    "semantic_types": {
+      "date": "Date",
+      "value": "Quantity",
+      "series": "Category"
+    },
+    "chart_spec": {
+      "chartType": "Area Chart",
+      "encodings": {
+        "x": {
+          "field": "date"
+        },
+        "y": {
+          "field": "value"
+        },
+        "color": {
+          "field": "series"
+        }
+      }
+    }
+  }
+}

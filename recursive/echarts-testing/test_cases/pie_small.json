@@ -1,0 +1,45 @@
+{
+  "test_id": "pie_small",
+  "description": "Pie chart on small canvas",
+  "input": {
+    "data": {
+      "values": [
+        {
+          "label": "Slice 1",
+          "value": 44
+        },
+        {
+          "label": "Slice 2",
+          "value": 20
+        },
+        {
+          "label": "Slice 3",
+          "value": 64
+        },
+        {
+          "label": "Slice 4",
+          "value": 20
+        }
+      ]
+    },
+    "semantic_types": {
+      "label": "Category",
+      "value": "Quantity"
+    },
+    "chart_spec": {
+      "chartType": "Pie Chart",
+      "encodings": {
+        "color": {
+          "field": "label"
+        },
+        "angle": {
+          "field": "value"
+        }
+      },
+      "canvasSize": {
+        "width": 250,
+        "height": 200
+      }
+    }
+  }
+}

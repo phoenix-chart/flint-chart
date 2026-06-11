@@ -1,0 +1,329 @@
+{
+  "test_id": "scatter_faceted",
+  "description": "Scatter plot with 2 facet panels",
+  "input": {
+    "data": {
+      "values": [
+        {
+          "x": 47.7,
+          "y": 59.4,
+          "panel": "Group A"
+        },
+        {
+          "x": 61.4,
+          "y": 32.5,
+          "panel": "Group A"
+        },
+        {
+          "x": 74.5,
+          "y": 22.4,
+          "panel": "Group A"
+        },
+        {
+          "x": 40.2,
+          "y": 51.0,
+          "panel": "Group A"
+        },
+        {
+          "x": 35.6,
+          "y": 62.8,
+          "panel": "Group A"
+        },
+        {
+          "x": 41.2,
+          "y": 37.4,
+          "panel": "Group A"
+        },
+        {
+          "x": 26.4,
+          "y": 51.2,
+          "panel": "Group A"
+        },
+        {
+          "x": 41.5,
+          "y": 53.1,
+          "panel": "Group A"
+        },
+        {
+          "x": 25.5,
+          "y": 39.3,
+          "panel": "Group A"
+        },
+        {
+          "x": 50.7,
+          "y": 53.8,
+          "panel": "Group A"
+        },
+        {
+          "x": 51.9,
+          "y": 62.2,
+          "panel": "Group A"
+        },
+        {
+          "x": 53.7,
+          "y": 31.0,
+          "panel": "Group A"
+        },
+        {
+          "x": 52.5,
+          "y": 32.6,
+          "panel": "Group A"
+        },
+        {
+          "x": 30.5,
+          "y": 48.7,
+          "panel": "Group A"
+        },
+        {
+          "x": 47.9,
+          "y": 68.7,
+          "panel": "Group A"
+        },
+        {
+          "x": 68.7,
+          "y": 48.9,
+          "panel": "Group A"
+        },
+        {
+          "x": 51.1,
+          "y": 24.7,
+          "panel": "Group A"
+        },
+        {
+          "x": 40.2,
+          "y": 53.8,
+          "panel": "Group A"
+        },
+        {
+          "x": 28.2,
+          "y": 61.1,
+          "panel": "Group A"
+        },
+        {
+          "x": 43.6,
+          "y": 40.7,
+          "panel": "Group A"
+        },
+        {
+          "x": 52.7,
+          "y": 47.3,
+          "panel": "Group A"
+        },
+        {
+          "x": 47.6,
+          "y": 79.8,
+          "panel": "Group A"
+        },
+        {
+          "x": 75.7,
+          "y": 65.6,
+          "panel": "Group A"
+        },
+        {
+          "x": 70.3,
+          "y": 68.4,
+          "panel": "Group A"
+        },
+        {
+          "x": 56.1,
+          "y": 73.8,
+          "panel": "Group A"
+        },
+        {
+          "x": 38.9,
+          "y": 22.4,
+          "panel": "Group A"
+        },
+        {
+          "x": 37.8,
+          "y": 39.9,
+          "panel": "Group A"
+        },
+        {
+          "x": 30.4,
+          "y": 32.5,
+          "panel": "Group A"
+        },
+        {
+          "x": 60.5,
+          "y": 25.0,
+          "panel": "Group A"
+        },
+        {
+          "x": 33.3,
+          "y": 42.1,
+          "panel": "Group A"
+        },
+        {
+          "x": 42.5,
+          "y": 44.8,
+          "panel": "Group B"
+        },
+        {
+          "x": 62.4,
+          "y": 48.4,
+          "panel": "Group B"
+        },
+        {
+          "x": 16.8,
+          "y": 33.7,
+          "panel": "Group B"
+        },
+        {
+          "x": 17.9,
+          "y": 47.1,
+          "panel": "Group B"
+        },
+        {
+          "x": 53.2,
+          "y": 42.6,
+          "panel": "Group B"
+        },
+        {
+          "x": 50.0,
+          "y": 34.6,
+          "panel": "Group B"
+        },
+        {
+          "x": 61.3,
+          "y": 54.4,
+          "panel": "Group B"
+        },
+        {
+          "x": 37.0,
+          "y": 30.6,
+          "panel": "Group B"
+        },
+        {
+          "x": 55.7,
+          "y": 56.2,
+          "panel": "Group B"
+        },
+        {
+          "x": 45.0,
+          "y": 60.2,
+          "panel": "Group B"
+        },
+        {
+          "x": 58.3,
+          "y": 37.5,
+          "panel": "Group B"
+        },
+        {
+          "x": 63.3,
+          "y": 66.5,
+          "panel": "Group B"
+        },
+        {
+          "x": 39.9,
+          "y": 39.5,
+          "panel": "Group B"
+        },
+        {
+          "x": 73.7,
+          "y": 62.2,
+          "panel": "Group B"
+        },
+        {
+          "x": 51.8,
+          "y": 34.9,
+          "panel": "Group B"
+        },
+        {
+          "x": 50.0,
+          "y": 26.9,
+          "panel": "Group B"
+        },
+        {
+          "x": 61.8,
+          "y": 38.5,
+          "panel": "Group B"
+        },
+        {
+          "x": 30.2,
+          "y": 51.5,
+          "panel": "Group B"
+        },
+        {
+          "x": 69.8,
+          "y": 28.7,
+          "panel": "Group B"
+        },
+        {
+          "x": 83.5,
+          "y": 72.2,
+          "panel": "Group B"
+        },
+        {
+          "x": 34.6,
+          "y": 32.6,
+          "panel": "Group B"
+        },
+        {
+          "x": 65.7,
+          "y": 28.4,
+          "panel": "Group B"
+        },
+        {
+          "x": 18.5,
+          "y": 73.6,
+          "panel": "Group B"
+        },
+        {
+          "x": 57.9,
+          "y": 34.4,
+          "panel": "Group B"
+        },
+        {
+          "x": 44.6,
+          "y": 61.0,
+          "panel": "Group B"
+        },
+        {
+          "x": 42.4,
+          "y": 47.7,
+          "panel": "Group B"
+        },
+        {
+          "x": 65.9,
+          "y": 28.9,
+          "panel": "Group B"
+        },
+        {
+          "x": 70.0,
+          "y": 34.3,
+          "panel": "Group B"
+        },
+        {
+          "x": 70.2,
+          "y": 56.0,
+          "panel": "Group B"
+        },
+        {
+          "x": 51.4,
+          "y": 47.7,
+          "panel": "Group B"
+        }
+      ]
+    },
+    "semantic_types": {
+      "x": "Quantity",
+      "y": "Quantity",
+      "panel": "Category"
+    },
+    "chart_spec": {
+      "chartType": "Scatter Plot",
+      "encodings": {
+        "x": {
+          "field": "x"
+        },
+        "y": {
+          "field": "y"
+        },
+        "column": {
+          "field": "panel"
+        }
+      }
+    }
+  }
+}

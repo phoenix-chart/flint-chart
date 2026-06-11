@@ -1,0 +1,45 @@
+{
+  "test_id": "bar_basic_5",
+  "description": "Basic bar chart with 5 categories",
+  "input": {
+    "data": {
+      "values": [
+        {
+          "category": "Category 1",
+          "value": 91
+        },
+        {
+          "category": "Category 2",
+          "value": 24
+        },
+        {
+          "category": "Category 3",
+          "value": 13
+        },
+        {
+          "category": "Category 4",
+          "value": 45
+        },
+        {
+          "category": "Category 5",
+          "value": 41
+        }
+      ]
+    },
+    "semantic_types": {
+      "category": "Category",
+      "value": "Quantity"
+    },
+    "chart_spec": {
+      "chartType": "Bar Chart",
+      "encodings": {
+        "x": {
+          "field": "category"
+        },
+        "y": {
+          "field": "value"
+        }
+      }
+    }
+  }
+}

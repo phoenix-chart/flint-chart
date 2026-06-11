@@ -119,7 +119,7 @@ export const ecSankeyDef: ChartTemplateDef = {
 
         const orient = chartProperties?.orient ?? 'horizontal';
 
-        const margin = 30;
+        const margin = 60;
         const option: any = {
             tooltip: {
                 trigger: 'item',

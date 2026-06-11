@@ -743,6 +743,29 @@ export function ecApplyLayoutToSpec(
         }
     }
 
+    // ── Adjust bottom margin for rotated x-axis labels ──────────────────
+    // When x-axis labels are rotated (especially 90°), increase nameGap and
+    // grid.bottom to prevent overlap between rotated labels and axis title.
+    if (option.xAxis && option.grid && option.xAxis.axisLabel) {
+        const rotate = Math.abs(option.xAxis.axisLabel.rotate || 0);
+        if (rotate >= 45) {
+            const labelFontSize = option.xAxis.axisLabel.fontSize || 11;
+            const maxChars = layout.xLabel?.labelLimit || 20;
+            const estimatedLabelWidth = maxChars * labelFontSize * 0.6;
+            const rotatedHeight = Math.min(estimatedLabelWidth, 120);
+            const extraBottom = Math.max(0, rotatedHeight - 30);
+            if (extraBottom > 0) {
+                option.grid.bottom = (option.grid.bottom || 61) + extraBottom;
+                if (option.xAxis.name) {
+                    option.xAxis.nameGap = (option.xAxis.nameGap || 25) + extraBottom;
+                }
+                if (option._height) {
+                    option._height = (option._height as number) + extraBottom;
+                }
+            }
+        }
+    }
+
     // ── Y-axis label sizing ──────────────────────────────────────────────
     if (option.yAxis && layout.yLabel) {
         if (!option.yAxis.axisLabel) option.yAxis.axisLabel = {};

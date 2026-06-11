@@ -1,0 +1,105 @@
+{
+  "test_id": "bar_many_cats_20",
+  "description": "Bar chart with 20 categories - label overflow test",
+  "input": {
+    "data": {
+      "values": [
+        {
+          "category": "Category 1",
+          "value": 38
+        },
+        {
+          "category": "Category 2",
+          "value": 27
+        },
+        {
+          "category": "Category 3",
+          "value": 23
+        },
+        {
+          "category": "Category 4",
+          "value": 96
+        },
+        {
+          "category": "Category 5",
+          "value": 79
+        },
+        {
+          "category": "Category 6",
+          "value": 21
+        },
+        {
+          "category": "Category 7",
+          "value": 85
+        },
+        {
+          "category": "Category 8",
+          "value": 64
+        },
+        {
+          "category": "Category 9",
+          "value": 14
+        },
+        {
+          "category": "Category 10",
+          "value": 13
+        },
+        {
+          "category": "Category 11",
+          "value": 21
+        },
+        {
+          "category": "Category 12",
+          "value": 37
+        },
+        {
+          "category": "Category 13",
+          "value": 39
+        },
+        {
+          "category": "Category 14",
+          "value": 74
+        },
+        {
+          "category": "Category 15",
+          "value": 87
+        },
+        {
+          "category": "Category 16",
+          "value": 13
+        },
+        {
+          "category": "Category 17",
+          "value": 81
+        },
+        {
+          "category": "Category 18",
+          "value": 35
+        },
+        {
+          "category": "Category 19",
+          "value": 93
+        },
+        {
+          "category": "Category 20",
+          "value": 99
+        }
+      ]
+    },
+    "semantic_types": {
+      "category": "Category",
+      "value": "Quantity"
+    },
+    "chart_spec": {
+      "chartType": "Bar Chart",
+      "encodings": {
+        "x": {
+          "field": "category"
+        },
+        "y": {
+          "field": "value"
+        }
+      }
+    }
+  }
+}

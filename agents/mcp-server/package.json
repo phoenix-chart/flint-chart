@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "flint-chart": "file:../..",
+    "flint-chart": "*",
     "zod": "^3.23.0"
   },
   "devDependencies": {

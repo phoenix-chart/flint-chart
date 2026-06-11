@@ -1,0 +1,13 @@
+{
+  "slug": "omni_sunburst__00__phase_3_sunburst_mau_composition_region_gametype_game",
+  "title": "Phase 3 — Sunburst: MAU composition (region → gameType → game)",
+  "chartType": "Sunburst Chart",
+  "section": "demos",
+  "category": "omni-game",
+  "page": "omni-sunburst",
+  "generator": "Omni: Sunburst",
+  "library": "triple",
+  "status": "js_error",
+  "fixtureDir": "omni_sunburst__00__phase_3_sunburst_mau_composition_region_gametype_game",
+  "jsError": "Unknown chart type: Sunburst Chart"
+}

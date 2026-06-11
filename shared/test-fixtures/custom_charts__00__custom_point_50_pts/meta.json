@@ -1,0 +1,12 @@
+{
+  "slug": "custom_charts__00__custom_point_50_pts",
+  "title": "Custom Point (50 pts)",
+  "chartType": "Custom Point",
+  "section": "vegalite",
+  "category": "chart-types",
+  "page": "custom-charts",
+  "generator": "Custom Charts",
+  "library": "vegalite",
+  "status": "js_success",
+  "fixtureDir": "custom_charts__00__custom_point_50_pts"
+}

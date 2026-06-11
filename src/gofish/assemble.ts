@@ -80,6 +80,19 @@ export interface GoFishSpec {
 }
 
 // ---------------------------------------------------------------------------
+// Utility: HTML-escape untrusted text to prevent XSS
+// ---------------------------------------------------------------------------
+
+function escapeHtml(str: string): string {
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+// ---------------------------------------------------------------------------
 // Render function builder
 // ---------------------------------------------------------------------------
 
@@ -108,7 +121,7 @@ function buildRenderFunction(
             if (gfDesc.type === 'todo') {
                 // TODO chart type — show informational message
                 container.innerHTML = `<div style="color:#666;padding:16px;font-size:13px;line-height:1.5;">
-                    <strong>GoFish TODO:</strong><br/>${gfDesc.message || 'Not yet implemented.'}
+                    <strong>GoFish TODO:</strong><br/>${escapeHtml(gfDesc.message || 'Not yet implemented.')}
                 </div>`;
                 return;
             }
@@ -211,7 +224,7 @@ function buildRenderFunction(
             }
         }).catch((err: any) => {
             container.innerHTML = `<div style="color:red;padding:8px;font-size:12px;">
-                GoFish render error: ${err.message}
+                GoFish render error: ${escapeHtml(err.message || String(err))}
             </div>`;
         });
     };

@@ -12,6 +12,8 @@ import {
     extractCategories,
     groupBy,
     buildCategoryAlignedData,
+    DEFAULT_COLORS,
+    DEFAULT_BG_COLORS,
     getChartJsPalette,
     getSeriesBorderColor,
     getSeriesBackgroundColor,

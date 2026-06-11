@@ -884,7 +884,7 @@ export function ecApplyLayoutToSpec(
     // ── Color scheme ─────────────────────────────────────────────────────
     // Use palette derived from backend-agnostic colorDecisions when present.
     const decisions: ColorDecisionResult | undefined = context.colorDecisions;
-    const colorDecision = decisions ? (decisions.color ?? decisions.group) : undefined;
+    let colorDecision = decisions ? (decisions.color ?? decisions.group) : undefined;
     let effectivePalette: string[] | undefined;
     if (decisions && colorDecision) {
         let palette: string[] | undefined;
@@ -1184,7 +1184,7 @@ export function ecApplyLayoutToSpec(
                     : null;
                 let colorIdx = 0;
 
-                option.series.forEach((s: any, _idx: number) => {
+                option.series.forEach((s: any, idx: number) => {
                     if (!s) return;
                     s.itemStyle = s.itemStyle || {};
                     if (s.itemStyle.color != null) return;

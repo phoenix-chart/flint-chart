@@ -69,7 +69,7 @@ interface DecideColorMapsContext {
     background?: 'light' | 'dark';
 }
 
-function inferColorChannelPrimary(channel: ColorChannel, _chartType: string): boolean {
+function inferColorChannelPrimary(channel: ColorChannel, chartType: string): boolean {
     // 目前简单：color / group 视为主色通道
     if (channel === 'color' || channel === 'group') return true;
     return false;

@@ -22,6 +22,8 @@
  */
 
 import type {
+    ChannelSemantics,
+    LayoutResult,
     InstantiateContext,
     ChartWarning,
 } from '../core/types';
@@ -40,11 +42,11 @@ export function cjsApplyLayoutToSpec(
     context: InstantiateContext,
     warnings: ChartWarning[],
 ): void {
-    const { channelSemantics: _channelSemantics, layout, canvasSize } = context;
+    const { channelSemantics, layout, canvasSize } = context;
 
     // ── Axis-less chart types (pie, radar, doughnut) ─────────────────────
     const hasAxes = !!(config.options?.scales?.x || config.options?.scales?.y);
-    const _isRadar = config.type === 'radar';
+    const isRadar = config.type === 'radar';
 
     // ── Canvas dimensions ────────────────────────────────────────────────
     // Chart.js uses the canvas element dimensions.

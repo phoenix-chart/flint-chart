@@ -52,12 +52,14 @@ import type {
     ChannelBudgets,
 } from './types';
 import {
+    computeElasticBudget,
     computeAxisStep,
     computeGasPressure,
     computeLabelSizing,
     DEFAULT_GAS_PRESSURE_PARAMS,
     type ElasticStretchParams,
     type GasPressureParams,
+    type GasPressureDecision,
 } from './decisions';
 
 // ---------------------------------------------------------------------------
@@ -67,33 +69,60 @@ import {
 const VL_SHORT_DISCRETE_CATEGORY_COUNT = 4;
 const VL_SHORT_DISCRETE_LABEL_MAX_LEN = 8;
 
-/** Few, short category strings → skip angled axis labels in Vega-Lite (config.axisX/Y). */
-function discreteAxisShouldUseHorizontalLabels(
-    field: string | undefined,
-    channelType: string | undefined,
-    table: any[],
-): boolean {
-    if (!field) return false;
-    if (channelType === 'quantitative') return true;
+/** Approximate width (px) of one label character at the given font size. */
+const APPROX_CHAR_WIDTH_RATIO = 0.62;
 
+/** Distinct label strings for a discrete axis field, plus derived stats. */
+interface DiscreteLabelStats {
+    count: number;
+    maxLen: number;
+    /** True when every label parses as a finite number (e.g. years, bins, IDs). */
+    allNumeric: boolean;
+}
+
+function computeDiscreteLabelStats(
+    field: string | undefined,
+    table: any[],
+): DiscreteLabelStats | null {
+    if (!field) return null;
     const uniques = new Set<string>();
     for (const row of table) {
         const v = row[field];
         if (v == null || v === '') continue;
         uniques.add(String(v));
     }
-    if (uniques.size === 0) return false;
+    if (uniques.size === 0) return null;
     const labels = [...uniques];
-    if (labels.length > VL_SHORT_DISCRETE_CATEGORY_COUNT) return false;
-    const maxLen = Math.max(...labels.map(s => s.length));
-    return maxLen <= VL_SHORT_DISCRETE_LABEL_MAX_LEN;
+    return {
+        count: labels.length,
+        maxLen: Math.max(...labels.map(s => s.length)),
+        allNumeric: labels.every(s => s.trim() !== '' && isFinite(Number(s))),
+    };
+}
+
+/**
+ * Few, short category strings → keep axis labels horizontal in Vega-Lite. Used
+ * for the Y axis, where banded labels read horizontally in the left margin
+ * regardless of band height (so quantitative/numeric labels stay horizontal).
+ */
+function discreteYAxisShouldUseHorizontalLabels(
+    field: string | undefined,
+    channelType: string | undefined,
+    table: any[],
+): boolean {
+    if (!field) return false;
+    if (channelType === 'quantitative') return true;
+    const stats = computeDiscreteLabelStats(field, table);
+    if (!stats) return false;
+    if (stats.count > VL_SHORT_DISCRETE_CATEGORY_COUNT) return false;
+    return stats.maxLen <= VL_SHORT_DISCRETE_LABEL_MAX_LEN;
 }
 
 // ---------------------------------------------------------------------------
 // Internal types
 // ---------------------------------------------------------------------------
 
-interface _AxisLayoutInput {
+interface AxisLayoutInput {
     /** Spring model (banded) or gas pressure (non-banded) */
     mode: 'banded' | 'non-banded';
     /** Number of discrete positions (for banded) */
@@ -146,9 +175,9 @@ export function computeLayout(
         maxStretch: maxStretchVal = 2,
         facetElasticity: facetElasticityVal = 0.3,
         minStep: minStepVal = 6,
-        minSubplotSize: _minSubplotVal = 60,
+        minSubplotSize: minSubplotVal = 60,
         stepPadding: stepPaddingVal = 0.1,
-        maintainContinuousAxisRatio: _maintainContinuousAxisRatio = false,
+        maintainContinuousAxisRatio = false,
         continuousMarkCrossSection,
         facetAspectRatioResistance = 0,
     } = options;
@@ -205,15 +234,15 @@ export function computeLayout(
     // Total discrete items per axis (grouping multiplies the grouped axis)
     const xGroupMultiplier = (groupAxis === 'x' && nominalCount.group > 1) ? nominalCount.group : 1;
     const yGroupMultiplier = (groupAxis === 'y' && nominalCount.group > 1) ? nominalCount.group : 1;
-    const xTotalNominalCount = nominalCount.x * xGroupMultiplier;
-    const yTotalNominalCount = nominalCount.y * yGroupMultiplier;
+    let xTotalNominalCount = nominalCount.x * xGroupMultiplier;
+    let yTotalNominalCount = nominalCount.y * yGroupMultiplier;
 
     // --- Step size hints ---
     // Minimum group step: the inter-group gap (stepPadding × step) must be
     // at least MIN_GROUP_GAP_PX pixels so groups are visually separated.
     const MIN_GROUP_GAP_PX = 3;
-    const _xMinGroupStep = xGroupMultiplier > 1 ? Math.max(Math.ceil(MIN_GROUP_GAP_PX / stepPaddingVal), 2 * xGroupMultiplier) : minStepVal;
-    const _yMinGroupStep = yGroupMultiplier > 1 ? Math.max(Math.ceil(MIN_GROUP_GAP_PX / stepPaddingVal), 2 * yGroupMultiplier) : minStepVal;
+    const xMinGroupStep = xGroupMultiplier > 1 ? Math.max(Math.ceil(MIN_GROUP_GAP_PX / stepPaddingVal), 2 * xGroupMultiplier) : minStepVal;
+    const yMinGroupStep = yGroupMultiplier > 1 ? Math.max(Math.ceil(MIN_GROUP_GAP_PX / stepPaddingVal), 2 * yGroupMultiplier) : minStepVal;
 
     // (Overflow filtering is now handled by filterOverflow() before
     //  computeLayout is called. The data passed here is already filtered.)
@@ -781,20 +810,46 @@ export function computeLayout(
     if (xHasDiscreteItems) {
         const xf = channelSemantics.x?.field;
         const xt = effectiveTypes.x || channelSemantics.x?.type;
-        if (discreteAxisShouldUseHorizontalLabels(xf, xt, table)) {
-            // Must be explicit: omitting labelAngle leaves VL defaults (e.g. -45° on ordinal).
-            xLabel = {
-                ...xLabel,
-                labelAngle: 0,
-                labelAlign: 'center',
-                labelBaseline: 'top',
-            };
+        const stats = computeDiscreteLabelStats(xf, table);
+        if (stats) {
+            // Numeric-like labels (declared quantitative, or all values parse as
+            // numbers — years, bins, IDs) compete for the band's width when laid
+            // out horizontally. A continuous field split into many narrow bands
+            // yields many/wide numbers that crowd. Decide horizontal vs. angled
+            // by whether the widest label fits within one band.
+            const numericLike = xt === 'quantitative' || stats.allNumeric;
+            const labelPx = stats.maxLen * xLabel.fontSize * APPROX_CHAR_WIDTH_RATIO;
+            const fitsHorizontally = labelPx <= xStepSize;
+            const fewShortStrings = !numericLike
+                && stats.count <= VL_SHORT_DISCRETE_CATEGORY_COUNT
+                && stats.maxLen <= VL_SHORT_DISCRETE_LABEL_MAX_LEN;
+
+            if (fewShortStrings || (numericLike && fitsHorizontally)) {
+                // Must be explicit: omitting labelAngle leaves VL defaults (e.g. -45° on ordinal).
+                xLabel = {
+                    ...xLabel,
+                    labelAngle: 0,
+                    labelAlign: 'center',
+                    labelBaseline: 'top',
+                };
+            } else if (numericLike && !fitsHorizontally && xLabel.labelAngle === undefined) {
+                // Numeric labels that don't fit horizontally and weren't already
+                // rotated by step-based sizing (which only rotates at narrow
+                // steps). Without this, VL keeps them horizontal and the numbers
+                // overlap. Rotate to -45°.
+                xLabel = {
+                    ...xLabel,
+                    labelAngle: -45,
+                    labelAlign: 'right',
+                    labelBaseline: 'top',
+                };
+            }
         }
     }
     if (yHasDiscreteItems) {
         const yf = channelSemantics.y?.field;
         const yt = effectiveTypes.y || channelSemantics.y?.type;
-        if (discreteAxisShouldUseHorizontalLabels(yf, yt, table)) {
+        if (discreteYAxisShouldUseHorizontalLabels(yf, yt, table)) {
             yLabel = {
                 ...yLabel,
                 labelAngle: 0,
@@ -1352,8 +1407,8 @@ export function computeFacetGrid(
             if (df && df !== cf) sFields.push(df);
 
             for (const row of data) {
-                const xv = row[xCS.field];
-                const yv = row[yCS.field];
+                let xv = row[xCS.field];
+                let yv = row[yCS.field];
                 if (xv == null || yv == null) continue;
                 const xn = isTempX ? +new Date(xv) : +xv;
                 const yn = isTempY ? +new Date(yv) : +yv;

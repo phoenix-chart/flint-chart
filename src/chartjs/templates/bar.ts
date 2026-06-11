@@ -15,6 +15,8 @@ import {
     groupBy,
     detectAxes,
     buildCategoryAlignedData,
+    DEFAULT_COLORS,
+    DEFAULT_BG_COLORS,
     getChartJsPalette,
     getSeriesBorderColor,
     getSeriesBackgroundColor,
@@ -27,7 +29,7 @@ import {
 // Helpers
 // ---------------------------------------------------------------------------
 
-const _isDiscrete = (type: string | undefined) => type === 'nominal' || type === 'ordinal';
+const isDiscrete = (type: string | undefined) => type === 'nominal' || type === 'ordinal';
 
 // ─── Bar Chart ──────────────────────────────────────────────────────────────
 
@@ -127,7 +129,7 @@ export const cjsStackedBarChartDef: ChartTemplateDef = {
         };
     },
     instantiate: (spec, ctx) => {
-        const { channelSemantics, table, chartProperties: _chartProperties } = ctx;
+        const { channelSemantics, table, chartProperties } = ctx;
         const { categoryAxis, valueAxis } = detectAxes(channelSemantics);
         const colorField = channelSemantics.color?.field;
 
@@ -224,7 +226,7 @@ export const cjsGroupedBarChartDef: ChartTemplateDef = {
         };
     },
     instantiate: (spec, ctx) => {
-        const { channelSemantics, table, chartProperties: _chartProperties } = ctx;
+        const { channelSemantics, table, chartProperties } = ctx;
         const { categoryAxis, valueAxis } = detectAxes(channelSemantics);
         const groupField = channelSemantics.group?.field || channelSemantics.color?.field;
 

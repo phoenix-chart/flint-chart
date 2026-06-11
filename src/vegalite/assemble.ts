@@ -52,7 +52,8 @@ import {
     LayoutDeclaration,
     InstantiateContext,
 } from '../core/types';
-import type { ChartWarning } from '../core/types';
+import type { ChartWarning, ChartOption, OptionEvalContext } from '../core/types';
+import { applyEncodingOverrides } from '../core/encoding-overrides';
 import { vlGetTemplateDef } from './templates';
 import { inferVisCategory, computeZeroDecision } from '../core/semantic-types';
 import { resolveChannelSemantics, convertTemporalData } from '../core/resolve-semantics';
@@ -60,6 +61,25 @@ import { toTypeString, type SemanticAnnotation } from '../core/field-semantics';
 import { filterOverflow } from '../core/filter-overflow';
 import { computeLayout, computeChannelBudgets, computeMinSubplotDimensions } from '../core/compute-layout';
 import { vlApplyLayoutToSpec, vlApplyTooltips } from './instantiate-spec';
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Escape characters that Vega-Lite interprets as field-access path syntax.
+ *
+ * In Vega-Lite a `field` string like `"a.b"` is parsed as a nested accessor
+ * (`datum.a.b`), and `"a[0]"` as array indexing. Column names that literally
+ * contain `.`, `[`, or `]` (e.g. `"Oranges, Navel, per lb."`) must therefore be
+ * escaped with a backslash so the renderer resolves the flat key instead of an
+ * undefined nested path (which silently produces empty marks).
+ *
+ * Only the `field` accessor string needs escaping — direct JS data access via
+ * `row[fieldName]` continues to use the raw, unescaped name.
+ */
+const escapeVlFieldName = (name: string): string =>
+    name.replace(/[.[\]]/g, (ch) => `\\${ch}`);
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -83,7 +103,7 @@ import { vlApplyLayoutToSpec, vlApplyTooltips } from './instantiate-spec';
  */
 export function assembleVegaLite(input: ChartAssemblyInput): any {
     const chartType = input.chart_spec.chartType;
-    const encodings = input.chart_spec.encodings;
+    const rawEncodings = input.chart_spec.encodings;
     const data = input.data.values ?? [];
     const semanticTypes = input.semantic_types ?? {};
     const canvasSize = input.chart_spec.canvasSize ?? { width: 400, height: 320 };
@@ -94,6 +114,45 @@ export function assembleVegaLite(input: ChartAssemblyInput): any {
         throw new Error(`Unknown chart type: ${chartType}`);
     }
 
+    // Compose Category-B encoding-action overrides (stored by the host in
+    // chartProperties, keyed by action key) onto the base encodings before any
+    // pipeline phase runs. Flint owns the transform; the host only stores the
+    // override value. See applyEncodingOverrides / EncodingActionDef.
+    //
+    // Some actions (e.g. Sort) must know each channel's resolved encoding TYPE
+    // to decide which position axis is the discrete category and which is the
+    // measure. The host leaves `type` unset ("auto") for most encodings, so we
+    // run a preliminary semantics pass to fill in the inferred types, compose
+    // the overrides onto the type-enriched encodings, then re-resolve semantics
+    // on the result below (so that, e.g., a value-sort correctly suppresses the
+    // field's canonical ordinal ordering).
+    const convertedData = convertTemporalData(data, semanticTypes);
+    const prelimSemantics = resolveChannelSemantics(
+        rawEncodings, data, semanticTypes, convertedData,
+    );
+    const typedRawEncodings: Record<string, ChartEncoding> = {};
+    for (const [ch, enc] of Object.entries(rawEncodings)) {
+        typedRawEncodings[ch] = enc.type
+            ? enc
+            : { ...enc, type: prelimSemantics[ch]?.type };
+    }
+    // Axis dtype override (`xAxisType` / `yAxisType` properties): the user can
+    // force a position channel's interpretation between a continuous time scale
+    // ('temporal') and discrete bands ('nominal') for date-like fields that
+    // carry a dual interpretation. Applies to either axis — x on a vertical
+    // bar/line, y on a horizontal (transposed) bar/lollipop. Applied at the
+    // encoding level so the whole pipeline (sorting, layout, formatting) honors
+    // it — resolveChannelSemantics treats an explicit encoding.type as
+    // authoritative. Whether each control is *offered* is decided by the
+    // property's own `check` (see AXIS_DTYPE_PROPERTIES).
+    for (const axis of ['x', 'y'] as const) {
+        const choice = chartProperties?.[`${axis}AxisType`];
+        if ((choice === 'temporal' || choice === 'nominal') && typedRawEncodings[axis]?.field) {
+            typedRawEncodings[axis] = { ...typedRawEncodings[axis], type: choice };
+        }
+    }
+    const encodings = applyEncodingOverrides(chartTemplate, typedRawEncodings, chartProperties);
+
     const warnings: ChartWarning[] = [];
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -102,9 +161,6 @@ export function assembleVegaLite(input: ChartAssemblyInput): any {
 
     const tplMark = chartTemplate.template?.mark;
     const templateMarkType = typeof tplMark === 'string' ? tplMark : tplMark?.type;
-
-    // Convert temporal data once — feeds semantic resolution and all downstream stages
-    const convertedData = convertTemporalData(data, semanticTypes);
 
     const channelSemantics = resolveChannelSemantics(
         encodings, data, semanticTypes, convertedData,
@@ -120,6 +176,66 @@ export function assembleVegaLite(input: ChartAssemblyInput): any {
             cs.zero = computeZeroDecision(
                 cs.semanticAnnotation.semanticType, channel, effectiveMarkType, numericValues,
             );
+        }
+    }
+
+    // ── Zero-baseline override (position-cognitive axes) ──
+    // computeZeroDecision (above) is the single authority on whether an axis
+    // includes zero. For axes where that call is a genuine toss-up worth
+    // surfacing (see makeZeroBaselineCheck / ZeroDecision.uncertain), the host
+    // may override it via the stored config `includeZero_x`/`includeZero_y` (a boolean on/off
+    // toggle). We honor it by overwriting `cs.zero.zero`, leaving the rest of
+    // the decision intact, so every downstream consumer — the spec applier
+    // (instantiate-spec) AND banking layout (compute-layout reads cs.zero) —
+    // renders the user's choice consistently. Placed before the log-scale
+    // override and the layout phase so banking is zero-aware of the override.
+    if (chartTemplate.markCognitiveChannel === 'position') {
+        for (const axis of ['x', 'y'] as const) {
+            const cs = channelSemantics[axis];
+            if (!cs?.field || cs.type !== 'quantitative' || !cs.zero) continue;
+            const choice = chartProperties?.[`includeZero_${axis}`];
+            if (choice === undefined) continue; // keep the engine's decision
+            cs.zero = { ...cs.zero, zero: choice };
+        }
+    }
+
+    // ── Log-scale override (position-cognitive axes) ──
+    // A log/symlog scale only makes sense on a continuous quantitative POSITION
+    // axis (scatter/line/strip) — never on length/area marks, where bars encode
+    // magnitude as length from a zero baseline (log destroys the baseline and
+    // log(0) is undefined). The engine recommends log conservatively in
+    // resolveScaleType (→ cs.scaleType). Here we apply the user's per-axis
+    // override of that recommendation via the stored config `logScale_x`/
+    // `logScale_y` (a boolean on/off toggle). Whether the control is *offered*
+    // and its recommended default are decided by the property's own `check`
+    // (see LOG_SCALE_PROPERTIES) and surfaced through `getChartOptions`.
+    // On non-position marks we additionally strip any recommended log/symlog
+    // scale so length/area encodings always render linearly from their baseline.
+    if (chartTemplate.markCognitiveChannel === 'position') {
+        for (const axis of ['x', 'y'] as const) {
+            const cs = channelSemantics[axis];
+            if (!cs?.field || cs.type !== 'quantitative') continue;
+            // Binned axes use VL's linear bin computation — log conflicts.
+            if (chartTemplate.template?.encoding?.[axis]?.bin) continue;
+
+            const choice = chartProperties?.[`logScale_${axis}`];
+            if (choice === undefined) continue; // keep the engine's recommendation
+
+            // The control is a simple on/off toggle: `true` forces log (symlog
+            // when zeros are present), `false` forces linear.
+            const hasZero = data.some(row => row[cs.field] === 0);
+            cs.scaleType = choice === false
+                ? undefined                       // force linear
+                : (hasZero ? 'symlog' : 'log');   // force log (symlog if zeros)
+        }
+    } else {
+        // Non-position mark (length/area): never apply a log/symlog scale —
+        // these encodings read magnitude from a zero baseline that log destroys.
+        for (const axis of ['x', 'y'] as const) {
+            const cs = channelSemantics[axis];
+            if (cs?.scaleType === 'log' || cs?.scaleType === 'symlog') {
+                cs.scaleType = undefined;
+            }
         }
     }
 
@@ -170,7 +286,7 @@ export function assembleVegaLite(input: ChartAssemblyInput): any {
     const {
         addTooltips: addTooltipsOpt = false,
         maxStretch: maxStretchVal = 2,
-        minSubplotSize: _minSubplotVal = 60,
+        minSubplotSize: minSubplotVal = 60,
     } = effectiveOptions;
 
     // VL facet overhead:
@@ -217,7 +333,7 @@ export function assembleVegaLite(input: ChartAssemblyInput): any {
         budgets, allMarkTypes,
     );
 
-    const values = overflowResult.filteredData;
+    let values = overflowResult.filteredData;
     const nominalCounts = overflowResult.nominalCounts;
     warnings.push(...overflowResult.warnings);
 
@@ -303,6 +419,7 @@ export function assembleVegaLite(input: ChartAssemblyInput): any {
         channelSemantics,
         layout: layoutResult,
         table: values,
+        fullTable: convertedData,
         resolvedEncodings,
         encodings,
         chartProperties,
@@ -425,20 +542,68 @@ export function assembleVegaLite(input: ChartAssemblyInput): any {
     // RESULT
     // ═══════════════════════════════════════════════════════════════════════
 
-    const result: any = { ...vgObj, data: { values } };
+    const result: any = { ...vgObj, data: vgObj.data ?? { values } };
     if (warnings.length > 0) {
         result._warnings = warnings;
     }
     result._width = layoutResult.subplotWidth;
     result._height = layoutResult.subplotHeight;
-    // Expose computed config so the UI can seed toggle defaults from heuristic results.
-    // Only include keys when the corresponding property is relevant (e.g. faceted).
-    const computedConfig: Record<string, any> = {};
-    if (hasFacetedQuant) {
-        computedConfig.independentYAxis = computedIndependentYAxis;
-    }
-    result._computedConfig = computedConfig;
+    // Annotated option catalog: every configurable property this template
+    // exposes, tagged with whether it is *applicable* for this spec + data and
+    // the *value* the compiler will use (host choice if set, else the engine's
+    // recommended default). This is the single contract a host (DF, an AI agent,
+    // another renderer) reads to know which controls to surface and how to seed
+    // them — see ChartOption / getChartOptions. Passing a non-applicable
+    // property back to the compiler is accepted but silently ignored.
+    //
+    // Each property decides its own applicability through its pure `check(ctx)`
+    // (the single source of truth, co-located with the property). The one piece
+    // that can't live there is `independentYAxis`'s *recommended default* —
+    // whether to turn it on automatically — which is layout-coupled (it needs the
+    // resolved facet grid and the assembled spec's facet/y structure, differing
+    // for 1-D vs 2-D facets); that value is computed above and threaded in here.
+    const evalCtx: OptionEvalContext = {
+        encodings,
+        channelSemantics,
+        data,
+        chartProperties,
+    };
+    const layoutCoupledRecommendation: Record<string, any> = {
+        independentYAxis: computedIndependentYAxis,
+    };
+
+    result._options = (chartTemplate.properties ?? []).map((def): ChartOption => {
+        const ev = def.check?.(evalCtx);
+        const applicable = ev ? ev.applicable : true;
+        const recommended = layoutCoupledRecommendation[def.key] ?? ev?.recommendedValue;
+        const value = chartProperties?.[def.key] ?? recommended ?? def.defaultValue;
+        // Strip the `check` rule — a ChartOption is the resolved, serializable
+        // answer (`applicable`/`value`), not the predicate that produced it.
+        const { check, ...rest } = def;
+        return { ...rest, applicable, value };
+    });
     return result;
+}
+
+/**
+ * Inspect a chart spec + dataset and report the configurable options Flint
+ * exposes for it, each annotated with whether it is *applicable* and the *value*
+ * the compiler will use (see ChartOption).
+ *
+ * This is the "ask Flint what knobs are available" entry point. A host calls it
+ * with the same input it would pass to `assembleVegaLite`, renders a control for
+ * each applicable option seeded from `value`, and feeds the user's choices back
+ * via `chart_spec.chartProperties`. Because applicability is derived from the
+ * data (not from the chosen values), the set is stable across that loop.
+ *
+ * It runs the same analysis pipeline as `assembleVegaLite` (the options are a
+ * by-product of assembly), so applicability can never drift from what the
+ * compiler actually does — a property reported applicable is exactly one the
+ * compiler will honor.
+ */
+export function getChartOptions(input: ChartAssemblyInput): ChartOption[] {
+    const spec = assembleVegaLite(input);
+    return spec && Array.isArray(spec._options) ? spec._options : [];
 }
 
 // ===========================================================================
@@ -489,7 +654,13 @@ function buildVLEncodings(
         }
 
         if (fieldName) {
-            encodingObj.field = fieldName;
+            const escapedFieldName = escapeVlFieldName(fieldName);
+            encodingObj.field = escapedFieldName;
+            // Preserve a readable axis/legend title when the raw name had to be
+            // escaped (VL would otherwise display the backslash-escaped string).
+            if (escapedFieldName !== fieldName) {
+                encodingObj.title = fieldName;
+            }
 
             // Use Phase 0's resolved type
             encodingObj.type = cs?.type || 'nominal';
@@ -510,7 +681,7 @@ function buildVLEncodings(
                     encodingObj.title = "Count";
                     encodingObj.type = "quantitative";
                 } else {
-                    encodingObj.field = `${fieldName}_${encoding.aggregate}`;
+                    encodingObj.field = escapeVlFieldName(`${fieldName}_${encoding.aggregate}`);
                     encodingObj.type = "quantitative";
                 }
             }
@@ -739,12 +910,38 @@ function restructureFacets(
     facetGrid?: { columns: number; rows: number },
 ): void {
 
+    const isConcatSpec = () => Array.isArray(vgObj.hconcat) || Array.isArray(vgObj.vconcat) || Array.isArray(vgObj.concat);
+
+    const hoistConcatIntoFacet = (facetDef: any, wrapColumns?: number) => {
+        const childSpec: any = {};
+        for (const key of ['hconcat', 'vconcat', 'concat', 'resolve', 'spacing', 'align', 'bounds', 'center'] as const) {
+            if (vgObj[key] !== undefined) {
+                childSpec[key] = vgObj[key];
+                delete vgObj[key];
+            }
+        }
+        if (vgObj.encoding && Object.keys(vgObj.encoding).length > 0) {
+            childSpec.encoding = vgObj.encoding;
+            delete vgObj.encoding;
+        }
+
+        vgObj.facet = facetDef;
+        if (wrapColumns != null) {
+            vgObj.columns = wrapColumns;
+        }
+        vgObj.spec = childSpec;
+        vgObj.resolve = {
+            ...(vgObj.resolve || {}),
+            scale: { ...(vgObj.resolve?.scale || {}), y: 'independent' },
+        };
+    };
+
     if (vgObj.encoding?.column != undefined && vgObj.encoding?.row == undefined) {
         vgObj.encoding.facet = vgObj.encoding.column;
 
         // Use the grid decided by computeFacetGrid.
         const numCols = facetGrid?.columns ?? (nominalCounts.column || 1);
-        const _numRows = facetGrid?.rows ?? 1;
+        const numRows = facetGrid?.rows ?? 1;
 
         vgObj.encoding.facet.columns = numCols;
 
@@ -753,6 +950,20 @@ function restructureFacets(
         // to decide whether titles should be hidden (size-based threshold).
 
         delete vgObj.encoding.column;
+
+        // Faceting a concat spec must use top-level `facet` + child
+        // `spec`. Inline `encoding.facet` is ignored/invalid for
+        // hconcat/vconcat, which is the structure used by Bar Table.
+        if (isConcatSpec()) {
+            const facetDef = { ...vgObj.encoding.facet };
+            delete facetDef.columns;
+            delete vgObj.encoding.facet;
+            if (Object.keys(vgObj.encoding).length === 0) {
+                delete vgObj.encoding;
+            }
+            hoistConcatIntoFacet(facetDef, numCols);
+            return;
+        }
 
         // For layered specs, VL doesn't support encoding.facet inline —
         // restructure to top-level facet + spec.
@@ -777,6 +988,24 @@ function restructureFacets(
             delete vgObj.encoding;
         }
 
+        return;
+    }
+
+    // For concat specs with row-only or column+row facets
+    if (isConcatSpec() && (vgObj.encoding?.column || vgObj.encoding?.row)) {
+        const facetDef: any = {};
+        if (vgObj.encoding.column) {
+            facetDef.column = vgObj.encoding.column;
+            delete vgObj.encoding.column;
+        }
+        if (vgObj.encoding.row) {
+            facetDef.row = vgObj.encoding.row;
+            delete vgObj.encoding.row;
+        }
+        if (Object.keys(vgObj.encoding).length === 0) {
+            delete vgObj.encoding;
+        }
+        hoistConcatIntoFacet(facetDef);
         return;
     }
 

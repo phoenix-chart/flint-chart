@@ -5,7 +5,7 @@
  * Barrel export for chart test-data generators.
  *
  * Re-exports every generator plus the shared types,
- * and exposes the master TEST_GENERATORS map.
+ * and exposes the master TEST_GENERATORS map and GALLERY_SECTIONS config.
  */
 
 // Shared types & helpers
@@ -20,11 +20,11 @@ export { genScatterTests, genRegressionTests } from './scatter-tests';
 export { genBarTests, genStackedBarTests, genGroupedBarTests } from './bar-tests';
 export { genHistogramTests, genBoxplotTests, genDensityTests, genStripPlotTests } from './distribution-tests';
 export { genLineTests } from './line-tests';
-export { genDottedLineTests, genBumpChartTests } from './line-area-tests';
+export { genBumpChartTests } from './line-area-tests';
 export { genAreaTests, genStreamgraphTests } from './area-tests';
 export {
     genHeatmapTests, genPieTests, genRangedDotPlotTests, genLollipopTests,
-    genCustomTests, genWaterfallTests, genCandlestickTests, genRadarTests, genPyramidTests,
+    genCustomTests, genWaterfallTests, genBarTableTests, genCandlestickTests, genRadarTests, genPyramidTests,
     genRoseTests,
 } from './specialized-tests';
 export { FACET_SIZES, DISCRETE_SIZES, genFacetColumnTests, genFacetRowTests, genFacetColRowTests, genFacetSmallTests, genFacetWrapTests, genFacetClipTests, genFacetOverflowedColTests, genFacetOverflowedColRowTests, genFacetOverflowedRowTests, genFacetDenseLineTests } from './facet-tests';
@@ -58,25 +58,24 @@ export {
     genOmniVizHeatmapTests,
     genOmniVizSunburstTests,
     genOmniVizWaterfallTests,
+    GALLERY_OMNI_VIZ_GENERATOR_KEYS,
+    OMNI_VIZ_GALLERY_DATA_TABLE_ENTRY,
 } from './omni-viz-tests';
+
+// Gallery navigation tree (language -> category -> page)
 export {
-    REGIONAL_SURVEY_ROWS,
-    regionalSurveyTable,
-    REGIONAL_SURVEY_AXIS_LEVELS,
-    type RegionalSurveyRow,
-} from './regional-survey-data';
-export {
-    genRegionalSurveyScatterTests,
-    genRegionalSurveyLineTests,
-    genRegionalSurveyBarTests,
-    genRegionalSurveyStackedBarTests,
-    genRegionalSurveyGroupedBarTests,
-    genRegionalSurveyAreaTests,
-    genRegionalSurveyPieTests,
-    genRegionalSurveyHistogramTests,
-    genRegionalSurveyRadarTests,
-    genRegionalSurveyRoseTests,
-} from './regional-survey-tests';
+    GALLERY_TREE,
+    DEFAULT_PATH,
+    findPage,
+    firstPagePath,
+} from './gallery-tree';
+export type {
+    GallerySection as GalleryTreeSection,
+    GalleryCategory,
+    GalleryPage,
+    GalleryPageRender,
+    SingleRenderLibrary,
+} from './gallery-tree';
 
 // ---------------------------------------------------------------------------
 // Master TEST_GENERATORS map
@@ -87,11 +86,11 @@ import { genScatterTests, genRegressionTests } from './scatter-tests';
 import { genBarTests, genStackedBarTests, genGroupedBarTests } from './bar-tests';
 import { genHistogramTests, genBoxplotTests, genDensityTests, genStripPlotTests } from './distribution-tests';
 import { genLineTests } from './line-tests';
-import { genDottedLineTests, genBumpChartTests } from './line-area-tests';
+import { genBumpChartTests } from './line-area-tests';
 import { genAreaTests, genStreamgraphTests } from './area-tests';
 import {
     genHeatmapTests, genPieTests, genRangedDotPlotTests, genLollipopTests,
-    genCustomTests, genWaterfallTests, genCandlestickTests, genRadarTests, genPyramidTests,
+    genCustomTests, genWaterfallTests, genBarTableTests, genCandlestickTests, genRadarTests, genPyramidTests,
     genRoseTests,
 } from './specialized-tests';
 import { genFacetColumnTests, genFacetRowTests, genFacetColRowTests, genFacetSmallTests, genFacetWrapTests, genFacetClipTests, genFacetOverflowedColTests, genFacetOverflowedColRowTests, genFacetOverflowedRowTests, genFacetDenseLineTests } from './facet-tests';
@@ -105,23 +104,26 @@ import { genEChartsScatterTests, genEChartsLineTests, genEChartsBarTests, genECh
 import { genChartJsScatterTests, genChartJsLineTests, genChartJsBarTests, genChartJsStackedBarTests, genChartJsGroupedBarTests, genChartJsAreaTests, genChartJsPieTests, genChartJsHistogramTests, genChartJsRadarTests, genChartJsStressTests, genChartJsRoseTests } from './chartjs-tests';
 import { genGoFishScatterTests, genGoFishLineTests, genGoFishBarTests, genGoFishStackedBarTests, genGoFishGroupedBarTests, genGoFishAreaTests, genGoFishStackedAreaTests, genGoFishPieTests, genGoFishScatterPieTests, genGoFishStressTests } from './gofish-tests';
 import {
-    genRegionalSurveyScatterTests,
-    genRegionalSurveyLineTests,
-    genRegionalSurveyBarTests,
-    genRegionalSurveyStackedBarTests,
-    genRegionalSurveyGroupedBarTests,
-    genRegionalSurveyAreaTests,
-    genRegionalSurveyPieTests,
-    genRegionalSurveyHistogramTests,
-    genRegionalSurveyRadarTests,
-    genRegionalSurveyRoseTests,
-} from './regional-survey-tests';
+    genGalleryRegionalSurveyScatterTests,
+    genGalleryRegionalSurveyLineTests,
+    genGalleryRegionalSurveyBarTests,
+    genGalleryRegionalSurveyStackedBarTests,
+    genGalleryRegionalSurveyGroupedBarTests,
+    genGalleryRegionalSurveyAreaTests,
+    genGalleryRegionalSurveyPieTests,
+    genGalleryRegionalSurveyHistogramTests,
+    genGalleryRegionalSurveyRadarTests,
+    genGalleryRegionalSurveyRoseTests,
+} from '../gallery/regional-survey-tests';
+import { genGalleryKpiCardTests } from '../gallery/bi-tests';
 import {
     genOmniVizGroupedBarTests,
     genOmniVizLineTests,
     genOmniVizHeatmapTests,
     genOmniVizSunburstTests,
     genOmniVizWaterfallTests,
+    GALLERY_OMNI_VIZ_GENERATOR_KEYS,
+    OMNI_VIZ_GALLERY_DATA_TABLE_ENTRY,
 } from './omni-viz-tests';
 
 /** All test generators mapped by chart group */
@@ -134,7 +136,6 @@ export const TEST_GENERATORS: Record<string, () => TestCase[]> = {
     'Histogram': genHistogramTests,
     'Heatmap': genHeatmapTests,
     'Line Chart': genLineTests,
-    'Dotted Line Chart': genDottedLineTests,
     'Bump Chart': genBumpChartTests,
     'Boxplot': genBoxplotTests,
     'Pie Chart': genPieTests,
@@ -145,6 +146,7 @@ export const TEST_GENERATORS: Record<string, () => TestCase[]> = {
     'Density Plot': genDensityTests,
     'Candlestick Chart': genCandlestickTests,
     'Waterfall Chart': genWaterfallTests,
+    'Bar Table': genBarTableTests,
     'Strip Plot': genStripPlotTests,
     'Radar Chart': genRadarTests,
     'Pyramid Chart': genPyramidTests,
@@ -208,21 +210,22 @@ export const TEST_GENERATORS: Record<string, () => TestCase[]> = {
     'Chart.js: Radar': genChartJsRadarTests,
     'Chart.js: Rose': genChartJsRoseTests,
     'Chart.js: Stress Tests': genChartJsStressTests,
-    'Gallery: Regional Survey: Scatter': genRegionalSurveyScatterTests,
-    'Gallery: Regional Survey: Line': genRegionalSurveyLineTests,
-    'Gallery: Regional Survey: Bar': genRegionalSurveyBarTests,
-    'Gallery: Regional Survey: Stacked Bar': genRegionalSurveyStackedBarTests,
-    'Gallery: Regional Survey: Grouped Bar': genRegionalSurveyGroupedBarTests,
-    'Gallery: Regional Survey: Area': genRegionalSurveyAreaTests,
-    'Gallery: Regional Survey: Pie': genRegionalSurveyPieTests,
-    'Gallery: Regional Survey: Histogram': genRegionalSurveyHistogramTests,
-    'Gallery: Regional Survey: Radar': genRegionalSurveyRadarTests,
-    'Gallery: Regional Survey: Rose': genRegionalSurveyRoseTests,
-    'Gallery: Omni: Line': genOmniVizLineTests,
-    'Gallery: Omni: Grouped Bar': genOmniVizGroupedBarTests,
-    'Gallery: Omni: Waterfall': genOmniVizWaterfallTests,
-    'Gallery: Omni: Heatmap': genOmniVizHeatmapTests,
-    'Gallery: Omni: Sunburst': genOmniVizSunburstTests,
+    'Gallery: Scatter': genGalleryRegionalSurveyScatterTests,
+    'Gallery: Line': genGalleryRegionalSurveyLineTests,
+    'Gallery: Bar': genGalleryRegionalSurveyBarTests,
+    'Gallery: Stacked Bar': genGalleryRegionalSurveyStackedBarTests,
+    'Gallery: Grouped Bar': genGalleryRegionalSurveyGroupedBarTests,
+    'Gallery: Area': genGalleryRegionalSurveyAreaTests,
+    'Gallery: Pie': genGalleryRegionalSurveyPieTests,
+    'Gallery: Histogram': genGalleryRegionalSurveyHistogramTests,
+    'Gallery: Radar': genGalleryRegionalSurveyRadarTests,
+    'Gallery: Rose': genGalleryRegionalSurveyRoseTests,
+    'Gallery: KPI Card': genGalleryKpiCardTests,
+    'Omni: Line': genOmniVizLineTests,
+    'Omni: Grouped Bar': genOmniVizGroupedBarTests,
+    'Omni: Waterfall': genOmniVizWaterfallTests,
+    'Omni: Heatmap': genOmniVizHeatmapTests,
+    'Omni: Sunburst': genOmniVizSunburstTests,
     'GoFish Basic': () => [
         ...genGoFishScatterTests(),
         ...genGoFishLineTests(),

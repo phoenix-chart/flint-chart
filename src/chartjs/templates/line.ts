@@ -14,11 +14,10 @@ import {
     extractCategories,
     groupBy,
     buildCategoryAlignedData,
+    DEFAULT_COLORS,
     getChartJsPalette,
     getSeriesBorderColor,
     coerceUnixMsForChartJs,
-    interpolateSequentialColor,
-    sortRowsByField,
 } from './utils';
 
 const isDiscrete = (type: string | undefined) => type === 'nominal' || type === 'ordinal';
@@ -35,9 +34,7 @@ export const cjsLineChartDef: ChartTemplateDef = {
         const { channelSemantics, table, chartProperties } = ctx;
         const xCS = channelSemantics.x;
         const yCS = channelSemantics.y;
-        const colorCS = channelSemantics.color;
-        const colorField = colorCS?.field;
-        const colorType = colorCS?.type;
+        const colorField = channelSemantics.color?.field;
 
         if (!xCS?.field || !yCS?.field) return;
         const xField = xCS.field;
@@ -45,7 +42,6 @@ export const cjsLineChartDef: ChartTemplateDef = {
 
         const xIsDiscrete = isDiscrete(xCS.type);
         const xIsTemporal = xCS.type === 'temporal';
-        const isContinuousColor = !!colorField && (colorType === 'quantitative' || colorType === 'temporal');
 
         const mapContinuousX = (raw: unknown) =>
             (xIsTemporal ? coerceUnixMsForChartJs(raw) : raw);
@@ -115,36 +111,7 @@ export const cjsLineChartDef: ChartTemplateDef = {
             config.options.scales.y.beginAtZero = channelSemantics.y.zero.zero !== false;
         }
 
-        if (isContinuousColor && colorField) {
-            // Continuous color: one line dataset — neutral stroke, per-point fill (Chart.js idiom).
-            const sorted = sortRowsByField(table, xField, xCS.type);
-            const lineData = sorted
-                .map(r => ({ x: mapContinuousX(r[xField]), y: r[yField] }))
-                .filter(p => p.y != null && (xIsTemporal ? Number.isFinite(p.x as number) : true));
-
-            const colorNums = sorted
-                .map(r => Number(r[colorField]))
-                .filter(v => !isNaN(v) && isFinite(v));
-            const cMin = colorNums.length ? Math.min(...colorNums) : 0;
-            const cMax = colorNums.length ? Math.max(...colorNums) : 1;
-            const seqPalette = getChartJsPalette(ctx, 'color');
-            const pointColors = sorted.map(r =>
-                interpolateSequentialColor(Number(r[colorField]), cMin, cMax, seqPalette),
-            );
-
-            config.data.datasets.push({
-                label: yField,
-                data: lineData,
-                borderColor: '#888888',
-                backgroundColor: 'transparent',
-                pointBackgroundColor: pointColors,
-                pointBorderColor: pointColors,
-                pointRadius: 4,
-                tension,
-                stepped,
-                fill: false,
-            });
-        } else if (colorField) {
+        if (colorField) {
             const groups = groupBy(table, colorField);
             config.options.plugins.legend = { display: true };
 

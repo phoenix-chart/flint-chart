@@ -39,7 +39,7 @@ export const ecStripPlotDef: ChartTemplateDef = {
         paramOverrides: { defaultBandSize: 50, minStep: 16 },
     }),
     instantiate: (spec, ctx) => {
-        const { channelSemantics, table, chartProperties: _chartProperties } = ctx;
+        const { channelSemantics, table, chartProperties } = ctx;
         const xCS = channelSemantics.x;
         const yCS = channelSemantics.y;
         const xField = xCS?.field;

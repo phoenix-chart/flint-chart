@@ -16,7 +16,7 @@
  * Channels: x (temporal/ordinal), y (quantitative), color (series groups)
  */
 
-import { ChartTemplateDef } from '../../core/types';
+import { ChartTemplateDef, ChartPropertyDef } from '../../core/types';
 import { groupBy } from './utils';
 
 export const ecStreamgraphDef: ChartTemplateDef = {
@@ -30,7 +30,7 @@ export const ecStreamgraphDef: ChartTemplateDef = {
     }),
 
     instantiate: (spec, ctx) => {
-        const { channelSemantics, table, chartProperties: _chartProperties } = ctx;
+        const { channelSemantics, table, chartProperties } = ctx;
         const xCS = channelSemantics.x;
         const yCS = channelSemantics.y;
         const colorField = channelSemantics.color?.field;

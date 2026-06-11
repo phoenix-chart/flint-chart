@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+import { Type } from './df-types';
 import { Channel, EncodingItem } from './df-types';
 import { AssembleOptions } from '../core/types';
 import { TestCase, makeField, makeEncodingItem, buildMetadata } from './types';

@@ -207,7 +207,7 @@ function disambiguateMultiEncoding(
     channel: string,
     data: any[],
     fieldName: string,
-    _fieldValues: any[],
+    fieldValues: any[],
 ): EncodingTypeDecision {
     const has = (vc: VisCategory) => candidates.includes(vc);
 
@@ -351,8 +351,8 @@ export function resolveEncodingType(
     // No registered semantic type — infer from raw data values, then
     // apply heuristic guards for common data-inference mis-classifications.
     const visCategory: VisCategory = inferVisCategory(fieldValues);
-    const channelOverride = false;
-    const cardinalityGuard = false;
+    let channelOverride = false;
+    let cardinalityGuard = false;
 
     switch (visCategory) {
         case 'temporal':

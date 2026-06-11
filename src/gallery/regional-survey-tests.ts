@@ -2,15 +2,12 @@
 // Licensed under the MIT License.
 
 /**
- * Regional survey dataset × each Chart.js–aligned chart family.
- *
- * Used both as a test fixture and as a "feature gallery" data source —
- * one realistic dataset rendered across many chart types so the visual
- * defaults of each backend can be compared at a glance.
+ * Gallery test cases: regional survey dataset × each Chart.js–aligned chart family.
+ * Rendered with Vega-Lite + ECharts + Chart.js (TripleChart).
  */
 
-import { Type } from './df-types';
-import { TestCase, makeField, makeEncodingItem } from './types';
+import { Type } from '../test-data/df-types';
+import { TestCase, makeField, makeEncodingItem } from '../test-data/types';
 import {
     REGIONAL_SURVEY_ROWS,
     regionalSurveyTable,
@@ -76,7 +73,7 @@ function roseByRegionAvgPct(): Record<string, unknown>[] {
     });
 }
 
-export function genRegionalSurveyScatterTests(): TestCase[] {
+export function genGalleryRegionalSurveyScatterTests(): TestCase[] {
     const data = regionalSurveyTable();
     return [{
         title: 'Flint: Scatter — count × % (by region)',
@@ -98,7 +95,7 @@ export function genRegionalSurveyScatterTests(): TestCase[] {
     }];
 }
 
-export function genRegionalSurveyLineTests(): TestCase[] {
+export function genGalleryRegionalSurveyLineTests(): TestCase[] {
     const data = regionalSurveyTable();
     return [{
         title: 'Flint: Line — % over survey waves (by region)',
@@ -120,7 +117,7 @@ export function genRegionalSurveyLineTests(): TestCase[] {
     }];
 }
 
-export function genRegionalSurveyBarTests(): TestCase[] {
+export function genGalleryRegionalSurveyBarTests(): TestCase[] {
     const data = regionalSurveyTable();
     return [{
         title: 'Flint: Bar — city × count',
@@ -134,7 +131,7 @@ export function genRegionalSurveyBarTests(): TestCase[] {
     }];
 }
 
-export function genRegionalSurveyStackedBarTests(): TestCase[] {
+export function genGalleryRegionalSurveyStackedBarTests(): TestCase[] {
     const data = regionalSurveyTable();
     return [{
         title: 'Flint: Stacked bar — wave × count (by region)',
@@ -156,7 +153,7 @@ export function genRegionalSurveyStackedBarTests(): TestCase[] {
     }];
 }
 
-export function genRegionalSurveyGroupedBarTests(): TestCase[] {
+export function genGalleryRegionalSurveyGroupedBarTests(): TestCase[] {
     const data = regionalSurveyTable();
     return [{
         title: 'Flint: Grouped bar — region × % (by wave)',
@@ -178,7 +175,7 @@ export function genRegionalSurveyGroupedBarTests(): TestCase[] {
     }];
 }
 
-export function genRegionalSurveyAreaTests(): TestCase[] {
+export function genGalleryRegionalSurveyAreaTests(): TestCase[] {
     const data = regionalSurveyTable();
     return [{
         title: 'Flint: Area — count over waves (by region)',
@@ -200,7 +197,7 @@ export function genRegionalSurveyAreaTests(): TestCase[] {
     }];
 }
 
-export function genRegionalSurveyPieTests(): TestCase[] {
+export function genGalleryRegionalSurveyPieTests(): TestCase[] {
     const data = pieByRegionTotals();
     return [{
         title: 'Flint: Pie — total count by region',
@@ -217,7 +214,7 @@ export function genRegionalSurveyPieTests(): TestCase[] {
     }];
 }
 
-export function genRegionalSurveyHistogramTests(): TestCase[] {
+export function genGalleryRegionalSurveyHistogramTests(): TestCase[] {
     const data = regionalSurveyTable();
     return [{
         title: 'Flint: Histogram — distribution of %',
@@ -231,7 +228,7 @@ export function genRegionalSurveyHistogramTests(): TestCase[] {
     }];
 }
 
-export function genRegionalSurveyRadarTests(): TestCase[] {
+export function genGalleryRegionalSurveyRadarTests(): TestCase[] {
     const data = radarByRegionWave();
     const waves = REGIONAL_SURVEY_AXIS_LEVELS.seasonLabels;
     return [{
@@ -254,7 +251,7 @@ export function genRegionalSurveyRadarTests(): TestCase[] {
     }];
 }
 
-export function genRegionalSurveyRoseTests(): TestCase[] {
+export function genGalleryRegionalSurveyRoseTests(): TestCase[] {
     const data = roseByRegionAvgPct();
     return [{
         title: 'Flint: Rose — mean % by region',

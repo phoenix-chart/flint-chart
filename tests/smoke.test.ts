@@ -53,7 +53,7 @@ describe('public API smoke', () => {
     expect(spec).toBeDefined();
   });
 
-  it('line chart with quantitative color uses gray line + colored points layer', () => {
+  it('line chart with quantitative color uses color encoding on a single mark', () => {
     const spec = assembleVegaLite({
       data: {
         values: [
@@ -73,17 +73,14 @@ describe('public API smoke', () => {
       },
     }) as any;
 
-    expect(spec.layer).toHaveLength(2);
-    expect(spec.layer[0].mark.type ?? spec.layer[0].mark).toBe('line');
-    expect(spec.layer[0].mark.color).toBe('#888888');
-    expect(spec.layer[0].encoding?.color).toBeUndefined();
+    expect(spec.mark).toBe('line');
     expect(spec.encoding.x?.field).toBe('Date');
     expect(spec.encoding.y?.field).toBe('Value');
-    expect(spec.layer[1].mark.type).toBe('circle');
-    expect(spec.layer[1].encoding.color?.field).toBe('ColorVal');
+    expect(spec.encoding.color?.field).toBe('ColorVal');
+    expect(spec.encoding.color?.type).toBe('quantitative');
   });
 
-  it('chart.js line with quantitative color uses neutral stroke + per-point fill on one dataset', () => {
+  it('chart.js line with quantitative color uses separate datasets per color value', () => {
     const config = assembleChartjs({
       data: {
         values: [
@@ -103,9 +100,8 @@ describe('public API smoke', () => {
       },
     }) as any;
 
-    expect(config.data.datasets).toHaveLength(1);
-    expect(config.data.datasets[0].borderColor).toBe('#888888');
-    expect(config.data.datasets[0].pointRadius).toBe(4);
-    expect(config.data.datasets[0].pointBackgroundColor).toHaveLength(2);
+    expect(config.data.datasets).toHaveLength(2);
+    expect(config.data.datasets[0].data).toHaveLength(1);
+    expect(config.data.datasets[1].data).toHaveLength(1);
   });
 });

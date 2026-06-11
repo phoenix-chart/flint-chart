@@ -61,7 +61,7 @@ export const pieChartDef: ChartTemplateDef = {
             effectiveCount = ctx.table.length;
         }
 
-        const { radius: _radius, canvasW, canvasH } = computeCircumferencePressure(
+        const { radius, canvasW, canvasH } = computeCircumferencePressure(
             effectiveCount, ctx.canvasSize, {
                 minArcPx: 45,
                 minRadius: 60,

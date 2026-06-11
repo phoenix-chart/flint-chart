@@ -22,6 +22,8 @@ import { ChartTemplateDef, ChartPropertyDef } from '../../core/types';
 import {
     extractCategories,
     groupBy,
+    DEFAULT_COLORS,
+    DEFAULT_BG_COLORS,
     getChartJsPalette,
     getSeriesBorderColor,
     getSeriesBackgroundColor,
@@ -54,7 +56,7 @@ export const cjsRoseChartDef: ChartTemplateDef = {
         if (colorField) {
             // Stacked: aggregate per (category × group), then sum across groups per category
             const groups = groupBy(table, colorField);
-            const _groupNames = [...groups.keys()];
+            const groupNames = [...groups.keys()];
 
             // Build per-category totals
             const catTotals = new Map<string, number>();

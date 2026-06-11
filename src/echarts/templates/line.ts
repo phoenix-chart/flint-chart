@@ -27,7 +27,7 @@ function areCategoriesNumeric(cats: string[]): boolean {
     });
 }
 
-const _interpolateMap: Record<string, string> = {
+const interpolateMap: Record<string, string> = {
     'linear': 'linear',       // default
     'monotone': 'monotone',   // ECharts smooth: true approximates this
     'step': 'step',
@@ -132,6 +132,7 @@ export const ecLineChartDef: ChartTemplateDef = {
 
         // Interpolation / smooth
         const interpolate = chartProperties?.interpolate;
+        const showPoints = !!chartProperties?.showPoints;
         const smooth = interpolate === 'monotone' || interpolate === 'basis' ||
             interpolate === 'cardinal' || interpolate === 'catmull-rom';
         const step = interpolate === 'step' ? 'middle'
@@ -205,9 +206,8 @@ export const ecLineChartDef: ChartTemplateDef = {
             option.series.push({
                 type: 'line',
                 data: lineData,
-                z: 1,
-                itemStyle: { color: '#888888' },
-                lineStyle: { color: '#888888' },
+                itemStyle: { color: '#cccccc' },
+                lineStyle: { color: '#cccccc' },
                 showSymbol: false,
                 symbol: 'none',
                 ...(smooth ? { smooth: true } : {}),
@@ -216,7 +216,6 @@ export const ecLineChartDef: ChartTemplateDef = {
             option.series.push({
                 type: 'scatter',
                 data: pointData,
-                z: 2,
                 symbol: 'circle',
                 symbolSize: 7,
                 itemStyle: { opacity: 1 },
@@ -238,9 +237,10 @@ export const ecLineChartDef: ChartTemplateDef = {
                     name,
                     type: 'line',
                     data: seriesData,
-                    // Default line chart: don't draw point markers.
-                    showSymbol: false,
-                    symbol: 'none',
+                    // Default line chart: don't draw point markers (unless showPoints is set).
+                    showSymbol: !!showPoints,
+                    symbol: showPoints ? 'circle' : 'none',
+                    ...(showPoints ? { symbolSize: 6 } : {}),
                 };
                 if (smooth) series.smooth = true;
                 if (step) series.step = step;
@@ -262,9 +262,10 @@ export const ecLineChartDef: ChartTemplateDef = {
             const series: any = {
                 type: 'line',
                 data: seriesData,
-                // Default line chart: don't draw point markers.
-                showSymbol: false,
-                symbol: 'none',
+                // Default line chart: don't draw point markers (unless showPoints is set).
+                showSymbol: !!showPoints,
+                symbol: showPoints ? 'circle' : 'none',
+                ...(showPoints ? { symbolSize: 6 } : {}),
             };
             if (smooth) series.smooth = true;
             if (step) series.step = step;
@@ -287,6 +288,7 @@ export const ecLineChartDef: ChartTemplateDef = {
                 { value: 'step-after', label: 'Step After' },
             ],
         } as ChartPropertyDef,
+        { key: 'showPoints', label: 'Show points', type: 'binary', defaultValue: false } as ChartPropertyDef,
     ],
 };
 
@@ -339,112 +341,6 @@ function buildCategoryAlignedXYData(
 const RANK_SEMANTIC_TYPES = new Set(['Rank', 'Score', 'Level']);
 
 /**
- * Dotted Line Chart — same as Line Chart with showSymbol and dashed line (mirror vegalite Dotted Line).
- */
-export const ecDottedLineChartDef: ChartTemplateDef = {
-    chart: 'Dotted Line Chart',
-    template: { mark: 'line', encoding: {} },
-    channels: ['x', 'y', 'color', 'opacity', 'column', 'row'],
-    markCognitiveChannel: 'position',
-    declareLayoutMode: () => ({
-        paramOverrides: { continuousMarkCrossSection: { x: 100, y: 20, seriesCountAxis: 'auto' } },
-    }),
-    instantiate: (spec, ctx) => {
-        const { channelSemantics, table, chartProperties } = ctx;
-        const xCS = channelSemantics.x;
-        const yCS = channelSemantics.y;
-        const colorField = channelSemantics.color?.field;
-
-        if (!xCS?.field || !yCS?.field) return;
-        const xField = xCS.field;
-        const yField = yCS.field;
-
-        const xIsDiscrete = isDiscrete(xCS.type);
-        const xIsTemporal = xCS.type === 'temporal';
-        const categories = xIsDiscrete ? extractCategories(table, xField, getCategoryOrder(ctx, 'x')) : undefined;
-
-        const option: any = {
-            tooltip: { trigger: 'axis' },
-            xAxis: (() => {
-                const type = xIsDiscrete ? 'category' : xIsTemporal ? 'time' : 'value';
-                const base: any = {
-                    type,
-                    name: xField,
-                    nameLocation: 'middle',
-                    nameGap: 30,
-                    ...(categories ? { data: categories } : {}),
-                };
-                if (xIsDiscrete && categories) {
-                    base.axisTick = { show: true, alignWithLabel: true };
-                    base.axisLabel = { rotate: areCategoriesNumeric(categories) ? 0 : 90 };
-                } else if (xIsTemporal) {
-                    base.axisTick = { show: true, alignWithLabel: true };
-                    base.axisLabel = { rotate: 90 };
-                } else {
-                    base.axisTick = { show: true };
-                }
-                return base;
-            })(),
-            yAxis: {
-                type: 'value',
-                name: yField,
-                nameLocation: 'middle',
-                nameGap: 40,
-                axisTick: { show: true },
-                axisLabel: { rotate: 0 },
-            },
-            series: [],
-        };
-        option._encodingTooltip = { trigger: 'axis', categoryLabel: xField, valueLabel: yField };
-
-        if (channelSemantics.y?.zero) {
-            option.yAxis.scale = !channelSemantics.y.zero.zero;
-        }
-
-        const interpolate = chartProperties?.interpolate;
-        const smooth = interpolate === 'monotone' || interpolate === 'basis' ||
-            interpolate === 'cardinal' || interpolate === 'catmull-rom';
-
-        const baseSeriesOpt = {
-            showSymbol: true,
-            symbol: 'circle',
-            symbolSize: 6,
-            lineStyle: { type: 'dashed' as const },
-            smooth: !!smooth,
-        };
-
-        if (colorField) {
-            const groups = groupBy(table, colorField);
-            option.legend = { data: [...groups.keys()] };
-            for (const [name, rows] of groups) {
-                const seriesData = xIsDiscrete
-                    ? buildCategoryAlignedData(rows, xField, yField, categories!)
-                    : rows.map(r => [r[xField], r[yField]]);
-                option.series.push({
-                    name,
-                    type: 'line',
-                    data: seriesData,
-                    ...baseSeriesOpt,
-                    // 颜色由 ecApplyLayoutToSpec 根据 colorDecisions 统一分配
-                });
-            }
-        } else {
-            const seriesData = xIsDiscrete
-                ? categories!.map(cat => {
-                    const row = table.find(r => String(r[xField]) === cat);
-                    return row ? row[yField] : null;
-                })
-                : table.map(r => [r[xField], r[yField]]);
-            option.series.push({ type: 'line', data: seriesData, ...baseSeriesOpt });
-        }
-
-        Object.assign(spec, option);
-        delete spec.mark;
-        delete spec.encoding;
-    },
-};
-
-/**
  * Bump Chart — line with points, rank axis reversed when y is rank-like (mirror vegalite/templates/bump.ts).
  * Use yAxis as category with data ['1','2',...,'maxRank'] and inverse: true so rank 1 is at top without
  * using value-axis inverse (which in ECharts moves the x-axis to the top). Series y values are category
@@ -473,7 +369,7 @@ export const ecBumpChartDef: ChartTemplateDef = {
         const yIsRank = RANK_SEMANTIC_TYPES.has(ySemType);
         const xIsRank = RANK_SEMANTIC_TYPES.has(xSemType);
         const rankOnY = yIsRank && !xIsRank;
-        const _rankOnX = xIsRank && !yIsRank;
+        const rankOnX = xIsRank && !yIsRank;
 
         const xIsDiscrete = isDiscrete(xCS.type);
         const xIsTemporal = xCS.type === 'temporal';

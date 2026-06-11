@@ -18,7 +18,7 @@ const STEM_WIDTH_PX = 1.5;
 /** 圆点直径约 10px，对应 VL circle size: 80（面积量级） */
 const DOT_SIZE_BASE = 10;
 
-const _isDiscrete = (type: string | undefined) => type === 'nominal' || type === 'ordinal';
+const isDiscrete = (type: string | undefined) => type === 'nominal' || type === 'ordinal';
 
 /** True if all category labels parse as numbers → horizontal labels; otherwise vertical (align with line chart). */
 function areCategoriesNumeric(cats: string[]): boolean {

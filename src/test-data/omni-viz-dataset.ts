@@ -167,7 +167,7 @@ function buildRows(): OmniVizRow[] {
     const stock = new Map<string, number>();
 
     for (const game of OMNI_VIZ_GAME_ORDER) {
-        const _gameType = GAME_TYPE_BY_GAME[game];
+        const gameType = GAME_TYPE_BY_GAME[game];
         const pop = gamePopularity(game);
         for (const region of OMNI_VIZ_REGIONS) {
             const k = `${game}\0${region}`;

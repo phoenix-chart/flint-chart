@@ -170,3 +170,13 @@ export function genOmniVizSunburstTests(): TestCase[] {
     }];
 }
 
+/** Keys in `TEST_GENERATORS` for the Omni gallery (charts only; data table chip is separate). */
+export const GALLERY_OMNI_VIZ_GENERATOR_KEYS = [
+    'Omni: Line',
+    'Omni: Grouped Bar',
+    'Omni: Waterfall',
+    'Omni: Heatmap',
+    'Omni: Sunburst',
+] as const;
+
+export const OMNI_VIZ_GALLERY_DATA_TABLE_ENTRY = 'Omni: Data Table Preview' as const;

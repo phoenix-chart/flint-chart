@@ -9,6 +9,7 @@ export default defineConfig({
     'chartjs/index': 'src/chartjs/index.ts',
     'gofish/index': 'src/gofish/index.ts',
     'test-data/index': 'src/test-data/index.ts',
+    'gallery/index': 'src/gallery/index.ts',
   },
   format: ['esm', 'cjs'],
   dts: true,

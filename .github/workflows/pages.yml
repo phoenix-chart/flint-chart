@@ -25,10 +25,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - name: Build site
-        run: |
-          npm --prefix site install
-          npm --prefix site run build
+      - run: npm run site:build
       - name: Compose site
         run: |
           mkdir -p _site

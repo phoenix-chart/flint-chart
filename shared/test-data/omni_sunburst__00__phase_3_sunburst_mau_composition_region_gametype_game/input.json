@@ -1,0 +1,617 @@
+{
+  "title": "Phase 3 — Sunburst: MAU composition (region → gameType → game)",
+  "description": "Composition: hierarchy region → gameType → game; size = totalUsers on the latest month (Dec). Vega-Lite has no first-class sunburst; ECharts (middle panel) carries this view. Left: VL assembly fallback; right: Chart.js where supported.",
+  "chartType": "Sunburst Chart",
+  "input": {
+    "data": {
+      "values": [
+        {
+          "region": "E",
+          "gameType": "Console",
+          "game": "Neon Drift 2049",
+          "totalUsers": 21637
+        },
+        {
+          "region": "E",
+          "gameType": "Console",
+          "game": "Circuit Breakers",
+          "totalUsers": 21050
+        },
+        {
+          "region": "E",
+          "gameType": "Console",
+          "game": "Velvet Racing Club",
+          "totalUsers": 14183
+        },
+        {
+          "region": "E",
+          "gameType": "Console",
+          "game": "Blade Symphony X",
+          "totalUsers": 17729
+        },
+        {
+          "region": "E",
+          "gameType": "Cross-platform",
+          "game": "Azure Legends",
+          "totalUsers": 9070
+        },
+        {
+          "region": "E",
+          "gameType": "Cross-platform",
+          "game": "Moonlit Odyssey",
+          "totalUsers": 12191
+        },
+        {
+          "region": "E",
+          "gameType": "Cross-platform",
+          "game": "Turbo Kart Universe",
+          "totalUsers": 69930
+        },
+        {
+          "region": "E",
+          "gameType": "Cross-platform",
+          "game": "Northwind Survival",
+          "totalUsers": 6932
+        },
+        {
+          "region": "E",
+          "gameType": "Mobile Casual",
+          "game": "Pocket Kingdoms",
+          "totalUsers": 43898
+        },
+        {
+          "region": "E",
+          "gameType": "Mobile Casual",
+          "game": "Snack Stack Saga",
+          "totalUsers": 27898
+        },
+        {
+          "region": "E",
+          "gameType": "Mobile Casual",
+          "game": "Sakura Stage Live",
+          "totalUsers": 18260
+        },
+        {
+          "region": "E",
+          "gameType": "Mobile Casual",
+          "game": "Coral Reef Builder",
+          "totalUsers": 22203
+        },
+        {
+          "region": "E",
+          "gameType": "Mobile Casual",
+          "game": "Match-3 Museum",
+          "totalUsers": 19832
+        },
+        {
+          "region": "E",
+          "gameType": "Mobile Midcore",
+          "game": "Echoes of Athera",
+          "totalUsers": 31453
+        },
+        {
+          "region": "E",
+          "gameType": "Mobile Midcore",
+          "game": "Ironbound Front",
+          "totalUsers": 34936
+        },
+        {
+          "region": "E",
+          "gameType": "Mobile Midcore",
+          "game": "Metro Hustle",
+          "totalUsers": 99998
+        },
+        {
+          "region": "E",
+          "gameType": "Mobile Midcore",
+          "game": "Guildfall Chronicles",
+          "totalUsers": 3490
+        },
+        {
+          "region": "E",
+          "gameType": "PC / Client",
+          "game": "Starforge Tactics",
+          "totalUsers": 15322
+        },
+        {
+          "region": "E",
+          "gameType": "PC / Client",
+          "game": "Dustwind Arena",
+          "totalUsers": 20682
+        },
+        {
+          "region": "E",
+          "gameType": "PC / Client",
+          "game": "Granite & Glyphs",
+          "totalUsers": 405
+        },
+        {
+          "region": "E",
+          "gameType": "PC / Client",
+          "game": "Void Choir Online",
+          "totalUsers": 16689
+        },
+        {
+          "region": "E",
+          "gameType": "PC / Client",
+          "game": "Quiet Hours VR",
+          "totalUsers": 72532
+        },
+        {
+          "region": "E",
+          "gameType": "Web / Mini-game",
+          "game": "Deepline Submarine",
+          "totalUsers": 11671
+        },
+        {
+          "region": "E",
+          "gameType": "Web / Mini-game",
+          "game": "Pixel Farmers Co-op",
+          "totalUsers": 44223
+        },
+        {
+          "region": "N",
+          "gameType": "Console",
+          "game": "Neon Drift 2049",
+          "totalUsers": 39402
+        },
+        {
+          "region": "N",
+          "gameType": "Console",
+          "game": "Circuit Breakers",
+          "totalUsers": 34042
+        },
+        {
+          "region": "N",
+          "gameType": "Console",
+          "game": "Velvet Racing Club",
+          "totalUsers": 10607
+        },
+        {
+          "region": "N",
+          "gameType": "Console",
+          "game": "Blade Symphony X",
+          "totalUsers": 13505
+        },
+        {
+          "region": "N",
+          "gameType": "Cross-platform",
+          "game": "Azure Legends",
+          "totalUsers": 26483
+        },
+        {
+          "region": "N",
+          "gameType": "Cross-platform",
+          "game": "Moonlit Odyssey",
+          "totalUsers": 10030
+        },
+        {
+          "region": "N",
+          "gameType": "Cross-platform",
+          "game": "Turbo Kart Universe",
+          "totalUsers": 77561
+        },
+        {
+          "region": "N",
+          "gameType": "Cross-platform",
+          "game": "Northwind Survival",
+          "totalUsers": 36251
+        },
+        {
+          "region": "N",
+          "gameType": "Mobile Casual",
+          "game": "Pocket Kingdoms",
+          "totalUsers": 63764
+        },
+        {
+          "region": "N",
+          "gameType": "Mobile Casual",
+          "game": "Snack Stack Saga",
+          "totalUsers": 44227
+        },
+        {
+          "region": "N",
+          "gameType": "Mobile Casual",
+          "game": "Sakura Stage Live",
+          "totalUsers": 26634
+        },
+        {
+          "region": "N",
+          "gameType": "Mobile Casual",
+          "game": "Coral Reef Builder",
+          "totalUsers": 12901
+        },
+        {
+          "region": "N",
+          "gameType": "Mobile Casual",
+          "game": "Match-3 Museum",
+          "totalUsers": 2067
+        },
+        {
+          "region": "N",
+          "gameType": "Mobile Midcore",
+          "game": "Echoes of Athera",
+          "totalUsers": 39624
+        },
+        {
+          "region": "N",
+          "gameType": "Mobile Midcore",
+          "game": "Ironbound Front",
+          "totalUsers": 30232
+        },
+        {
+          "region": "N",
+          "gameType": "Mobile Midcore",
+          "game": "Metro Hustle",
+          "totalUsers": 54447
+        },
+        {
+          "region": "N",
+          "gameType": "Mobile Midcore",
+          "game": "Guildfall Chronicles",
+          "totalUsers": 6549
+        },
+        {
+          "region": "N",
+          "gameType": "PC / Client",
+          "game": "Starforge Tactics",
+          "totalUsers": 26021
+        },
+        {
+          "region": "N",
+          "gameType": "PC / Client",
+          "game": "Dustwind Arena",
+          "totalUsers": 11570
+        },
+        {
+          "region": "N",
+          "gameType": "PC / Client",
+          "game": "Granite & Glyphs",
+          "totalUsers": 48588
+        },
+        {
+          "region": "N",
+          "gameType": "PC / Client",
+          "game": "Void Choir Online",
+          "totalUsers": 9934
+        },
+        {
+          "region": "N",
+          "gameType": "PC / Client",
+          "game": "Quiet Hours VR",
+          "totalUsers": 48813
+        },
+        {
+          "region": "N",
+          "gameType": "Web / Mini-game",
+          "game": "Deepline Submarine",
+          "totalUsers": 21865
+        },
+        {
+          "region": "N",
+          "gameType": "Web / Mini-game",
+          "game": "Pixel Farmers Co-op",
+          "totalUsers": 5464
+        },
+        {
+          "region": "S",
+          "gameType": "Console",
+          "game": "Neon Drift 2049",
+          "totalUsers": 16721
+        },
+        {
+          "region": "S",
+          "gameType": "Console",
+          "game": "Circuit Breakers",
+          "totalUsers": 10167
+        },
+        {
+          "region": "S",
+          "gameType": "Console",
+          "game": "Velvet Racing Club",
+          "totalUsers": 8508
+        },
+        {
+          "region": "S",
+          "gameType": "Console",
+          "game": "Blade Symphony X",
+          "totalUsers": 6904
+        },
+        {
+          "region": "S",
+          "gameType": "Cross-platform",
+          "game": "Azure Legends",
+          "totalUsers": 8562
+        },
+        {
+          "region": "S",
+          "gameType": "Cross-platform",
+          "game": "Moonlit Odyssey",
+          "totalUsers": 18787
+        },
+        {
+          "region": "S",
+          "gameType": "Cross-platform",
+          "game": "Turbo Kart Universe",
+          "totalUsers": 15023
+        },
+        {
+          "region": "S",
+          "gameType": "Cross-platform",
+          "game": "Northwind Survival",
+          "totalUsers": 11151
+        },
+        {
+          "region": "S",
+          "gameType": "Mobile Casual",
+          "game": "Pocket Kingdoms",
+          "totalUsers": 9481
+        },
+        {
+          "region": "S",
+          "gameType": "Mobile Casual",
+          "game": "Snack Stack Saga",
+          "totalUsers": 24379
+        },
+        {
+          "region": "S",
+          "gameType": "Mobile Casual",
+          "game": "Sakura Stage Live",
+          "totalUsers": 22000
+        },
+        {
+          "region": "S",
+          "gameType": "Mobile Casual",
+          "game": "Coral Reef Builder",
+          "totalUsers": 11579
+        },
+        {
+          "region": "S",
+          "gameType": "Mobile Casual",
+          "game": "Match-3 Museum",
+          "totalUsers": 4162
+        },
+        {
+          "region": "S",
+          "gameType": "Mobile Midcore",
+          "game": "Echoes of Athera",
+          "totalUsers": 9721
+        },
+        {
+          "region": "S",
+          "gameType": "Mobile Midcore",
+          "game": "Ironbound Front",
+          "totalUsers": 21922
+        },
+        {
+          "region": "S",
+          "gameType": "Mobile Midcore",
+          "game": "Metro Hustle",
+          "totalUsers": 13197
+        },
+        {
+          "region": "S",
+          "gameType": "Mobile Midcore",
+          "game": "Guildfall Chronicles",
+          "totalUsers": 5459
+        },
+        {
+          "region": "S",
+          "gameType": "PC / Client",
+          "game": "Starforge Tactics",
+          "totalUsers": 9372
+        },
+        {
+          "region": "S",
+          "gameType": "PC / Client",
+          "game": "Dustwind Arena",
+          "totalUsers": 27431
+        },
+        {
+          "region": "S",
+          "gameType": "PC / Client",
+          "game": "Granite & Glyphs",
+          "totalUsers": 4538
+        },
+        {
+          "region": "S",
+          "gameType": "PC / Client",
+          "game": "Void Choir Online",
+          "totalUsers": 20657
+        },
+        {
+          "region": "S",
+          "gameType": "PC / Client",
+          "game": "Quiet Hours VR",
+          "totalUsers": 15116
+        },
+        {
+          "region": "S",
+          "gameType": "Web / Mini-game",
+          "game": "Deepline Submarine",
+          "totalUsers": 8196
+        },
+        {
+          "region": "S",
+          "gameType": "Web / Mini-game",
+          "game": "Pixel Farmers Co-op",
+          "totalUsers": 12579
+        },
+        {
+          "region": "W",
+          "gameType": "Console",
+          "game": "Neon Drift 2049",
+          "totalUsers": 8625
+        },
+        {
+          "region": "W",
+          "gameType": "Console",
+          "game": "Circuit Breakers",
+          "totalUsers": 11511
+        },
+        {
+          "region": "W",
+          "gameType": "Console",
+          "game": "Velvet Racing Club",
+          "totalUsers": 7423
+        },
+        {
+          "region": "W",
+          "gameType": "Console",
+          "game": "Blade Symphony X",
+          "totalUsers": 6821
+        },
+        {
+          "region": "W",
+          "gameType": "Cross-platform",
+          "game": "Azure Legends",
+          "totalUsers": 7628
+        },
+        {
+          "region": "W",
+          "gameType": "Cross-platform",
+          "game": "Moonlit Odyssey",
+          "totalUsers": 5726
+        },
+        {
+          "region": "W",
+          "gameType": "Cross-platform",
+          "game": "Turbo Kart Universe",
+          "totalUsers": 28082
+        },
+        {
+          "region": "W",
+          "gameType": "Cross-platform",
+          "game": "Northwind Survival",
+          "totalUsers": 8813
+        },
+        {
+          "region": "W",
+          "gameType": "Mobile Casual",
+          "game": "Pocket Kingdoms",
+          "totalUsers": 28219
+        },
+        {
+          "region": "W",
+          "gameType": "Mobile Casual",
+          "game": "Snack Stack Saga",
+          "totalUsers": 15546
+        },
+        {
+          "region": "W",
+          "gameType": "Mobile Casual",
+          "game": "Sakura Stage Live",
+          "totalUsers": 17926
+        },
+        {
+          "region": "W",
+          "gameType": "Mobile Casual",
+          "game": "Coral Reef Builder",
+          "totalUsers": 9300
+        },
+        {
+          "region": "W",
+          "gameType": "Mobile Casual",
+          "game": "Match-3 Museum",
+          "totalUsers": 2182
+        },
+        {
+          "region": "W",
+          "gameType": "Mobile Midcore",
+          "game": "Echoes of Athera",
+          "totalUsers": 8274
+        },
+        {
+          "region": "W",
+          "gameType": "Mobile Midcore",
+          "game": "Ironbound Front",
+          "totalUsers": 13346
+        },
+        {
+          "region": "W",
+          "gameType": "Mobile Midcore",
+          "game": "Metro Hustle",
+          "totalUsers": 11104
+        },
+        {
+          "region": "W",
+          "gameType": "Mobile Midcore",
+          "game": "Guildfall Chronicles",
+          "totalUsers": 5238
+        },
+        {
+          "region": "W",
+          "gameType": "PC / Client",
+          "game": "Starforge Tactics",
+          "totalUsers": 3676
+        },
+        {
+          "region": "W",
+          "gameType": "PC / Client",
+          "game": "Dustwind Arena",
+          "totalUsers": 24170
+        },
+        {
+          "region": "W",
+          "gameType": "PC / Client",
+          "game": "Granite & Glyphs",
+          "totalUsers": 7663
+        },
+        {
+          "region": "W",
+          "gameType": "PC / Client",
+          "game": "Void Choir Online",
+          "totalUsers": 15331
+        },
+        {
+          "region": "W",
+          "gameType": "PC / Client",
+          "game": "Quiet Hours VR",
+          "totalUsers": 24772
+        },
+        {
+          "region": "W",
+          "gameType": "Web / Mini-game",
+          "game": "Deepline Submarine",
+          "totalUsers": 6089
+        },
+        {
+          "region": "W",
+          "gameType": "Web / Mini-game",
+          "game": "Pixel Farmers Co-op",
+          "totalUsers": 11278
+        }
+      ]
+    },
+    "semantic_types": {
+      "region": "Category",
+      "gameType": "Category",
+      "game": "Category",
+      "totalUsers": "Quantity"
+    },
+    "chart_spec": {
+      "chartType": "Sunburst Chart",
+      "encodings": {
+        "color": {
+          "field": "region"
+        },
+        "group": {
+          "field": "gameType"
+        },
+        "detail": {
+          "field": "game"
+        },
+        "size": {
+          "field": "totalUsers"
+        }
+      },
+      "canvasSize": {
+        "width": 400,
+        "height": 300
+      }
+    },
+    "options": {
+      "addTooltips": true
+    }
+  }
+}

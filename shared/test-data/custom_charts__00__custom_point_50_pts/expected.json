@@ -1,0 +1,352 @@
+{
+  "mark": "point",
+  "encoding": {
+    "x": {
+      "field": "X",
+      "type": "quantitative",
+      "scale": {
+        "nice": false,
+        "zero": true
+      },
+      "axis": {
+        "format": ",.12~g"
+      }
+    },
+    "y": {
+      "field": "Y",
+      "type": "quantitative",
+      "scale": {
+        "zero": true
+      },
+      "axis": {
+        "format": ",.12~g"
+      }
+    },
+    "size": {
+      "field": "Size",
+      "type": "quantitative",
+      "scale": {
+        "type": "sqrt",
+        "zero": true,
+        "range": [
+          9,
+          361
+        ]
+      }
+    }
+  },
+  "config": {
+    "view": {
+      "continuousWidth": 372,
+      "continuousHeight": 323
+    },
+    "axisX": {
+      "labelLimit": 100,
+      "labelFontSize": 10
+    },
+    "axisY": {
+      "labelFontSize": 10
+    },
+    "facet": {
+      "spacing": 32
+    },
+    "mark": {
+      "tooltip": true
+    }
+  },
+  "data": {
+    "values": [
+      {
+        "X": 1,
+        "Y": 38,
+        "Size": 2
+      },
+      {
+        "X": 79,
+        "Y": 49,
+        "Size": 3
+      },
+      {
+        "X": 34,
+        "Y": 98,
+        "Size": 18
+      },
+      {
+        "X": 22,
+        "Y": 15,
+        "Size": 24
+      },
+      {
+        "X": 87,
+        "Y": 11,
+        "Size": 6
+      },
+      {
+        "X": 73,
+        "Y": 3,
+        "Size": 46
+      },
+      {
+        "X": 7,
+        "Y": 16,
+        "Size": 37
+      },
+      {
+        "X": 10,
+        "Y": 8,
+        "Size": 20
+      },
+      {
+        "X": 55,
+        "Y": 24,
+        "Size": 38
+      },
+      {
+        "X": 53,
+        "Y": 40,
+        "Size": 4
+      },
+      {
+        "X": 29,
+        "Y": 98,
+        "Size": 10
+      },
+      {
+        "X": 72,
+        "Y": 47,
+        "Size": 21
+      },
+      {
+        "X": 37,
+        "Y": 77,
+        "Size": 47
+      },
+      {
+        "X": 80,
+        "Y": 33,
+        "Size": 15
+      },
+      {
+        "X": 39,
+        "Y": 2,
+        "Size": 18
+      },
+      {
+        "X": 42,
+        "Y": 47,
+        "Size": 12
+      },
+      {
+        "X": 44,
+        "Y": 77,
+        "Size": 42
+      },
+      {
+        "X": 96,
+        "Y": 100,
+        "Size": 21
+      },
+      {
+        "X": 34,
+        "Y": 86,
+        "Size": 43
+      },
+      {
+        "X": 89,
+        "Y": 29,
+        "Size": 25
+      },
+      {
+        "X": 19,
+        "Y": 7,
+        "Size": 33
+      },
+      {
+        "X": 13,
+        "Y": 98,
+        "Size": 29
+      },
+      {
+        "X": 53,
+        "Y": 66,
+        "Size": 49
+      },
+      {
+        "X": 37,
+        "Y": 64,
+        "Size": 36
+      },
+      {
+        "X": 37,
+        "Y": 44,
+        "Size": 39
+      },
+      {
+        "X": 0,
+        "Y": 88,
+        "Size": 4
+      },
+      {
+        "X": 36,
+        "Y": 18,
+        "Size": 2
+      },
+      {
+        "X": 83,
+        "Y": 28,
+        "Size": 30
+      },
+      {
+        "X": 42,
+        "Y": 59,
+        "Size": 30
+      },
+      {
+        "X": 87,
+        "Y": 51,
+        "Size": 36
+      },
+      {
+        "X": 88,
+        "Y": 69,
+        "Size": 46
+      },
+      {
+        "X": 95,
+        "Y": 0,
+        "Size": 19
+      },
+      {
+        "X": 87,
+        "Y": 36,
+        "Size": 19
+      },
+      {
+        "X": 86,
+        "Y": 57,
+        "Size": 6
+      },
+      {
+        "X": 49,
+        "Y": 49,
+        "Size": 17
+      },
+      {
+        "X": 49,
+        "Y": 17,
+        "Size": 37
+      },
+      {
+        "X": 0,
+        "Y": 63,
+        "Size": 41
+      },
+      {
+        "X": 46,
+        "Y": 13,
+        "Size": 33
+      },
+      {
+        "X": 36,
+        "Y": 84,
+        "Size": 40
+      },
+      {
+        "X": 48,
+        "Y": 24,
+        "Size": 19
+      },
+      {
+        "X": 89,
+        "Y": 13,
+        "Size": 35
+      },
+      {
+        "X": 86,
+        "Y": 19,
+        "Size": 42
+      },
+      {
+        "X": 11,
+        "Y": 92,
+        "Size": 40
+      },
+      {
+        "X": 79,
+        "Y": 29,
+        "Size": 43
+      },
+      {
+        "X": 30,
+        "Y": 21,
+        "Size": 12
+      },
+      {
+        "X": 95,
+        "Y": 77,
+        "Size": 39
+      },
+      {
+        "X": 47,
+        "Y": 2,
+        "Size": 5
+      },
+      {
+        "X": 87,
+        "Y": 53,
+        "Size": 17
+      },
+      {
+        "X": 97,
+        "Y": 89,
+        "Size": 32
+      },
+      {
+        "X": 41,
+        "Y": 91,
+        "Size": 33
+      }
+    ]
+  },
+  "_width": 372,
+  "_height": 323,
+  "_options": [
+    {
+      "key": "independentYAxis",
+      "label": "Independent Y",
+      "type": "binary",
+      "applicable": false,
+      "value": false
+    },
+    {
+      "key": "logScale_x",
+      "label": "Log X",
+      "type": "binary",
+      "defaultValue": false,
+      "applicable": false,
+      "value": false
+    },
+    {
+      "key": "logScale_y",
+      "label": "Log Y",
+      "type": "binary",
+      "defaultValue": false,
+      "applicable": false,
+      "value": false
+    },
+    {
+      "key": "includeZero_x",
+      "label": "Zero X",
+      "type": "binary",
+      "applicable": false,
+      "value": true
+    },
+    {
+      "key": "includeZero_y",
+      "label": "Zero Y",
+      "type": "binary",
+      "applicable": false,
+      "value": true
+    }
+  ]
+}

@@ -1,0 +1,213 @@
+{
+  "mark": "area",
+  "encoding": {
+    "x": {
+      "field": "Date",
+      "type": "temporal"
+    },
+    "y": {
+      "field": "Value",
+      "type": "quantitative",
+      "scale": {
+        "zero": true
+      },
+      "axis": {
+        "format": ",.12~g"
+      }
+    }
+  },
+  "config": {
+    "view": {
+      "continuousWidth": 381,
+      "continuousHeight": 315
+    },
+    "axisX": {
+      "labelLimit": 100,
+      "labelFontSize": 10
+    },
+    "axisY": {
+      "labelFontSize": 10
+    },
+    "facet": {
+      "spacing": 32
+    },
+    "mark": {
+      "tooltip": true
+    }
+  },
+  "data": {
+    "values": [
+      {
+        "Date": "2022-01-01",
+        "Value": 118
+      },
+      {
+        "Date": "2022-01-28",
+        "Value": 60
+      },
+      {
+        "Date": "2022-02-24",
+        "Value": 80
+      },
+      {
+        "Date": "2022-03-24",
+        "Value": 150
+      },
+      {
+        "Date": "2022-04-20",
+        "Value": 211
+      },
+      {
+        "Date": "2022-05-17",
+        "Value": 72
+      },
+      {
+        "Date": "2022-06-14",
+        "Value": 220
+      },
+      {
+        "Date": "2022-07-11",
+        "Value": 141
+      },
+      {
+        "Date": "2022-08-08",
+        "Value": 251
+      },
+      {
+        "Date": "2022-09-04",
+        "Value": 176
+      },
+      {
+        "Date": "2022-10-01",
+        "Value": 171
+      },
+      {
+        "Date": "2022-10-29",
+        "Value": 242
+      },
+      {
+        "Date": "2022-11-25",
+        "Value": 238
+      },
+      {
+        "Date": "2022-12-22",
+        "Value": 224
+      },
+      {
+        "Date": "2023-01-19",
+        "Value": 134
+      },
+      {
+        "Date": "2023-02-15",
+        "Value": 94
+      },
+      {
+        "Date": "2023-03-15",
+        "Value": 99
+      },
+      {
+        "Date": "2023-04-11",
+        "Value": 275
+      },
+      {
+        "Date": "2023-05-08",
+        "Value": 282
+      },
+      {
+        "Date": "2023-06-05",
+        "Value": 279
+      },
+      {
+        "Date": "2023-07-02",
+        "Value": 251
+      },
+      {
+        "Date": "2023-07-29",
+        "Value": 242
+      },
+      {
+        "Date": "2023-08-26",
+        "Value": 214
+      },
+      {
+        "Date": "2023-09-22",
+        "Value": 264
+      },
+      {
+        "Date": "2023-10-20",
+        "Value": 253
+      },
+      {
+        "Date": "2023-11-16",
+        "Value": 214
+      },
+      {
+        "Date": "2023-12-13",
+        "Value": 116
+      },
+      {
+        "Date": "2024-01-10",
+        "Value": 114
+      },
+      {
+        "Date": "2024-02-06",
+        "Value": 207
+      },
+      {
+        "Date": "2024-03-04",
+        "Value": 204
+      },
+      {
+        "Date": "2024-04-01",
+        "Value": 255
+      },
+      {
+        "Date": "2024-04-28",
+        "Value": 239
+      },
+      {
+        "Date": "2024-05-26",
+        "Value": 120
+      },
+      {
+        "Date": "2024-06-22",
+        "Value": 139
+      },
+      {
+        "Date": "2024-07-19",
+        "Value": 273
+      },
+      {
+        "Date": "2024-08-16",
+        "Value": 147
+      },
+      {
+        "Date": "2024-09-12",
+        "Value": 194
+      },
+      {
+        "Date": "2024-10-09",
+        "Value": 195
+      },
+      {
+        "Date": "2024-11-06",
+        "Value": 287
+      },
+      {
+        "Date": "2024-12-03",
+        "Value": 180
+      }
+    ]
+  },
+  "_width": 381,
+  "_height": 315,
+  "_options": [
+    {
+      "key": "independentYAxis",
+      "label": "Independent Y",
+      "type": "binary",
+      "applicable": false,
+      "value": false
+    }
+  ]
+}

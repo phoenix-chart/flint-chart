@@ -11,15 +11,34 @@ chart type, field assignments, and a **semantic type** per field (e.g. `Revenue`
 parameters — sizing, zero-baseline, formatting, color schemes, and mark
 templates — so charts look good *and* stay editable without calling the LLM again.
 
-Pure TypeScript · No UI framework dependencies · Data-in, spec-out
+Available in **JavaScript/TypeScript** and **Python**.
 
 - **Demos:** [Site](https://microsoft.github.io/flint-chart/) — landing page, [gallery](https://microsoft.github.io/flint-chart/#/gallery), and [live editor](https://microsoft.github.io/flint-chart/#/editor) in one place.
 - **Architecture:** [docs/design-semantics.md](docs/design-semantics.md) · [docs/design-stretch-model.md](docs/design-stretch-model.md) · [docs/color-decisions-summary.md](docs/color-decisions-summary.md)
 - **For contributors:** [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) · [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md)
-- **For AI agents:** [agents/skills/flint-chart-author/SKILL.md](agents/skills/flint-chart-author/SKILL.md) · [agents/mcp-server](agents/mcp-server/)
+- **For AI agents:** [agent-skills/skills/flint-chart-author/SKILL.md](agent-skills/skills/flint-chart-author/SKILL.md) · [agent-skills/mcp-server](agent-skills/mcp-server/)
 
 ```bash
+# JavaScript / TypeScript
 npm install flint-chart
+
+# Python
+pip install flint
+```
+
+## Repository Structure
+
+```
+├── packages/
+│   ├── flint-js/          TypeScript package (npm: flint-chart)
+│   │   └── src/           4 backends: Vega-Lite, ECharts, Chart.js, GoFish
+│   └── flint-py/          Python package (PyPI: flint)
+│       └── flint/         Vega-Lite backend
+├── shared/
+│   └── test-data/     JSON test cases shared across both languages
+├── agent-skills/                MCP server + agent skills
+├── site/                  Documentation website
+└── docs/                  Design documents
 ```
 
 ---

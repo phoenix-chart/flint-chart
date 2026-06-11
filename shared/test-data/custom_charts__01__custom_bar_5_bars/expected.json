@@ -1,0 +1,78 @@
+{
+  "mark": "bar",
+  "encoding": {
+    "x": {
+      "field": "Status",
+      "type": "nominal",
+      "sort": null
+    },
+    "y": {
+      "field": "Count",
+      "type": "quantitative",
+      "scale": {
+        "zero": true
+      },
+      "axis": {
+        "tickMinStep": 1,
+        "labelExpr": "datum.value === ceil(datum.value) ? format(datum.value, ',d') : ''"
+      }
+    }
+  },
+  "config": {
+    "view": {
+      "continuousWidth": 400,
+      "continuousHeight": 285
+    },
+    "axisX": {
+      "labelLimit": 100,
+      "labelFontSize": 10
+    },
+    "axisY": {
+      "labelFontSize": 10
+    },
+    "facet": {
+      "spacing": 29
+    },
+    "mark": {
+      "tooltip": true
+    }
+  },
+  "width": {
+    "step": 27
+  },
+  "data": {
+    "values": [
+      {
+        "Status": "Active",
+        "Count": 73
+      },
+      {
+        "Status": "Inactive",
+        "Count": 109
+      },
+      {
+        "Status": "Pending",
+        "Count": 53
+      },
+      {
+        "Status": "Completed",
+        "Count": 88
+      },
+      {
+        "Status": "Failed",
+        "Count": 42
+      }
+    ]
+  },
+  "_width": 400,
+  "_height": 285,
+  "_options": [
+    {
+      "key": "independentYAxis",
+      "label": "Independent Y",
+      "type": "binary",
+      "applicable": false,
+      "value": false
+    }
+  ]
+}

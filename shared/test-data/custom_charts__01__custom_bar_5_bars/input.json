@@ -1,0 +1,53 @@
+{
+  "title": "Custom Bar (5 bars)",
+  "description": "Status × Count",
+  "chartType": "Custom Bar",
+  "input": {
+    "data": {
+      "values": [
+        {
+          "Status": "Active",
+          "Count": 73
+        },
+        {
+          "Status": "Inactive",
+          "Count": 109
+        },
+        {
+          "Status": "Pending",
+          "Count": 53
+        },
+        {
+          "Status": "Completed",
+          "Count": 88
+        },
+        {
+          "Status": "Failed",
+          "Count": 42
+        }
+      ]
+    },
+    "semantic_types": {
+      "Status": "Status",
+      "Count": "Count"
+    },
+    "chart_spec": {
+      "chartType": "Custom Bar",
+      "encodings": {
+        "x": {
+          "field": "Status"
+        },
+        "y": {
+          "field": "Count"
+        }
+      },
+      "canvasSize": {
+        "width": 400,
+        "height": 300
+      }
+    },
+    "options": {
+      "addTooltips": true
+    }
+  }
+}

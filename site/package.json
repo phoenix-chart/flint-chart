@@ -15,7 +15,7 @@
     "@uiw/react-codemirror": "^4.23.0",
     "chart.js": "^4.5.1",
     "echarts": "^6.0.0",
-    "flint-chart": "file:..",
+    "flint-chart": "*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-markdown": "^10.1.0",

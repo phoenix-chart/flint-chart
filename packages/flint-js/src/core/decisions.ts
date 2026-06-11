@@ -351,8 +351,8 @@ export function resolveEncodingType(
     // No registered semantic type — infer from raw data values, then
     // apply heuristic guards for common data-inference mis-classifications.
     const visCategory: VisCategory = inferVisCategory(fieldValues);
-    let channelOverride = false;
-    let cardinalityGuard = false;
+    const channelOverride = false;
+    const cardinalityGuard = false;
 
     switch (visCategory) {
         case 'temporal':

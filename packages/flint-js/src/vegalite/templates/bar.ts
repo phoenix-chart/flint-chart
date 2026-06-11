@@ -7,7 +7,7 @@ import { snapToBoundHeuristic } from '../../core/field-semantics';
 import {
     defaultBuildEncodings, setMarkProp, adjustBarMarks, adjustRectTiling,
     detectBandedAxisFromSemantics, detectBandedAxisForceDiscrete,
-    resolveAsDiscrete, ensureDiscreteTypes,
+    resolveAsDiscrete,
 } from './utils';
 
 const HEATMAP_SCHEME_COLORS: Record<string, [string, string]> = {
@@ -115,7 +115,8 @@ export const pyramidChartDef: ChartTemplateDef = {
         axisFlags: { y: { banded: true } },
     }),
     instantiate: (spec, ctx) => {
-        let { y, x, color } = ctx.resolvedEncodings;
+        let { y, x } = ctx.resolvedEncodings;
+        const { color } = ctx.resolvedEncodings;
 
         // Auto-detect flipped axes
         const isDiscreteType = (enc: any) => enc && (enc.type === 'nominal' || enc.type === 'ordinal');

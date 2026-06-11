@@ -196,7 +196,7 @@ export const barTableDef: ChartTemplateDef = {
         let displayTable: any[] = [];
         let othersCatLabel: string | undefined;
         let keptCatOrder: any[] | undefined;
-        let perCatAggValues: number[] = [];
+        const perCatAggValues: number[] = [];
         const perScopeAggValues: number[][] = [];
         let maxDisplayRowsPerScope = 0;
 

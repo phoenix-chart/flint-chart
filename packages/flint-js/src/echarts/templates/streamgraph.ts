@@ -16,7 +16,7 @@
  * Channels: x (temporal/ordinal), y (quantitative), color (series groups)
  */
 
-import { ChartTemplateDef, ChartPropertyDef } from '../../core/types';
+import { ChartTemplateDef } from '../../core/types';
 import { groupBy } from './utils';
 
 export const ecStreamgraphDef: ChartTemplateDef = {

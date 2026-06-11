@@ -52,14 +52,12 @@ import type {
     ChannelBudgets,
 } from './types';
 import {
-    computeElasticBudget,
     computeAxisStep,
     computeGasPressure,
     computeLabelSizing,
     DEFAULT_GAS_PRESSURE_PARAMS,
     type ElasticStretchParams,
     type GasPressureParams,
-    type GasPressureDecision,
 } from './decisions';
 
 // ---------------------------------------------------------------------------
@@ -234,8 +232,8 @@ export function computeLayout(
     // Total discrete items per axis (grouping multiplies the grouped axis)
     const xGroupMultiplier = (groupAxis === 'x' && nominalCount.group > 1) ? nominalCount.group : 1;
     const yGroupMultiplier = (groupAxis === 'y' && nominalCount.group > 1) ? nominalCount.group : 1;
-    let xTotalNominalCount = nominalCount.x * xGroupMultiplier;
-    let yTotalNominalCount = nominalCount.y * yGroupMultiplier;
+    const xTotalNominalCount = nominalCount.x * xGroupMultiplier;
+    const yTotalNominalCount = nominalCount.y * yGroupMultiplier;
 
     // --- Step size hints ---
     // Minimum group step: the inter-group gap (stepPadding × step) must be
@@ -1407,8 +1405,8 @@ export function computeFacetGrid(
             if (df && df !== cf) sFields.push(df);
 
             for (const row of data) {
-                let xv = row[xCS.field];
-                let yv = row[yCS.field];
+                const xv = row[xCS.field];
+                const yv = row[yCS.field];
                 if (xv == null || yv == null) continue;
                 const xn = isTempX ? +new Date(xv) : +xv;
                 const yn = isTempY ? +new Date(yv) : +yv;

@@ -24,7 +24,6 @@
  */
 
 import {
-    ChartEncoding,
     ChartTemplateDef,
     ChartAssemblyInput,
     AssembleOptions,
@@ -154,7 +153,7 @@ export function assembleChartjs(input: ChartAssemblyInput): any {
         budgets, allMarkTypes,
     );
 
-    let values = overflowResult.filteredData;
+    const values = overflowResult.filteredData;
     warnings.push(...overflowResult.warnings);
 
     // ═══════════════════════════════════════════════════════════════════════

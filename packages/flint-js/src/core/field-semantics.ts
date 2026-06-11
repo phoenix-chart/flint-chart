@@ -25,7 +25,6 @@
 
 import {
     type VisCategory,
-    type TypeRegistryEntry,
     getRegistryEntry,
     isRegistered,
 } from './type-registry';

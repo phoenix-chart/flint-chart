@@ -14,12 +14,9 @@ import {
     recommendChannels,
     getRecommendation,
     type InternalTableView,
-    type RecommendFn,
     // Pick utilities for VL-specific chart types
     pick,
     pickQuantitative,
-    pickTemporal,
-    pickNominal,
     pickDiscrete,
     pickLowCardNominal,
     pickLowCardDiscrete,

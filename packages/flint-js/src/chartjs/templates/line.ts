@@ -14,7 +14,6 @@ import {
     extractCategories,
     groupBy,
     buildCategoryAlignedData,
-    DEFAULT_COLORS,
     getChartJsPalette,
     getSeriesBorderColor,
     coerceUnixMsForChartJs,

@@ -11,7 +11,7 @@
  */
 
 import { ChartTemplateDef, EncodingActionDef } from '../../core/types';
-import { extractCategories, DEFAULT_COLORS } from './utils';
+import { extractCategories } from './utils';
 import { getPaletteForScheme } from '../colormap';
 
 const isDiscrete = (type: string | undefined) => type === 'nominal' || type === 'ordinal';

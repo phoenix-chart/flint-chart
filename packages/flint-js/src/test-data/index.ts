@@ -131,8 +131,6 @@ import {
     genOmniVizHeatmapTests,
     genOmniVizSunburstTests,
     genOmniVizWaterfallTests,
-    GALLERY_OMNI_VIZ_GENERATOR_KEYS,
-    OMNI_VIZ_GALLERY_DATA_TABLE_ENTRY,
 } from './omni-viz-tests';
 
 /** All test generators mapped by chart group */

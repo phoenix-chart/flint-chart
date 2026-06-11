@@ -13,7 +13,6 @@ import {
     recommendChannels,
     getRecommendation,
     type InternalTableView,
-    type RecommendFn,
     pickQuantitative,
     pickDiscrete,
     pickLowCardDiscrete,

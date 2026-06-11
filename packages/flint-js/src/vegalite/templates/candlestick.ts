@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-import { ChartTemplateDef, ChartPropertyDef } from '../../core/types';
+import { ChartTemplateDef } from '../../core/types';
 
 export const candlestickChartDef: ChartTemplateDef = {
     chart: "Candlestick Chart",

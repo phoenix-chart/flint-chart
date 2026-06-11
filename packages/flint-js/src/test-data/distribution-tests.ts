@@ -3,7 +3,7 @@
 
 import { Type } from './df-types';
 import { TestCase, makeField, makeEncodingItem, buildMetadata } from './types';
-import { seededRandom, genCategories, genMonths } from './generators';
+import { seededRandom, genCategories } from './generators';
 
 // ------ Histogram ------
 export function genHistogramTests(): TestCase[] {

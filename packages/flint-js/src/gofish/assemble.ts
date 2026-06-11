@@ -108,7 +108,7 @@ function buildRenderFunction(
 ): (container: HTMLElement) => void {
     return (container: HTMLElement) => {
         // Dynamic import of gofish-graphics (ESM-only, optional dependency)
-        // @ts-ignore — gofish-graphics may not be installed
+        // @ts-expect-error — gofish-graphics may not be installed
         import('gofish-graphics').then((gf: any) => {
             // Clear previous content
             container.innerHTML = '';

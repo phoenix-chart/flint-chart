@@ -907,7 +907,7 @@ export function ecApplyLayoutToSpec(
     // ── Color scheme ─────────────────────────────────────────────────────
     // Use palette derived from backend-agnostic colorDecisions when present.
     const decisions: ColorDecisionResult | undefined = context.colorDecisions;
-    let colorDecision = decisions ? (decisions.color ?? decisions.group) : undefined;
+    const colorDecision = decisions ? (decisions.color ?? decisions.group) : undefined;
     let effectivePalette: string[] | undefined;
     if (decisions && colorDecision) {
         let palette: string[] | undefined;

@@ -12,7 +12,6 @@
  */
 
 import { Type } from './df-types';
-import type { SemanticAnnotation } from '../core/field-semantics';
 import { TestCase, makeField, makeEncodingItem } from './types';
 
 // ============================================================================

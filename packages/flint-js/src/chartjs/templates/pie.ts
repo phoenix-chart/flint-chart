@@ -12,8 +12,6 @@
 import { ChartTemplateDef, ChartPropertyDef } from '../../core/types';
 import {
     extractCategories,
-    DEFAULT_COLORS,
-    DEFAULT_BG_COLORS,
     getChartJsPalette,
     getSeriesBorderColor,
     getSeriesBackgroundColor,

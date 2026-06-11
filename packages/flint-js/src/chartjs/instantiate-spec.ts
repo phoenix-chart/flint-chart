@@ -22,8 +22,6 @@
  */
 
 import type {
-    ChannelSemantics,
-    LayoutResult,
     InstantiateContext,
     ChartWarning,
 } from '../core/types';

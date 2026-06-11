@@ -34,11 +34,9 @@ import {
 } from './semantic-types';
 import {
     resolveEncodingType as resolveEncodingTypeDecision,
-    type EncodingTypeDecision,
 } from './decisions';
 import {
     resolveFieldSemantics,
-    normalizeAnnotation,
     toTypeString,
     resolveNice,
     resolveTickConstraint,

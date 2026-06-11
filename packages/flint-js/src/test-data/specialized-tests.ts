@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 import { Type } from './df-types';
-import { Channel, EncodingItem } from './df-types';
 import { TestCase, makeField, makeEncodingItem, buildMetadata } from './types';
 import { seededRandom, genDates, genMonths, genCategories, genRandomNames } from './generators';
 

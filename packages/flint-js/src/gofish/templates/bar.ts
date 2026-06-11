@@ -14,7 +14,7 @@ import {
     detectBandedAxisFromSemantics,
     detectBandedAxisForceDiscrete,
 } from '../../vegalite/templates/utils';
-import { detectAxes, aggregateByCategory, extractCategories, groupBy } from './utils';
+import { detectAxes, aggregateByCategory, extractCategories } from './utils';
 
 // ─── Bar Chart ──────────────────────────────────────────────────────────────
 

@@ -10,8 +10,6 @@
 
 import { ChartTemplateDef, ChartPropertyDef } from '../../core/types';
 import {
-    DEFAULT_COLORS,
-    DEFAULT_BG_COLORS,
     getChartJsPalette,
     getSeriesBorderColor,
     getSeriesBackgroundColor,

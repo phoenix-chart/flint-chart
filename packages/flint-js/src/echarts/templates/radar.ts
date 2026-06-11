@@ -76,7 +76,7 @@ export const ecRadarChartDef: ChartTemplateDef = {
             // Multi-group: one polygon per group
             const groups = groupBy(table, groupField);
 
-            let colorIdx = 0;
+            const colorIdx = 0;
             for (const [name, rows] of groups) {
                 legendData.push(name);
 

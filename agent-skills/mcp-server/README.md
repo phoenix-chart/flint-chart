@@ -19,7 +19,7 @@ exposes flint-chart's four assemblers as MCP tools.
 # from repo root
 npm install
 npm run mcp:build
-node agents/mcp-server/dist/index.js
+node agent-skills/mcp-server/dist/index.js
 ```
 
 ## Register with a client
@@ -31,7 +31,7 @@ node agents/mcp-server/dist/index.js
   "mcpServers": {
     "flint-chart": {
       "command": "node",
-      "args": ["/abs/path/to/flint-chart/agents/mcp-server/dist/index.js"]
+      "args": ["/abs/path/to/flint-chart/agent-skills/mcp-server/dist/index.js"]
     }
   }
 }
@@ -44,7 +44,7 @@ node agents/mcp-server/dist/index.js
   "servers": {
     "flint-chart": {
       "command": "node",
-      "args": ["${workspaceFolder}/agents/mcp-server/dist/index.js"]
+      "args": ["${workspaceFolder}/agent-skills/mcp-server/dist/index.js"]
     }
   }
 }

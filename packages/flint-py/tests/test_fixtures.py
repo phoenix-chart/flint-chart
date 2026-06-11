@@ -16,7 +16,7 @@ from typing import Any
 import pytest
 
 
-FIXTURES_ROOT = Path(__file__).resolve().parent.parent.parent.parent / "shared" / "test-fixtures"
+FIXTURES_ROOT = Path(__file__).resolve().parent.parent.parent.parent / "shared" / "test-data"
 
 
 def _discover_fixtures() -> list[tuple[str, Path]]:

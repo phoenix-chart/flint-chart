@@ -1,10 +1,10 @@
-# agents/
+# agent-skills/
 
 AI-agent assets for **flint-chart**. Things that help LLMs and IDE agents
 produce correct, idiomatic `ChartAssemblyInput` JSON.
 
 ```
-agents/
+agent-skills/
 ├── skills/               Copilot / Claude / Cursor-compatible skills
 │   ├── flint-chart-author/SKILL.md   Author or edit a chart spec
 │   └── flint-chart-port/SKILL.md     Port an existing Vega-Lite / ECharts spec to flint-chart
@@ -43,7 +43,7 @@ shelling out.
 # from repo root
 npm install
 npm run mcp:build
-node agents/mcp-server/dist/index.js
+node agent-skills/mcp-server/dist/index.js
 ```
 
 Register it in your client's MCP config:
@@ -53,7 +53,7 @@ Register it in your client's MCP config:
   "mcpServers": {
     "flint-chart": {
       "command": "node",
-      "args": ["/abs/path/to/flint-chart/agents/mcp-server/dist/index.js"]
+      "args": ["/abs/path/to/flint-chart/agent-skills/mcp-server/dist/index.js"]
     }
   }
 }

@@ -16,7 +16,7 @@ Available in **JavaScript/TypeScript** and **Python**.
 - **Demos:** [Site](https://microsoft.github.io/flint-chart/) — landing page, [gallery](https://microsoft.github.io/flint-chart/#/gallery), and [live editor](https://microsoft.github.io/flint-chart/#/editor) in one place.
 - **Architecture:** [docs/design-semantics.md](docs/design-semantics.md) · [docs/design-stretch-model.md](docs/design-stretch-model.md) · [docs/color-decisions-summary.md](docs/color-decisions-summary.md)
 - **For contributors:** [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) · [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md)
-- **For AI agents:** [agents/skills/flint-chart-author/SKILL.md](agents/skills/flint-chart-author/SKILL.md) · [agents/mcp-server](agents/mcp-server/)
+- **For AI agents:** [agent-skills/skills/flint-chart-author/SKILL.md](agent-skills/skills/flint-chart-author/SKILL.md) · [agent-skills/mcp-server](agent-skills/mcp-server/)
 
 ```bash
 # JavaScript / TypeScript
@@ -35,8 +35,8 @@ pip install flint
 │   └── flint-py/          Python package (PyPI: flint)
 │       └── flint/         Vega-Lite backend
 ├── shared/
-│   └── test-fixtures/     JSON test cases shared across both languages
-├── agents/                MCP server + agent skills
+│   └── test-data/     JSON test cases shared across both languages
+├── agent-skills/                MCP server + agent skills
 ├── site/                  Documentation website
 └── docs/                  Design documents
 ```

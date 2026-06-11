@@ -48,7 +48,7 @@ the decision belongs in `core/`.
 2. Add the entry to `tsup.config.ts` so it gets its own `./dist/<backend>/`
    subpath bundle.
 3. Add a `./<backend>` subpath export to `package.json#exports`.
-4. Add to `agents/mcp-server/src/index.ts` so MCP clients can call it.
+4. Add to `agent-skills/mcp-server/src/index.ts` so MCP clients can call it.
 5. Add a renderer component to `site/src/components/` and
    wire it into `TripleChart` (or rename it).
 6. Add at least one `gen<Backend>*Tests` generator to `src/test-data/`.

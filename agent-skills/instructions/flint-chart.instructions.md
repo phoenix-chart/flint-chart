@@ -43,7 +43,7 @@ Render `spec` with `vega-embed` (or the equivalent for ECharts / Chart.js).
 4. **For user fine-tuning,** edit the generated spec directly — that's
    the design. Don't try to round-trip through `ChartAssemblyInput`.
 
-5. **Reference the skills** in `agents/skills/` for full instructions
+5. **Reference the skills** in `agent-skills/skills/` for full instructions
    on authoring or porting specs.
 
 ## Forbidden

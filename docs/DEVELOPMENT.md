@@ -46,7 +46,7 @@ flint-chart/
 │   └── test-data/           fixtures + generators (also drives gallery)
 ├── tests/                   repo-level tests
 ├── site/                    unified Vite+React demo (landing / gallery / editor routes)
-├── agents/
+├── agent-skills/
 │   ├── skills/              Copilot/Claude SKILL.md bundles
 │   ├── prompts/             standalone system prompts
 │   ├── instructions/        .instructions.md drop-ins

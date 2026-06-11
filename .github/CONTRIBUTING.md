@@ -20,7 +20,7 @@ src/                         library source (published to npm)
   test-data/                 fixtures + generators (used by gallery + tests)
 tests/                       repo-level tests (unit + snapshot)
 site/                        unified demo app (Vite + React, landing / gallery / editor)
-agents/                      AI-agent assets (skills, MCP server, prompts)
+agent-skills/                      AI-agent assets (skills, MCP server, prompts)
 docs/                        design docs, planning, contributor how-tos
 ```
 

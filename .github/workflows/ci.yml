@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [18, 20, 22]
+        node: [20, 22]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -26,8 +26,8 @@ jobs:
       - run: npm run test
       - run: npm run build
 
-  examples:
-    name: Build examples
+  site:
+    name: Build site
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,11 +37,4 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - name: Install + build site
-        run: |
-          npm --prefix site install
-          npm --prefix site run build
-      - name: Install + build mcp-server
-        run: |
-          npm --prefix agents/mcp-server install
-          npm --prefix agents/mcp-server run build
+      - run: npm run site:build

@@ -32,6 +32,8 @@ const SCROLL_SPY_ROOT_MARGIN = '-15% 0px -70% 0px';
 const NAV_SCROLL_END_MS = 150;
 const NAV_SCROLL_MAX_MS = 4000;
 const SIDEBAR_HOVER_BG = '#f4f7fb';
+const SIDEBAR_ACTIVE_BG = '#e8ecf0';
+const SIDEBAR_ACTIVE_BAR = `inset 3px 0 0 ${siteTheme.accent}`;
 
 const BACKEND_BADGE_STYLES: Record<PreviewBackend, CSSProperties> = {
   vegalite: {
@@ -265,7 +267,7 @@ export function Gallery() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: '260px 1fr',
+          gridTemplateColumns: '240px 1fr',
           flex: 1,
           minHeight: 0,
           overflow: 'hidden',
@@ -276,12 +278,12 @@ export function Gallery() {
             borderRight: `1px solid ${siteTheme.border}`,
             overflowY: 'auto',
             background: siteTheme.surface,
-            padding: '12px 0 18px',
+            padding: '6px 0 10px',
           }}
         >
           <div
             style={{
-              padding: '0 16px 10px',
+              padding: '4px 14px 6px',
               fontSize: 11,
               fontWeight: 600,
               color: siteTheme.textMuted,
@@ -510,20 +512,20 @@ function SidebarSectionHeader({
   return (
     <div
       style={{
-        marginTop: showDivider ? 8 : 0,
-        paddingTop: showDivider ? 8 : 0,
+        marginTop: showDivider ? 5 : 0,
+        paddingTop: showDivider ? 5 : 0,
         borderTop: showDivider ? `1px solid ${siteTheme.border}` : undefined,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', padding: '0 8px 0 10px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', padding: '0 8px 0 8px' }}>
         <button
           type="button"
           aria-label={expanded ? `Collapse ${category.label}` : `Expand ${category.label}`}
           onClick={onToggle}
           style={{
             flexShrink: 0,
-            width: 28,
-            padding: '7px 0',
+            width: 24,
+            padding: '5px 0',
             border: 0,
             background: 'transparent',
             cursor: 'pointer',
@@ -541,10 +543,10 @@ function SidebarSectionHeader({
           onMouseLeave={() => setHovered(false)}
           style={{
             flex: 1,
-            padding: '7px 10px',
+            padding: '5px 8px',
             border: 0,
-            borderRadius: 6,
-            background: hasActiveChild ? siteTheme.accentBg : hovered ? SIDEBAR_HOVER_BG : 'transparent',
+            borderRadius: 0,
+            background: hovered ? SIDEBAR_HOVER_BG : 'transparent',
             cursor: 'pointer',
             textAlign: 'left',
             color: hasActiveChild ? siteTheme.accent : siteTheme.text,
@@ -579,19 +581,20 @@ function SidebarItem({
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 10,
+        gap: 8,
         width: '100%',
-        padding: '6px 16px 6px 42px',
+        padding: '4px 14px 4px 38px',
         border: 0,
         textAlign: 'left',
-        background: active ? siteTheme.accentBg : hovered ? SIDEBAR_HOVER_BG : 'transparent',
+        background: active ? SIDEBAR_ACTIVE_BG : hovered ? SIDEBAR_HOVER_BG : 'transparent',
+        boxShadow: active ? SIDEBAR_ACTIVE_BAR : undefined,
         color: active ? siteTheme.accent : siteTheme.text,
         cursor: 'pointer',
         fontSize: 13,
         fontWeight: active ? 600 : 400,
       }}
     >
-      <img src={chart.icon} alt="" aria-hidden="true" style={{ width: 20, height: 20, flexShrink: 0 }} />
+      <img src={chart.icon} alt="" aria-hidden="true" style={{ width: 18, height: 18, flexShrink: 0 }} />
       <span>{chart.label}</span>
     </button>
   );

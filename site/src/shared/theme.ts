@@ -6,11 +6,11 @@ export const siteTheme = {
   borderMuted: '#d0d7de',
   text: '#1f2328',
   textMuted: '#57606a',
-  accent: '#0969da',
-  accentBg: '#ddf4ff',
+  accent: '#0078d4',
+  accentBg: '#deecf9',
   error: '#cf222e',
   radius: 6,
-  fontSans: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+  fontSans: "'Segoe UI', -apple-system, sans-serif",
   fontMono: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
 } as const;
 

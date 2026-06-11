@@ -11,7 +11,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <HashRouter>
       <Routes>
         <Route path="/" element={<Landing />} />
-        <Route path="/gallery" element={<Gallery />} />
+        <Route path="/gallery/:chartId?" element={<Gallery />} />
         <Route path="/editor" element={<Editor />} />
         <Route path="/tutorials" element={<DocSectionPage section="tutorials" />} />
         <Route path="/tutorials/:slug" element={<DocSectionPage section="tutorials" />} />

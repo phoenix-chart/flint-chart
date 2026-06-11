@@ -45,7 +45,7 @@ export function SiteNavBar() {
       </Link>
 
       <nav style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1 }}>
-        <NavLink to="/gallery" active={pathname === '/gallery'}>
+        <NavLink to="/gallery" active={pathname.startsWith('/gallery')}>
           Gallery
         </NavLink>
         <NavLink to="/tutorials/quick-start" active={pathname.startsWith('/tutorials')}>

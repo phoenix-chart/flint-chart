@@ -14,17 +14,19 @@ Routes (`HashRouter`):
 
 ## Local development
 
+From the **repository root** (monorepo):
+
 ```sh
 npm install
-npm run dev
+npm run site
 ```
 
-Vite serves the site at <http://localhost:5274/flint-chart/>.
+Vite serves the site at <http://localhost:5274/>.
 
 ## Build
 
 ```sh
-npm run build
+npm run site:build
 ```
 
 Static output is written to `dist/`. `VITE_BASE_PATH` overrides the deployment

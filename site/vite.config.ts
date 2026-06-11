@@ -17,11 +17,11 @@ export default defineConfig({
     alias: [
       {
         find: 'flint-chart/test-data',
-        replacement: path.resolve(__dirname, '../src/test-data/index.ts'),
+        replacement: path.resolve(__dirname, '../packages/flint-js/src/test-data/index.ts'),
       },
       {
         find: 'flint-chart',
-        replacement: path.resolve(__dirname, '../src/index.ts'),
+        replacement: path.resolve(__dirname, '../packages/flint-js/src/index.ts'),
       },
     ],
   },

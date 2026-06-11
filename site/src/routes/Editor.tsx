@@ -9,18 +9,16 @@ import { ChartjsView } from '../components/ChartjsView';
 import { EXAMPLES } from './editor-examples';
 import { loadEditorPayload, readEditorCaseParam, readGalleryCaseParams } from '../shared/editor-payload';
 import { testCaseToAssemblyInput } from '../shared/test-case-utils';
+import {
+  ALL_BACKENDS,
+  BACKEND_LABELS,
+  getSupportedBackends,
+  type PreviewBackend,
+} from '../shared/supported-backends';
 import { TEST_GENERATORS } from 'flint-chart/test-data';
 import { siteTheme } from '../shared/theme';
 
-type Backend = 'vegalite' | 'echarts' | 'chartjs';
-
-const BACKENDS: Backend[] = ['vegalite', 'echarts', 'chartjs'];
-
-const BACKEND_LABELS: Record<Backend, string> = {
-  vegalite: 'Vega-Lite',
-  echarts: 'ECharts',
-  chartjs: 'Chart.js',
-};
+type Backend = PreviewBackend;
 
 type CompileResult<T> = { ok: true; value: T } | { ok: false; err: unknown };
 
@@ -72,6 +70,21 @@ export function Editor() {
       return { ok: false as const, err };
     }
   }, [text]);
+
+  const chartType = parsed.ok
+    ? (parsed.value as { chart_spec?: { chartType?: string } })?.chart_spec?.chartType
+    : undefined;
+
+  const supportedBackends = useMemo(
+    () => (chartType ? getSupportedBackends(chartType) : ALL_BACKENDS),
+    [chartType],
+  );
+
+  useEffect(() => {
+    if (!supportedBackends.includes(backend)) {
+      setBackend(supportedBackends[0] ?? 'vegalite');
+    }
+  }, [supportedBackends, backend]);
 
   const compiledByBackend = useMemo(() => {
     if (!parsed.ok) return { ok: false as const, err: parsed.err };
@@ -136,6 +149,7 @@ export function Editor() {
         >
           <PreviewPane
             backend={backend}
+            supportedBackends={supportedBackends}
             onBackendChange={setBackend}
             parsed={parsed}
             compiled={activeCompiled}
@@ -223,11 +237,13 @@ function InputPane({
 
 function PreviewPane({
   backend,
+  supportedBackends,
   onBackendChange,
   parsed,
   compiled,
 }: {
   backend: Backend;
+  supportedBackends: Backend[];
   onBackendChange: (b: Backend) => void;
   parsed: { ok: true; value: unknown } | { ok: false; err: unknown };
   compiled: CompileResult<unknown> | null;
@@ -246,7 +262,7 @@ function PreviewPane({
         }}
       >
         <span style={{ fontSize: 12, color: siteTheme.textMuted, marginRight: 4 }}>Preview</span>
-        {BACKENDS.map((b) => (
+        {supportedBackends.map((b) => (
           <button
             key={b}
             type="button"

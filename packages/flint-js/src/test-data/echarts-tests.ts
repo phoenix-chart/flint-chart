@@ -1791,7 +1791,6 @@ export function genEChartsSankeyTests(): TestCase[] {
             { From: 'Products', To: 'Details', Users: 270 },
             { From: 'Details', To: 'Cart', Users: 150 },
             { From: 'Cart', To: 'Checkout', Users: 200 },
-            { From: 'Cart', To: 'Home', Users: 50 },
             { From: 'Blog', To: 'Products', Users: 80 },
         ];
         tests.push({

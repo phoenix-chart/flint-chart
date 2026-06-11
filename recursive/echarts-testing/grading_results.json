@@ -1,0 +1,446 @@
+[
+  {
+    "test_id": "bar_basic_5",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "bar_colored",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "bar_long_labels",
+    "layout": 3,
+    "text": 3,
+    "data_accuracy": 5,
+    "visual_quality": 4,
+    "overall": 4,
+    "issues": [
+      "Long rotated labels overlap with axis title 'category'"
+    ],
+    "category": "rendering_issue"
+  },
+  {
+    "test_id": "bar_many_cats_20",
+    "layout": 5,
+    "text": 4,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "bar_narrow",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "bar_small_canvas",
+    "layout": 5,
+    "text": 4,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "grouped_bar_basic",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "grouped_bar_many",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "stacked_bar_basic",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "stacked_bar_many_groups",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "line_basic",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "line_dense",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "line_multi_series",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "line_small_canvas",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "scatter_basic",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "scatter_colored",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "scatter_dense",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "scatter_sized",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "area_basic",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "area_stacked",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "heatmap_basic",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "heatmap_large",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "pie_basic",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "pie_many_slices",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "pie_small",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "histogram_basic",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "histogram_small_n",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "boxplot_basic",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "boxplot_many",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "density_basic",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "lollipop_basic",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "radar_basic",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "rose_basic",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "waterfall_basic",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "funnel_basic",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "gauge_basic",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "treemap_basic",
+    "layout": 4,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 4,
+    "overall": 4,
+    "issues": [
+      "Small gray square at bottom (extra/empty node)"
+    ],
+    "category": "rendering_issue"
+  },
+  {
+    "test_id": "sunburst_basic",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "sankey_basic",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "streamgraph_basic",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "candlestick_basic",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "bar_faceted_3panels",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "scatter_faceted",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  },
+  {
+    "test_id": "line_faceted_4panels",
+    "layout": 5,
+    "text": 5,
+    "data_accuracy": 5,
+    "visual_quality": 5,
+    "overall": 5,
+    "issues": [],
+    "category": "pass"
+  }
+]

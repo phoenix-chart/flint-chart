@@ -1,0 +1,53 @@
+{
+  "test_id": "bar_small_canvas",
+  "description": "Bar chart on small canvas (250x200)",
+  "input": {
+    "data": {
+      "values": [
+        {
+          "category": "Category 1",
+          "value": 90
+        },
+        {
+          "category": "Category 2",
+          "value": 89
+        },
+        {
+          "category": "Category 3",
+          "value": 56
+        },
+        {
+          "category": "Category 4",
+          "value": 83
+        },
+        {
+          "category": "Category 5",
+          "value": 34
+        },
+        {
+          "category": "Category 6",
+          "value": 100
+        }
+      ]
+    },
+    "semantic_types": {
+      "category": "Category",
+      "value": "Quantity"
+    },
+    "chart_spec": {
+      "chartType": "Bar Chart",
+      "encodings": {
+        "x": {
+          "field": "category"
+        },
+        "y": {
+          "field": "value"
+        }
+      },
+      "canvasSize": {
+        "width": 250,
+        "height": 200
+      }
+    }
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "test_id": "bar_faceted_3panels",
+  "description": "Bar chart with 3 facet panels",
+  "input": {
+    "data": {
+      "values": [
+        {
+          "category": "X",
+          "value": 27,
+          "panel": "Panel A"
+        },
+        {
+          "category": "Y",
+          "value": 59,
+          "panel": "Panel A"
+        },
+        {
+          "category": "Z",
+          "value": 64,
+          "panel": "Panel A"
+        },
+        {
+          "category": "X",
+          "value": 33,
+          "panel": "Panel B"
+        },
+        {
+          "category": "Y",
+          "value": 72,
+          "panel": "Panel B"
+        },
+        {
+          "category": "Z",
+          "value": 78,
+          "panel": "Panel B"
+        },
+        {
+          "category": "X",
+          "value": 32,
+          "panel": "Panel C"
+        },
+        {
+          "category": "Y",
+          "value": 31,
+          "panel": "Panel C"
+        },
+        {
+          "category": "Z",
+          "value": 72,
+          "panel": "Panel C"
+        }
+      ]
+    },
+    "semantic_types": {
+      "category": "Category",
+      "value": "Quantity",
+      "panel": "Category"
+    },
+    "chart_spec": {
+      "chartType": "Bar Chart",
+      "encodings": {
+        "x": {
+          "field": "category"
+        },
+        "y": {
+          "field": "value"
+        },
+        "column": {
+          "field": "panel"
+        }
+      }
+    }
+  }
+}

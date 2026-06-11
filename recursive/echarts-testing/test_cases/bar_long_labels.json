@@ -1,0 +1,57 @@
+{
+  "test_id": "bar_long_labels",
+  "description": "Bar chart with very long category labels",
+  "input": {
+    "data": {
+      "values": [
+        {
+          "category": "This Is A Very Long Category Label Number 1",
+          "value": 79
+        },
+        {
+          "category": "This Is A Very Long Category Label Number 2",
+          "value": 63
+        },
+        {
+          "category": "This Is A Very Long Category Label Number 3",
+          "value": 38
+        },
+        {
+          "category": "This Is A Very Long Category Label Number 4",
+          "value": 67
+        },
+        {
+          "category": "This Is A Very Long Category Label Number 5",
+          "value": 85
+        },
+        {
+          "category": "This Is A Very Long Category Label Number 6",
+          "value": 45
+        },
+        {
+          "category": "This Is A Very Long Category Label Number 7",
+          "value": 10
+        },
+        {
+          "category": "This Is A Very Long Category Label Number 8",
+          "value": 30
+        }
+      ]
+    },
+    "semantic_types": {
+      "category": "Category",
+      "value": "Quantity"
+    },
+    "chart_spec": {
+      "chartType": "Bar Chart",
+      "encodings": {
+        "x": {
+          "field": "category"
+        },
+        "y": {
+          "field": "value"
+        }
+      }
+    }
+  }
+}

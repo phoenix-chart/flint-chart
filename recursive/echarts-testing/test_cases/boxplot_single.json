@@ -1,0 +1,145 @@
+{
+  "test_id": "boxplot_single",
+  "description": "Boxplot with a single group (edge case)",
+  "input": {
+    "data": {
+      "values": [
+        {
+          "group": "All",
+          "value": 52.477261473822395
+        },
+        {
+          "group": "All",
+          "value": 56.304238689668935
+        },
+        {
+          "group": "All",
+          "value": 35.70932034737385
+        },
+        {
+          "group": "All",
+          "value": 56.60975210465949
+        },
+        {
+          "group": "All",
+          "value": 26.276714568300868
+        },
+        {
+          "group": "All",
+          "value": 54.98679269560063
+        },
+        {
+          "group": "All",
+          "value": 29.997110173641918
+        },
+        {
+          "group": "All",
+          "value": 11.71971689248064
+        },
+        {
+          "group": "All",
+          "value": 62.4067360291743
+        },
+        {
+          "group": "All",
+          "value": 58.82693040487821
+        },
+        {
+          "group": "All",
+          "value": 34.12385719119912
+        },
+        {
+          "group": "All",
+          "value": 75.26078493274005
+        },
+        {
+          "group": "All",
+          "value": 50.082260607057044
+        },
+        {
+          "group": "All",
+          "value": 59.743396353360794
+        },
+        {
+          "group": "All",
+          "value": 35.10823773932961
+        },
+        {
+          "group": "All",
+          "value": 54.98246042902903
+        },
+        {
+          "group": "All",
+          "value": 47.97115431645328
+        },
+        {
+          "group": "All",
+          "value": 61.19037986429893
+        },
+        {
+          "group": "All",
+          "value": 64.38065399807232
+        },
+        {
+          "group": "All",
+          "value": 42.474181146227856
+        },
+        {
+          "group": "All",
+          "value": 62.21188375340881
+        },
+        {
+          "group": "All",
+          "value": 35.49056208584722
+        },
+        {
+          "group": "All",
+          "value": 104.21853318049246
+        },
+        {
+          "group": "All",
+          "value": 67.83851938943204
+        },
+        {
+          "group": "All",
+          "value": 70.34505670427825
+        },
+        {
+          "group": "All",
+          "value": 16.099852879887194
+        },
+        {
+          "group": "All",
+          "value": 76.08686019940856
+        },
+        {
+          "group": "All",
+          "value": 36.98908786844306
+        },
+        {
+          "group": "All",
+          "value": 58.68178537163082
+        },
+        {
+          "group": "All",
+          "value": 64.96001098596267
+        }
+      ]
+    },
+    "semantic_types": {
+      "group": "Category",
+      "value": "Quantity"
+    },
+    "chart_spec": {
+      "chartType": "Boxplot",
+      "encodings": {
+        "x": {
+          "field": "group"
+        },
+        "y": {
+          "field": "value"
+        }
+      }
+    }
+  }
+}

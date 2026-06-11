@@ -1,0 +1,79 @@
+{
+  "test_id": "radar_basic",
+  "description": "Radar chart (5 axes, 2 series)",
+  "input": {
+    "data": {
+      "values": [
+        {
+          "metric": "Dim 1",
+          "value": 30,
+          "series": "Series 1"
+        },
+        {
+          "metric": "Dim 2",
+          "value": 77,
+          "series": "Series 1"
+        },
+        {
+          "metric": "Dim 3",
+          "value": 67,
+          "series": "Series 1"
+        },
+        {
+          "metric": "Dim 4",
+          "value": 31,
+          "series": "Series 1"
+        },
+        {
+          "metric": "Dim 5",
+          "value": 88,
+          "series": "Series 1"
+        },
+        {
+          "metric": "Dim 1",
+          "value": 44,
+          "series": "Series 2"
+        },
+        {
+          "metric": "Dim 2",
+          "value": 26,
+          "series": "Series 2"
+        },
+        {
+          "metric": "Dim 3",
+          "value": 54,
+          "series": "Series 2"
+        },
+        {
+          "metric": "Dim 4",
+          "value": 68,
+          "series": "Series 2"
+        },
+        {
+          "metric": "Dim 5",
+          "value": 97,
+          "series": "Series 2"
+        }
+      ]
+    },
+    "semantic_types": {
+      "metric": "Category",
+      "value": "Quantity",
+      "series": "Category"
+    },
+    "chart_spec": {
+      "chartType": "Radar Chart",
+      "encodings": {
+        "x": {
+          "field": "metric"
+        },
+        "y": {
+          "field": "value"
+        },
+        "color": {
+          "field": "series"
+        }
+      }
+    }
+  }
+}

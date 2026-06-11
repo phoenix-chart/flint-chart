@@ -1,0 +1,57 @@
+{
+  "test_id": "lollipop_basic",
+  "description": "Basic lollipop (8 categories)",
+  "input": {
+    "data": {
+      "values": [
+        {
+          "category": "Category 1",
+          "value": 77
+        },
+        {
+          "category": "Category 2",
+          "value": 27
+        },
+        {
+          "category": "Category 3",
+          "value": 59
+        },
+        {
+          "category": "Category 4",
+          "value": 41
+        },
+        {
+          "category": "Category 5",
+          "value": 42
+        },
+        {
+          "category": "Category 6",
+          "value": 36
+        },
+        {
+          "category": "Category 7",
+          "value": 52
+        },
+        {
+          "category": "Category 8",
+          "value": 92
+        }
+      ]
+    },
+    "semantic_types": {
+      "category": "Category",
+      "value": "Quantity"
+    },
+    "chart_spec": {
+      "chartType": "Lollipop Chart",
+      "encodings": {
+        "x": {
+          "field": "category"
+        },
+        "y": {
+          "field": "value"
+        }
+      }
+    }
+  }
+}

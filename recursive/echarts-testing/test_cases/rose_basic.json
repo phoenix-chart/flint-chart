@@ -1,0 +1,49 @@
+{
+  "test_id": "rose_basic",
+  "description": "Rose chart (6 petals)",
+  "input": {
+    "data": {
+      "values": [
+        {
+          "label": "Slice 1",
+          "value": 87
+        },
+        {
+          "label": "Slice 2",
+          "value": 15
+        },
+        {
+          "label": "Slice 3",
+          "value": 19
+        },
+        {
+          "label": "Slice 4",
+          "value": 34
+        },
+        {
+          "label": "Slice 5",
+          "value": 85
+        },
+        {
+          "label": "Slice 6",
+          "value": 95
+        }
+      ]
+    },
+    "semantic_types": {
+      "label": "Category",
+      "value": "Quantity"
+    },
+    "chart_spec": {
+      "chartType": "Rose Chart",
+      "encodings": {
+        "x": {
+          "field": "label"
+        },
+        "y": {
+          "field": "value"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "test_id": "gauge_basic",
+  "description": "Basic gauge",
+  "input": {
+    "data": {
+      "values": [
+        {
+          "value": 1
+        }
+      ]
+    },
+    "semantic_types": {
+      "value": "Percentage"
+    },
+    "chart_spec": {
+      "chartType": "Gauge Chart",
+      "encodings": {
+        "size": {
+          "field": "value"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "test_id": "waterfall_basic",
+  "description": "Basic waterfall chart",
+  "input": {
+    "data": {
+      "values": [
+        {
+          "category": "Revenue",
+          "value": 100
+        },
+        {
+          "category": "COGS",
+          "value": -40
+        },
+        {
+          "category": "Gross Profit",
+          "value": 60
+        },
+        {
+          "category": "OpEx",
+          "value": -25
+        },
+        {
+          "category": "Tax",
+          "value": -10
+        },
+        {
+          "category": "Net Income",
+          "value": 25
+        }
+      ]
+    },
+    "semantic_types": {
+      "category": "Category",
+      "value": "Quantity"
+    },
+    "chart_spec": {
+      "chartType": "Waterfall Chart",
+      "encodings": {
+        "x": {
+          "field": "category"
+        },
+        "y": {
+          "field": "value"
+        }
+      }
+    }
+  }
+}

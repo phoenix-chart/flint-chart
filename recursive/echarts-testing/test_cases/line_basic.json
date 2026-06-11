@@ -1,0 +1,176 @@
+{
+  "test_id": "line_basic",
+  "description": "Basic line chart, 30 data points",
+  "input": {
+    "data": {
+      "values": [
+        {
+          "date": "2024-01-01",
+          "value": 59,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-02",
+          "value": 70,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-03",
+          "value": 66,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-04",
+          "value": 79,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-05",
+          "value": 34,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-06",
+          "value": 41,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-07",
+          "value": 34,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-08",
+          "value": 18,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-09",
+          "value": 47,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-10",
+          "value": 45,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-11",
+          "value": 85,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-12",
+          "value": 49,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-13",
+          "value": 61,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-14",
+          "value": 26,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-15",
+          "value": 38,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-16",
+          "value": 60,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-17",
+          "value": 68,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-18",
+          "value": 58,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-19",
+          "value": 41,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-20",
+          "value": 28,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-21",
+          "value": 75,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-22",
+          "value": 26,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-23",
+          "value": 43,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-24",
+          "value": 72,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-25",
+          "value": 30,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-26",
+          "value": 64,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-27",
+          "value": 75,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-01-28",
+          "value": 63,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-02-01",
+          "value": 33,
+          "series": "Series 1"
+        },
+        {
+          "date": "2024-02-02",
+          "value": 87,
+          "series": "Series 1"
+        }
+      ]
+    },
+    "semantic_types": {
+      "date": "Date",
+      "value": "Quantity",
+      "series": "Category"
+    },
+    "chart_spec": {
+      "chartType": "Line Chart",
+      "encodings": {
+        "x": {
+          "field": "date"
+        },
+        "y": {
+          "field": "value"
+        }
+      }
+    }
+  }
+}

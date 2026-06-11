@@ -750,7 +750,16 @@ export function ecApplyLayoutToSpec(
         const rotate = Math.abs(option.xAxis.axisLabel.rotate || 0);
         if (rotate >= 45) {
             const labelFontSize = option.xAxis.axisLabel.fontSize || 11;
-            const maxChars = layout.xLabel?.labelLimit || 20;
+            // Estimate the rotated-label height from the *actual* longest category
+            // label rather than the generic labelLimit. The latter over-reserves
+            // bottom space for short labels (e.g. "Jan", "Mon"), which pushes
+            // bottom-anchored visualMaps / legends far below the plot.
+            const labelLimit = layout.xLabel?.labelLimit || 20;
+            const categoryData = Array.isArray(option.xAxis.data) ? option.xAxis.data : undefined;
+            const actualMaxChars = categoryData && categoryData.length > 0
+                ? Math.max(...categoryData.map((d: any) => String(d?.value ?? d ?? '').length))
+                : labelLimit;
+            const maxChars = Math.min(actualMaxChars, labelLimit);
             const estimatedLabelWidth = maxChars * labelFontSize * 0.6;
             const rotatedHeight = Math.min(estimatedLabelWidth, 120);
             const extraBottom = Math.max(0, rotatedHeight - 30);

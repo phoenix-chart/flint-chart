@@ -12,23 +12,31 @@ import {
 } from '../shared/supported-backends';
 import { siteTheme } from '../shared/theme';
 
-/**
- * Renders one TestCase with tabs only for backends that support its chart type.
- */
-export function TripleChart({ testCase }: { testCase: TestCase }) {
+export function TripleChart({
+  testCase,
+  backend: forcedBackend,
+}: {
+  testCase: TestCase;
+  backend?: PreviewBackend;
+}) {
   const supportedBackends = useMemo(
     () => getSupportedBackends(testCase.chartType),
     [testCase.chartType],
   );
-  const [backend, setBackend] = useState<PreviewBackend>(
-    () => supportedBackends[0] ?? 'vegalite',
+  const availableBackends = useMemo(
+    () =>
+      forcedBackend && supportedBackends.includes(forcedBackend)
+        ? [forcedBackend]
+        : supportedBackends,
+    [forcedBackend, supportedBackends],
   );
+  const [backend, setBackend] = useState<PreviewBackend>(() => availableBackends[0] ?? 'vegalite');
 
   useEffect(() => {
     setBackend((current) =>
-      supportedBackends.includes(current) ? current : (supportedBackends[0] ?? 'vegalite'),
+      availableBackends.includes(current) ? current : (availableBackends[0] ?? 'vegalite'),
     );
-  }, [testCase.chartType, supportedBackends]);
+  }, [availableBackends, testCase.chartType]);
 
   const input = useMemo(() => testCaseToAssemblyInput(testCase), [testCase]);
 
@@ -42,7 +50,28 @@ export function TripleChart({ testCase }: { testCase: TestCase }) {
     }
   }, [input, backend]);
 
-  if (supportedBackends.length === 0) {
+  if (forcedBackend && !supportedBackends.includes(forcedBackend)) {
+    return (
+      <div
+        style={{
+          border: `1px solid ${siteTheme.border}`,
+          borderRadius: siteTheme.radius,
+          padding: 12,
+          background: siteTheme.surface,
+          minHeight: 280,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: siteTheme.textMuted,
+          fontSize: 13,
+        }}
+      >
+        {BACKEND_LABELS[forcedBackend]} does not support "{testCase.chartType}".
+      </div>
+    );
+  }
+
+  if (availableBackends.length === 0) {
     return (
       <div
         style={{
@@ -65,25 +94,25 @@ export function TripleChart({ testCase }: { testCase: TestCase }) {
 
   return (
     <div>
-      {supportedBackends.length > 1 && (
+      {!forcedBackend && availableBackends.length > 1 && (
         <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
-          {supportedBackends.map((b) => (
+          {availableBackends.map((candidate) => (
             <button
-              key={b}
+              key={candidate}
               type="button"
-              onClick={() => setBackend(b)}
+              onClick={() => setBackend(candidate)}
               style={{
                 padding: '3px 10px',
                 fontSize: 11,
                 border: `1px solid ${siteTheme.borderMuted}`,
                 borderRadius: 4,
-                background: backend === b ? siteTheme.accentBg : siteTheme.surface,
-                color: backend === b ? siteTheme.accent : siteTheme.textMuted,
+                background: backend === candidate ? siteTheme.accentBg : siteTheme.surface,
+                color: backend === candidate ? siteTheme.accent : siteTheme.textMuted,
                 cursor: 'pointer',
-                fontWeight: backend === b ? 600 : 400,
+                fontWeight: backend === candidate ? 600 : 400,
               }}
             >
-              {BACKEND_LABELS[b]}
+              {BACKEND_LABELS[candidate]}
             </button>
           ))}
         </div>

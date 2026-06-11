@@ -3,6 +3,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type CSSProperties,
   type Dispatch,
   type RefObject,
   type SetStateAction,
@@ -19,15 +20,36 @@ import {
   findChartEntry,
   getAllChartEntries,
   isValidChartId,
+  type ChartCategory,
   type ChartEntry,
 } from '../shared/chart-categories';
 import { buildGalleryEditorHref } from '../shared/editor-payload';
 import { siteTheme } from '../shared/theme';
+import type { PreviewBackend } from '../shared/supported-backends';
 
-const CASES_PER_GENERATOR = 6;
+const CASES_PER_GENERATOR = 3;
 const SCROLL_SPY_ROOT_MARGIN = '-15% 0px -70% 0px';
 const NAV_SCROLL_END_MS = 150;
 const NAV_SCROLL_MAX_MS = 4000;
+const SIDEBAR_HOVER_BG = '#f4f7fb';
+
+const BACKEND_BADGE_STYLES: Record<PreviewBackend, CSSProperties> = {
+  vegalite: {
+    background: '#eef6fc',
+    border: '1px solid #c7e0f4',
+    color: '#0f5ea6',
+  },
+  echarts: {
+    background: '#f5eff9',
+    border: '1px solid #e0d1ee',
+    color: '#7a3e9d',
+  },
+  chartjs: {
+    background: '#fdf1f2',
+    border: '1px solid #f3ccd3',
+    color: '#b4233c',
+  },
+};
 
 type LoadedSection = {
   generator: string;
@@ -48,7 +70,7 @@ function loadSection(generator: string): LoadedSection | null {
 }
 
 function initialExpandedCategories(chartId: string): Set<string> {
-  const categoryId = findChartEntry(chartId)?.category.id ?? 'line';
+  const categoryId = findChartEntry(chartId)?.category.id ?? CHART_CATEGORIES[0]?.id ?? 'vegalite';
   return new Set([categoryId]);
 }
 
@@ -74,11 +96,6 @@ function expandCategoryForChart(
   });
 }
 
-/**
- * Chart gallery — scrollable catalog with anchor sidebar navigation.
- * Right: all chart sections in order, lazy-loaded on scroll.
- * Left: jump-to-section nav with URL sync (#/gallery/bump-chart).
- */
 export function Gallery() {
   const { chartId: chartIdParam } = useParams<{ chartId?: string }>();
   const mainRef = useRef<HTMLElement>(null);
@@ -95,7 +112,6 @@ export function Gallery() {
     initialExpandedCategories(initialChartId),
   );
 
-  /** Update the hash without React Router navigation (avoids re-render storms). */
   const updateUrl = useCallback((chartId: string) => {
     const nextHash = galleryHash(chartId);
     if (window.location.hash === nextHash) return;
@@ -120,44 +136,47 @@ export function Gallery() {
     navScrollCleanupRef.current = null;
   }, []);
 
-  const scrollToChart = useCallback((chartId: string, behavior: ScrollBehavior = 'smooth') => {
-    const root = mainRef.current;
-    const target = root?.querySelector<HTMLElement>(`#${CSS.escape(chartId)}`);
-    if (!root || !target) return;
+  const scrollToChart = useCallback(
+    (chartId: string, behavior: ScrollBehavior = 'smooth') => {
+      const root = mainRef.current;
+      const target = root?.querySelector<HTMLElement>(`#${CSS.escape(chartId)}`);
+      if (!root || !target) return;
 
-    releaseNavScrollLock();
-    navScrollingRef.current = true;
+      releaseNavScrollLock();
+      navScrollingRef.current = true;
 
-    const rootTop = root.getBoundingClientRect().top;
-    const targetTop = target.getBoundingClientRect().top;
-    root.scrollTo({
-      top: root.scrollTop + targetTop - rootTop - 8,
-      behavior,
-    });
+      const rootTop = root.getBoundingClientRect().top;
+      const targetTop = target.getBoundingClientRect().top;
+      root.scrollTo({
+        top: root.scrollTop + targetTop - rootTop - 8,
+        behavior,
+      });
 
-    if (behavior === 'instant') {
-      const instantTimer = window.setTimeout(releaseNavScrollLock, 50);
-      navScrollCleanupRef.current = () => window.clearTimeout(instantTimer);
-      return;
-    }
+      if (behavior === 'instant') {
+        const instantTimer = window.setTimeout(releaseNavScrollLock, 50);
+        navScrollCleanupRef.current = () => window.clearTimeout(instantTimer);
+        return;
+      }
 
-    let scrollEndTimer: number | undefined;
-    let maxTimer: number | undefined;
+      let scrollEndTimer: number | undefined;
+      let maxTimer: number | undefined;
 
-    const onScroll = () => {
-      if (scrollEndTimer !== undefined) window.clearTimeout(scrollEndTimer);
-      scrollEndTimer = window.setTimeout(releaseNavScrollLock, NAV_SCROLL_END_MS);
-    };
+      const onScroll = () => {
+        if (scrollEndTimer !== undefined) window.clearTimeout(scrollEndTimer);
+        scrollEndTimer = window.setTimeout(releaseNavScrollLock, NAV_SCROLL_END_MS);
+      };
 
-    root.addEventListener('scroll', onScroll, { passive: true });
-    maxTimer = window.setTimeout(releaseNavScrollLock, NAV_SCROLL_MAX_MS);
+      root.addEventListener('scroll', onScroll, { passive: true });
+      maxTimer = window.setTimeout(releaseNavScrollLock, NAV_SCROLL_MAX_MS);
 
-    navScrollCleanupRef.current = () => {
-      root.removeEventListener('scroll', onScroll);
-      if (scrollEndTimer !== undefined) window.clearTimeout(scrollEndTimer);
-      if (maxTimer !== undefined) window.clearTimeout(maxTimer);
-    };
-  }, [releaseNavScrollLock]);
+      navScrollCleanupRef.current = () => {
+        root.removeEventListener('scroll', onScroll);
+        if (scrollEndTimer !== undefined) window.clearTimeout(scrollEndTimer);
+        if (maxTimer !== undefined) window.clearTimeout(maxTimer);
+      };
+    },
+    [releaseNavScrollLock],
+  );
 
   const navigateToChart = useCallback(
     (chartId: string, behavior: ScrollBehavior = 'smooth') => {
@@ -169,7 +188,6 @@ export function Gallery() {
     [applyActiveChart, scrollToChart],
   );
 
-  // Deep-link on first mount only (e.g. #/gallery/sankey).
   useEffect(() => {
     const deepLinkId = chartIdParam && isValidChartId(chartIdParam) ? chartIdParam : undefined;
 
@@ -181,11 +199,9 @@ export function Gallery() {
 
     updateUrl(DEFAULT_CHART_ID);
     return undefined;
-    // Mount only — scroll/hash reactions are handled by scroll spy & popstate.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Browser back/forward after replaceState hash updates.
   useEffect(() => {
     const onPopState = () => {
       const id = chartIdFromHash();
@@ -201,7 +217,6 @@ export function Gallery() {
     return () => window.removeEventListener('popstate', onPopState);
   }, [scrollToChart]);
 
-  // Scroll spy — highlight sidebar + sync hash while user scrolls.
   useEffect(() => {
     const root = mainRef.current;
     if (!root) return;
@@ -217,7 +232,7 @@ export function Gallery() {
         if (navScrollingRef.current) return;
 
         const visible = entries
-          .filter((e) => e.isIntersecting)
+          .filter((entry) => entry.isIntersecting)
           .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
 
         const top = visible[0]?.target;
@@ -250,7 +265,7 @@ export function Gallery() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: '240px 1fr',
+          gridTemplateColumns: '260px 1fr',
           flex: 1,
           minHeight: 0,
           overflow: 'hidden',
@@ -261,12 +276,12 @@ export function Gallery() {
             borderRight: `1px solid ${siteTheme.border}`,
             overflowY: 'auto',
             background: siteTheme.surface,
-            padding: '12px 0',
+            padding: '12px 0 18px',
           }}
         >
           <div
             style={{
-              padding: '0 16px 8px',
+              padding: '0 16px 10px',
               fontSize: 11,
               fontWeight: 600,
               color: siteTheme.textMuted,
@@ -274,81 +289,31 @@ export function Gallery() {
               letterSpacing: '0.04em',
             }}
           >
-            Chart types
+            Chart backends
           </div>
 
-          {CHART_CATEGORIES.map((cat) => {
-            const expanded = expandedCategories.has(cat.id);
-            const firstChartId = cat.charts[0]?.id;
-            const hasActiveChild = cat.charts.some((chart) => chart.id === activeChartId);
+          {CHART_CATEGORIES.map((category, index) => {
+            const expanded = expandedCategories.has(category.id);
+            const firstChartId = category.charts[0]?.id;
+            const hasActiveChild = category.charts.some((chart) => chart.id === activeChartId);
 
             return (
-              <div key={cat.id} style={{ marginBottom: 4 }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    width: '100%',
-                  }}
-                >
-                  <button
-                    type="button"
-                    aria-label={expanded ? `Collapse ${cat.label}` : `Expand ${cat.label}`}
-                    onClick={() => toggleCategory(cat.id)}
-                    style={{
-                      flexShrink: 0,
-                      width: 28,
-                      padding: '6px 0 6px 12px',
-                      border: 0,
-                      background: 'transparent',
-                      cursor: 'pointer',
-                      fontSize: 10,
-                      color: siteTheme.textMuted,
-                    }}
-                  >
-                    {expanded ? '▾' : '▸'}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => firstChartId && navigateToChart(firstChartId)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      flex: 1,
-                      padding: '6px 16px 6px 0',
-                      border: 0,
-                      background: hasActiveChild ? siteTheme.accentBg : 'transparent',
-                      cursor: 'pointer',
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: hasActiveChild ? siteTheme.accent : siteTheme.textMuted,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.03em',
-                      textAlign: 'left',
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: 18,
-                        textAlign: 'center',
-                        fontSize: 11,
-                        flexShrink: 0,
-                      }}
-                    >
-                      {cat.glyph}
-                    </span>
-                    {cat.label}
-                  </button>
-                </div>
+              <div key={category.id}>
+                <SidebarSectionHeader
+                  category={category}
+                  expanded={expanded}
+                  hasActiveChild={hasActiveChild}
+                  showDivider={index > 0}
+                  onNavigate={() => firstChartId && navigateToChart(firstChartId)}
+                  onToggle={() => toggleCategory(category.id)}
+                />
 
                 {expanded &&
-                  cat.charts.map((chart) => (
+                  category.charts.map((chart) => (
                     <SidebarItem
                       key={chart.id}
                       active={activeChartId === chart.id}
-                      label={chart.label}
+                      chart={chart}
                       onClick={() => navigateToChart(chart.id)}
                     />
                   ))}
@@ -357,49 +322,45 @@ export function Gallery() {
           })}
         </aside>
 
-        <main ref={mainRef} style={{ overflowY: 'auto', padding: '20px 24px' }}>
-          <header style={{ marginBottom: 28 }}>
-            <p style={{ margin: '0 0 4px', fontSize: 12, color: siteTheme.textMuted }}>
-              Gallery
+        <main ref={mainRef} style={{ overflowY: 'auto', padding: '24px 28px 40px' }}>
+          <header style={{ marginBottom: 32, maxWidth: 760 }}>
+            <p style={{ margin: '0 0 6px', fontSize: 12, color: siteTheme.textMuted }}>Gallery</p>
+            <h1 style={{ margin: 0, fontSize: 24, fontWeight: 600 }}>Backend-specific chart examples</h1>
+            <p style={{ margin: '8px 0 0', color: siteTheme.textMuted, fontSize: 14, lineHeight: 1.6 }}>
+              Browse curated examples inspired by clean visualization galleries. Each section is
+              organized by rendering backend and shows only the relevant chart implementation.
             </p>
-            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 600 }}>Chart examples</h1>
-            <p style={{ margin: '6px 0 0', color: siteTheme.textMuted, fontSize: 14, maxWidth: 640 }}>
-              Flint compiles table data + semantic types + a short chart spec into full Vega-Lite,
-              ECharts, and Chart.js configs. Scroll to browse all examples, or use the sidebar to
-              jump to a chart type.
-            </p>
-            <p style={{ margin: '4px 0 0', color: siteTheme.textMuted, fontSize: 12 }}>
-              {totalChartTypes} chart types · up to {CASES_PER_GENERATOR} examples each
+            <p style={{ margin: '6px 0 0', color: siteTheme.textMuted, fontSize: 12 }}>
+              {totalChartTypes} chart sections · {CASES_PER_GENERATOR} curated examples each
             </p>
           </header>
 
-          {CHART_CATEGORIES.map((cat) => (
-            <div key={cat.id} style={{ marginBottom: 36 }}>
-              <h2
-                id={`category-${cat.id}`}
+          {CHART_CATEGORIES.map((category) => (
+            <div key={category.id} style={{ marginBottom: 44 }}>
+              <div
                 style={{
-                  margin: '0 0 16px',
-                  paddingBottom: 8,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: siteTheme.textMuted,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
+                  display: 'flex',
+                  alignItems: 'flex-end',
+                  justifyContent: 'space-between',
+                  gap: 12,
+                  marginBottom: 18,
+                  paddingBottom: 10,
                   borderBottom: `1px solid ${siteTheme.border}`,
-                  scrollMarginTop: 8,
                 }}
               >
-                <span style={{ marginRight: 8 }}>{cat.glyph}</span>
-                {cat.label}
-              </h2>
+                <div>
+                  <p style={{ margin: '0 0 4px', fontSize: 12, color: siteTheme.textMuted }}>Backend</p>
+                  <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600, color: siteTheme.text }}>
+                    {category.label}
+                  </h2>
+                </div>
+                <p style={{ margin: 0, fontSize: 13, color: siteTheme.textMuted }}>
+                  {category.description}
+                </p>
+              </div>
 
-              {cat.charts.map((chart) => (
-                <GalleryChartSection
-                  key={chart.id}
-                  chart={chart}
-                  categoryLabel={cat.label}
-                  scrollRoot={mainRef}
-                />
+              {category.charts.map((chart) => (
+                <GalleryChartSection key={chart.id} chart={chart} scrollRoot={mainRef} />
               ))}
             </div>
           ))}
@@ -411,11 +372,9 @@ export function Gallery() {
 
 function GalleryChartSection({
   chart,
-  categoryLabel,
   scrollRoot,
 }: {
   chart: ChartEntry;
-  categoryLabel: string;
   scrollRoot: RefObject<HTMLElement | null>;
 }) {
   const sectionRef = useRef<HTMLElement>(null);
@@ -446,35 +405,34 @@ function GalleryChartSection({
   }, [chart.generator, loadState, scrollRoot]);
 
   return (
-    <section
-      ref={sectionRef}
-      id={chart.id}
-      style={{ marginBottom: 32, scrollMarginTop: 12 }}
-    >
-      <h3
-        style={{
-          margin: '0 0 12px',
-          fontSize: 16,
-          fontWeight: 600,
-          color: siteTheme.text,
-        }}
-      >
-        {chart.label}
-        <span style={{ marginLeft: 8, fontSize: 12, fontWeight: 400, color: siteTheme.textMuted }}>
-          {categoryLabel}
+    <section ref={sectionRef} id={chart.id} style={{ marginBottom: 34, scrollMarginTop: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+        <img src={chart.icon} alt="" aria-hidden="true" style={{ width: 20, height: 20, flexShrink: 0 }} />
+        <h3
+          style={{
+            margin: 0,
+            fontSize: 17,
+            fontWeight: 600,
+            color: siteTheme.text,
+          }}
+        >
+          {chart.label}
+        </h3>
+        <span style={{ ...backendBadgeBaseStyle, ...BACKEND_BADGE_STYLES[chart.backend] }}>
+          {chart.backendLabel}
         </span>
-      </h3>
+      </div>
 
       {loadState === 'loading' && (
         <p style={{ color: siteTheme.textMuted, fontSize: 13, margin: '0 0 12px' }}>
-          Loading examples…
+          Loading curated examples…
         </p>
       )}
 
       {loadState === 'idle' && (
         <div
           style={{
-            height: 120,
+            height: 132,
             marginBottom: 12,
             borderRadius: siteTheme.radius,
             border: `1px dashed ${siteTheme.border}`,
@@ -483,11 +441,11 @@ function GalleryChartSection({
         />
       )}
 
-      {section?.tests.map((t, i) => (
+      {section?.tests.map((testCase, index) => (
         <article
-          key={`${section.generator}-${i}`}
+          key={`${section.generator}-${index}`}
           style={{
-            marginBottom: 20,
+            marginBottom: 18,
             padding: 16,
             background: siteTheme.surface,
             border: `1px solid ${siteTheme.border}`,
@@ -499,17 +457,17 @@ function GalleryChartSection({
               display: 'flex',
               alignItems: 'baseline',
               flexWrap: 'wrap',
-              gap: '4px 12px',
+              gap: '6px 12px',
               marginBottom: 4,
             }}
           >
-            <h4 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>{t.title}</h4>
-            <a href={buildGalleryEditorHref(section.generator, i)} style={editorLinkStyle}>
-              View this example in the online editor
+            <h4 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>{testCase.title}</h4>
+            <a href={buildGalleryEditorHref(section.generator, index)} style={editorLinkStyle}>
+              Open in editor
             </a>
           </div>
-          <p style={{ margin: '0 0 12px', color: siteTheme.textMuted, fontSize: 13 }}>
-            {t.description}
+          <p style={{ margin: '0 0 12px', color: siteTheme.textMuted, fontSize: 13, lineHeight: 1.55 }}>
+            {testCase.description}
           </p>
           <div
             style={{
@@ -519,8 +477,8 @@ function GalleryChartSection({
               alignItems: 'stretch',
             }}
           >
-            <FlintInputSummary testCase={t} />
-            <LazyTripleChart testCase={t} />
+            <FlintInputSummary testCase={testCase} />
+            <LazyTripleChart testCase={testCase} backend={chart.backend} />
           </div>
         </article>
       ))}
@@ -532,40 +490,126 @@ function GalleryChartSection({
   );
 }
 
+function SidebarSectionHeader({
+  category,
+  expanded,
+  hasActiveChild,
+  showDivider,
+  onNavigate,
+  onToggle,
+}: {
+  category: ChartCategory;
+  expanded: boolean;
+  hasActiveChild: boolean;
+  showDivider: boolean;
+  onNavigate: () => void;
+  onToggle: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <div
+      style={{
+        marginTop: showDivider ? 8 : 0,
+        paddingTop: showDivider ? 8 : 0,
+        borderTop: showDivider ? `1px solid ${siteTheme.border}` : undefined,
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', padding: '0 8px 0 10px' }}>
+        <button
+          type="button"
+          aria-label={expanded ? `Collapse ${category.label}` : `Expand ${category.label}`}
+          onClick={onToggle}
+          style={{
+            flexShrink: 0,
+            width: 28,
+            padding: '7px 0',
+            border: 0,
+            background: 'transparent',
+            cursor: 'pointer',
+            fontSize: 10,
+            color: siteTheme.textMuted,
+          }}
+        >
+          {expanded ? '▾' : '▸'}
+        </button>
+
+        <button
+          type="button"
+          onClick={onNavigate}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
+          style={{
+            flex: 1,
+            padding: '7px 10px',
+            border: 0,
+            borderRadius: 6,
+            background: hasActiveChild ? siteTheme.accentBg : hovered ? SIDEBAR_HOVER_BG : 'transparent',
+            cursor: 'pointer',
+            textAlign: 'left',
+            color: hasActiveChild ? siteTheme.accent : siteTheme.text,
+            fontSize: 13,
+            fontWeight: 600,
+          }}
+        >
+          {category.label}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function SidebarItem({
   active,
-  label,
+  chart,
   onClick,
 }: {
   active: boolean;
-  label: string;
+  chart: ChartEntry;
   onClick: () => void;
 }) {
+  const [hovered, setHovered] = useState(false);
+
   return (
     <button
       type="button"
       onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{
-        display: 'block',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
         width: '100%',
-        padding: '5px 16px 5px 42px',
+        padding: '6px 16px 6px 42px',
         border: 0,
         textAlign: 'left',
-        background: active ? siteTheme.accentBg : 'transparent',
+        background: active ? siteTheme.accentBg : hovered ? SIDEBAR_HOVER_BG : 'transparent',
         color: active ? siteTheme.accent : siteTheme.text,
         cursor: 'pointer',
         fontSize: 13,
         fontWeight: active ? 600 : 400,
       }}
     >
-      {label}
+      <img src={chart.icon} alt="" aria-hidden="true" style={{ width: 20, height: 20, flexShrink: 0 }} />
+      <span>{chart.label}</span>
     </button>
   );
 }
 
-const editorLinkStyle = {
+const backendBadgeBaseStyle: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  padding: '2px 8px',
+  borderRadius: 999,
+  fontSize: 11,
+  fontWeight: 600,
+  letterSpacing: '0.01em',
+};
+
+const editorLinkStyle: CSSProperties = {
   color: siteTheme.accent,
   fontSize: 12,
   textDecoration: 'none',
-  whiteSpace: 'nowrap' as const,
+  whiteSpace: 'nowrap',
 };

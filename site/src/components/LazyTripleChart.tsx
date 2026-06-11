@@ -2,9 +2,16 @@ import { useEffect, useRef, useState } from 'react';
 import type { TestCase } from 'flint-chart/test-data';
 import { TripleChart } from './TripleChart';
 import { siteTheme } from '../shared/theme';
+import type { PreviewBackend } from '../shared/supported-backends';
 
 /** Defer chart rendering until the card scrolls into view. */
-export function LazyTripleChart({ testCase }: { testCase: TestCase }) {
+export function LazyTripleChart({
+  testCase,
+  backend,
+}: {
+  testCase: TestCase;
+  backend?: PreviewBackend;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
@@ -28,7 +35,7 @@ export function LazyTripleChart({ testCase }: { testCase: TestCase }) {
   return (
     <div ref={ref} style={{ minHeight: 280 }}>
       {visible ? (
-        <TripleChart testCase={testCase} />
+        <TripleChart testCase={testCase} backend={backend} />
       ) : (
         <div
           style={{

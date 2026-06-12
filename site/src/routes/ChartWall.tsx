@@ -11,11 +11,13 @@ import {
   type ChartEntry,
 } from '../shared/chart-categories';
 import { selectVariants } from '../shared/wall-variants';
+import { CHART_FAMILIES, familyForChart } from '../shared/wall-families';
 import type { PreviewBackend } from '../shared/supported-backends';
 import { siteTheme } from '../shared/theme';
 
 const MAX_VARIANTS = 4;
-const TILE_CHART_HEIGHT = 188;
+const TILE_CHART_HEIGHT = 176;
+const TILE_WIDTH = 248;
 
 function loadTests(generator: string): TestCase[] {
   const gen = TEST_GENERATORS[generator];
@@ -28,22 +30,46 @@ function loadTests(generator: string): TestCase[] {
   }
 }
 
-interface ChartSection {
+/** One thumbnail = one curated example of a specific chart type. */
+interface Tile {
   chart: ChartEntry;
-  /** Curated examples (drive both the tiles and the modal carousel). */
+  testCase: TestCase;
+  /** Position of this example within its chart's curated variant list. */
+  pos: number;
+  /** All curated variants of this chart (drives the modal carousel). */
   variants: TestCase[];
-  /** Absolute index of each curated example in the generator output. */
+  /** Absolute index of each curated variant in the generator output. */
   indices: number[];
 }
 
-function buildSections(charts: ChartEntry[]): ChartSection[] {
-  return charts
-    .map((chart) => {
-      const full = loadTests(chart.generator);
-      const variants = selectVariants(full, MAX_VARIANTS);
-      return { chart, variants, indices: variants.map((v) => full.indexOf(v)) };
-    })
-    .filter((section) => section.variants.length > 0);
+interface FamilySection {
+  id: string;
+  label: string;
+  tiles: Tile[];
+}
+
+/** Bucket every curated example into a coarse, gallery-style family. */
+function buildFamilies(charts: ChartEntry[]): FamilySection[] {
+  const byFamily = new Map<string, Tile[]>();
+
+  for (const chart of charts) {
+    const full = loadTests(chart.generator);
+    const variants = selectVariants(full, MAX_VARIANTS);
+    if (variants.length === 0) continue;
+    const indices = variants.map((v) => full.indexOf(v));
+    const familyId = familyForChart(chart);
+    const bucket = byFamily.get(familyId) ?? [];
+    variants.forEach((testCase, pos) => {
+      bucket.push({ chart, testCase, pos, variants, indices });
+    });
+    byFamily.set(familyId, bucket);
+  }
+
+  return CHART_FAMILIES.map((family) => ({
+    id: family.id,
+    label: family.label,
+    tiles: byFamily.get(family.id) ?? [],
+  })).filter((section) => section.tiles.length > 0);
 }
 
 function resolveCategory(backendParam?: string): ChartCategory {
@@ -71,70 +97,78 @@ export function ChartWall() {
     }
   }, [backendParam, category.id, navigate]);
 
-  // One section per chart type (so every line chart sits together, etc.).
-  const sections = useMemo(() => buildSections(category.charts), [category]);
-  const totalTiles = sections.reduce((sum, section) => sum + section.variants.length, 0);
+  const families = useMemo(() => buildFamilies(category.charts), [category]);
+  const totalTiles = families.reduce((sum, section) => sum + section.tiles.length, 0);
 
   return (
     <SiteShell>
-      <main style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '24px 28px 64px' }}>
-        <header style={{ marginBottom: 16, maxWidth: 820 }}>
-          <p style={{ margin: '0 0 6px', fontSize: 12, color: siteTheme.textMuted, letterSpacing: 0.3 }}>
-            Gallery · photo wall (beta)
-          </p>
-          <h1 style={{ margin: 0, fontSize: 26, fontWeight: 600, letterSpacing: -0.2 }}>
-            {category.label}
-          </h1>
-          <p style={{ margin: '8px 0 0', color: siteTheme.textMuted, fontSize: 14, lineHeight: 1.6 }}>
-            {totalTiles} examples across {sections.length} chart types — click any example to browse
-            its variations and copy the generated code.
-          </p>
-        </header>
-
-        <BackendTabs activeId={category.id} onSelect={(id) => navigate(`/wall/${id}`)} />
-
-        {sections.map((section) => (
-          <section key={section.chart.id} style={{ marginTop: 34 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <img
-                src={section.chart.icon}
-                alt=""
-                aria-hidden="true"
-                style={{ width: 18, height: 18, flexShrink: 0 }}
-              />
-              <h2 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: siteTheme.text }}>
-                {section.chart.label}
-              </h2>
-              <span style={{ fontSize: 12, color: siteTheme.textMuted }}>
-                {section.variants.length}
-              </span>
-            </div>
-
-            <div
+      <main style={{ flex: 1, minHeight: 0, overflowY: 'auto', background: siteTheme.surface }}>
+        <div style={{ maxWidth: 1160, margin: '0 auto', padding: '40px 32px 96px' }}>
+          <header style={{ textAlign: 'center', marginBottom: 28 }}>
+            <h1 style={{ margin: 0, fontSize: 30, fontWeight: 600, letterSpacing: -0.4 }}>
+              Example Gallery
+            </h1>
+            <p
               style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))',
-                gap: 14,
+                margin: '10px auto 0',
+                maxWidth: 620,
+                color: siteTheme.textMuted,
+                fontSize: 15,
+                lineHeight: 1.6,
               }}
             >
-              {section.variants.map((testCase, pos) => (
-                <VariantCard
-                  key={`${section.chart.id}-${pos}`}
-                  chart={section.chart}
-                  testCase={testCase}
-                  onOpen={() =>
-                    setActive({
-                      chart: section.chart,
-                      tests: section.variants,
-                      editorIndices: section.indices,
-                      index: pos,
-                    })
-                  }
-                />
-              ))}
-            </div>
-          </section>
-        ))}
+              {totalTiles} {category.label} examples grouped by chart family. Click any example to
+              browse its variations and copy the generated code.
+            </p>
+          </header>
+
+          <BackendTabs activeId={category.id} onSelect={(id) => navigate(`/wall/${id}`)} />
+
+          {families.map((section) => (
+            <section key={section.id} style={{ marginTop: 44 }}>
+              <h2
+                style={{
+                  margin: '0 0 18px',
+                  paddingBottom: 8,
+                  fontSize: 18,
+                  fontWeight: 600,
+                  letterSpacing: -0.2,
+                  color: siteTheme.text,
+                  borderBottom: `1px solid ${siteTheme.border}`,
+                }}
+              >
+                {section.label}
+                <span style={{ marginLeft: 10, fontSize: 13, fontWeight: 400, color: siteTheme.textMuted }}>
+                  {section.tiles.length}
+                </span>
+              </h2>
+
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 20,
+                  justifyContent: 'center',
+                }}
+              >
+                {section.tiles.map((tile) => (
+                  <VariantCard
+                    key={`${tile.chart.id}-${tile.pos}`}
+                    tile={tile}
+                    onOpen={() =>
+                      setActive({
+                        chart: tile.chart,
+                        tests: tile.variants,
+                        editorIndices: tile.indices,
+                        index: tile.pos,
+                      })
+                    }
+                  />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
       </main>
 
       {active && (
@@ -150,15 +184,7 @@ export function ChartWall() {
   );
 }
 
-function VariantCard({
-  chart,
-  testCase,
-  onOpen,
-}: {
-  chart: ChartEntry;
-  testCase: TestCase;
-  onOpen: () => void;
-}) {
+function VariantCard({ tile, onOpen }: { tile: Tile; onOpen: () => void }) {
   const ref = useRef<HTMLButtonElement>(null);
   const [visible, setVisible] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -187,25 +213,27 @@ function VariantCard({
       onClick={onOpen}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      title={testCase.title}
+      title={tile.testCase.title}
       style={{
         display: 'flex',
         flexDirection: 'column',
-        textAlign: 'left',
+        textAlign: 'center',
+        width: TILE_WIDTH,
         padding: 0,
         background: siteTheme.surface,
         border: `1px solid ${hovered ? siteTheme.borderMuted : siteTheme.border}`,
-        borderRadius: 10,
+        borderRadius: 8,
         cursor: 'pointer',
         overflow: 'hidden',
-        boxShadow: hovered ? '0 6px 18px rgba(15,23,32,0.10)' : '0 1px 2px rgba(15,23,32,0.04)',
-        transition: 'box-shadow 140ms ease, border-color 140ms ease',
+        boxShadow: hovered ? '0 4px 12px rgba(15,23,32,0.10)' : 'none',
+        transform: hovered ? 'translateY(-2px)' : 'none',
+        transition: 'box-shadow 150ms ease, border-color 150ms ease, transform 150ms ease',
       }}
     >
-      <div style={{ width: '100%', height: TILE_CHART_HEIGHT, background: siteTheme.bg }}>
+      <div style={{ width: '100%', height: TILE_CHART_HEIGHT, background: siteTheme.surface }}>
         {visible ? (
-          <ScaleToFit height={TILE_CHART_HEIGHT} padding={12}>
-            <WallChart testCase={testCase} backend={chart.backend} />
+          <ScaleToFit height={TILE_CHART_HEIGHT} padding={14}>
+            <WallChart testCase={tile.testCase} backend={tile.chart.backend} />
           </ScaleToFit>
         ) : (
           <div
@@ -225,8 +253,9 @@ function VariantCard({
 
       <div
         style={{
-          padding: '9px 12px',
+          padding: '10px 12px 12px',
           fontSize: 12.5,
+          lineHeight: 1.4,
           color: siteTheme.text,
           borderTop: `1px solid ${siteTheme.border}`,
           whiteSpace: 'nowrap',
@@ -236,7 +265,7 @@ function VariantCard({
           boxSizing: 'border-box',
         }}
       >
-        {testCase.title}
+        {tile.testCase.title}
       </div>
     </button>
   );
@@ -250,7 +279,14 @@ function BackendTabs({
   onSelect: (id: PreviewBackend) => void;
 }) {
   return (
-    <div style={{ display: 'flex', gap: 4, borderBottom: `1px solid ${siteTheme.border}` }}>
+    <div
+      style={{
+        display: 'flex',
+        gap: 6,
+        justifyContent: 'center',
+        borderBottom: `1px solid ${siteTheme.border}`,
+      }}
+    >
       {CHART_CATEGORIES.map((category) => {
         const isActive = category.id === activeId;
         return (
@@ -259,11 +295,11 @@ function BackendTabs({
             type="button"
             onClick={() => onSelect(category.id)}
             style={{
-              padding: '8px 14px',
+              padding: '10px 18px',
               border: 0,
               background: 'transparent',
               cursor: 'pointer',
-              fontSize: 14,
+              fontSize: 14.5,
               fontWeight: isActive ? 600 : 400,
               color: isActive ? siteTheme.accent : siteTheme.textMuted,
               borderBottom: isActive ? `2px solid ${siteTheme.accent}` : '2px solid transparent',
@@ -271,16 +307,6 @@ function BackendTabs({
             }}
           >
             {category.label}
-            <span
-              style={{
-                marginLeft: 6,
-                fontSize: 11,
-                color: siteTheme.textMuted,
-                fontWeight: 400,
-              }}
-            >
-              {category.charts.length}
-            </span>
           </button>
         );
       })}

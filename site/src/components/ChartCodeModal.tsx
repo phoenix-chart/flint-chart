@@ -21,11 +21,18 @@ export function ChartCodeModal({
   chart,
   tests,
   initialIndex = 0,
+  editorIndices,
   onClose,
 }: {
   chart: ChartEntry;
   tests: TestCase[];
   initialIndex?: number;
+  /**
+   * Absolute generator index for each entry in `tests` (when `tests` is a
+   * curated subset). Used so the "Open in editor" deep-link resolves the right
+   * case. Falls back to the carousel position when omitted.
+   */
+  editorIndices?: number[];
   onClose: () => void;
 }) {
   const [index, setIndex] = useState(() =>
@@ -133,7 +140,7 @@ export function ChartCodeModal({
           <div style={{ flex: 1 }} />
           {testCase && (
             <a
-              href={buildGalleryEditorHref(chart.generator, index)}
+              href={buildGalleryEditorHref(chart.generator, editorIndices?.[index] ?? index)}
               style={{
                 fontSize: 12,
                 color: siteTheme.accent,

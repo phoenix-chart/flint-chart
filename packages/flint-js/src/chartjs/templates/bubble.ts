@@ -91,21 +91,17 @@ export const cjsBubbleChartDef: ChartTemplateDef = {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                    x: { type: 'linear', title: { display: true, text: xField } },
-                    y: { type: 'linear', title: { display: true, text: yField } },
+                    // Bubble charts scale to the data extent (not a zero
+                    // baseline) and pad both ends with `grace` so large bubbles
+                    // sitting at the min/max aren't clipped by the plot edge.
+                    x: { type: 'linear', grace: '10%', title: { display: true, text: xField } },
+                    y: { type: 'linear', grace: '10%', title: { display: true, text: yField } },
                 },
                 plugins: {
                     tooltip: { enabled: true },
                 },
             },
         };
-
-        if (channelSemantics.x?.zero) {
-            config.options.scales.x.beginAtZero = channelSemantics.x.zero.zero !== false;
-        }
-        if (channelSemantics.y?.zero) {
-            config.options.scales.y.beginAtZero = channelSemantics.y.zero.zero !== false;
-        }
 
         if (colorField) {
             const groups = new Map<string, any[]>();

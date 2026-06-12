@@ -6,6 +6,7 @@ import { ScaleToFit } from './ScaleToFit';
 import { WallChart } from './WallChart';
 import { testCaseToAssemblyInput } from '../shared/test-case-utils';
 import { buildGalleryEditorHref } from '../shared/editor-payload';
+import { humanizeVariants } from '../shared/wall-title';
 import { BACKEND_LABELS } from '../shared/supported-backends';
 import type { ChartEntry } from '../shared/chart-categories';
 import { siteTheme } from '../shared/theme';
@@ -42,6 +43,8 @@ export function ChartCodeModal({
   const [copied, setCopied] = useState(false);
 
   const testCase = tests[index];
+
+  const titles = useMemo(() => humanizeVariants(tests), [tests]);
 
   const inputText = useMemo(
     () => (testCase ? JSON.stringify(testCaseToAssemblyInput(testCase), null, 2) : ''),
@@ -170,7 +173,7 @@ export function ChartCodeModal({
               gap: 10,
             }}
           >
-            <div style={{ fontSize: 14, fontWeight: 600 }}>{testCase?.title ?? 'No example'}</div>
+            <div style={{ fontSize: 14, fontWeight: 600 }}>{titles[index] ?? 'No example'}</div>
             {testCase?.description && (
               <div style={{ fontSize: 12, color: siteTheme.textMuted, lineHeight: 1.5 }}>
                 {testCase.description}

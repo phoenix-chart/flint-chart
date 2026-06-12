@@ -2,8 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { TEST_GENERATORS, type TestCase } from 'flint-chart/test-data';
 import { SiteShell } from '../components/SiteShell';
-import { ScaleToFit } from '../components/ScaleToFit';
-import { WallChart } from '../components/WallChart';
+import { ChartThumb } from '../components/ChartThumb';import { WallChart } from '../components/WallChart';
 import { ChartCodeModal } from '../components/ChartCodeModal';
 import {
   CHART_CATEGORIES,
@@ -12,12 +11,12 @@ import {
 } from '../shared/chart-categories';
 import { selectVariants } from '../shared/wall-variants';
 import { CHART_FAMILIES, familyForChart } from '../shared/wall-families';
+import { humanizeVariants } from '../shared/wall-title';
 import type { PreviewBackend } from '../shared/supported-backends';
 import { siteTheme } from '../shared/theme';
 
 const MAX_VARIANTS = 4;
-const TILE_CHART_HEIGHT = 176;
-const TILE_WIDTH = 248;
+const TILE_CHART_HEIGHT = 162;
 
 function loadTests(generator: string): TestCase[] {
   const gen = TEST_GENERATORS[generator];
@@ -34,6 +33,8 @@ function loadTests(generator: string): TestCase[] {
 interface Tile {
   chart: ChartEntry;
   testCase: TestCase;
+  /** Human-readable, gallery-style caption for this example. */
+  title: string;
   /** Position of this example within its chart's curated variant list. */
   pos: number;
   /** All curated variants of this chart (drives the modal carousel). */
@@ -57,10 +58,11 @@ function buildFamilies(charts: ChartEntry[]): FamilySection[] {
     const variants = selectVariants(full, MAX_VARIANTS);
     if (variants.length === 0) continue;
     const indices = variants.map((v) => full.indexOf(v));
+    const titles = humanizeVariants(variants);
     const familyId = familyForChart(chart);
     const bucket = byFamily.get(familyId) ?? [];
     variants.forEach((testCase, pos) => {
-      bucket.push({ chart, testCase, pos, variants, indices });
+      bucket.push({ chart, testCase, title: titles[pos], pos, variants, indices });
     });
     byFamily.set(familyId, bucket);
   }
@@ -125,12 +127,12 @@ export function ChartWall() {
           <BackendTabs activeId={category.id} onSelect={(id) => navigate(`/wall/${id}`)} />
 
           {families.map((section) => (
-            <section key={section.id} style={{ marginTop: 44 }}>
+            <section key={section.id} style={{ marginTop: 36 }}>
               <h2
                 style={{
-                  margin: '0 0 18px',
+                  margin: '0 0 16px',
                   paddingBottom: 8,
-                  fontSize: 18,
+                  fontSize: 17,
                   fontWeight: 600,
                   letterSpacing: -0.2,
                   color: siteTheme.text,
@@ -145,10 +147,10 @@ export function ChartWall() {
 
               <div
                 style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: 20,
-                  justifyContent: 'center',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(208px, 1fr))',
+                  gap: '30px 24px',
+                  alignItems: 'start',
                 }}
               >
                 {section.tiles.map((tile) => (
@@ -213,32 +215,37 @@ function VariantCard({ tile, onOpen }: { tile: Tile; onOpen: () => void }) {
       onClick={onOpen}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      title={tile.testCase.title}
+      title={tile.title}
       style={{
         display: 'flex',
         flexDirection: 'column',
+        alignItems: 'stretch',
         textAlign: 'center',
-        width: TILE_WIDTH,
+        width: '100%',
         padding: 0,
-        background: siteTheme.surface,
-        border: `1px solid ${hovered ? siteTheme.borderMuted : siteTheme.border}`,
-        borderRadius: 8,
+        background: 'transparent',
+        border: 0,
         cursor: 'pointer',
-        overflow: 'hidden',
-        boxShadow: hovered ? '0 4px 12px rgba(15,23,32,0.10)' : 'none',
-        transform: hovered ? 'translateY(-2px)' : 'none',
-        transition: 'box-shadow 150ms ease, border-color 150ms ease, transform 150ms ease',
       }}
     >
-      <div style={{ width: '100%', height: TILE_CHART_HEIGHT, background: siteTheme.surface }}>
+      <div
+        style={{
+          width: '100%',
+          borderRadius: 6,
+          overflow: 'hidden',
+          background: siteTheme.surface,
+          transform: hovered ? 'translateY(-2px)' : 'none',
+          transition: 'transform 150ms ease',
+        }}
+      >
         {visible ? (
-          <ScaleToFit height={TILE_CHART_HEIGHT} padding={14}>
+          <ChartThumb height={TILE_CHART_HEIGHT} hovered={hovered} padding={6}>
             <WallChart testCase={tile.testCase} backend={tile.chart.backend} />
-          </ScaleToFit>
+          </ChartThumb>
         ) : (
           <div
             style={{
-              height: '100%',
+              height: TILE_CHART_HEIGHT,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -253,19 +260,19 @@ function VariantCard({ tile, onOpen }: { tile: Tile; onOpen: () => void }) {
 
       <div
         style={{
-          padding: '10px 12px 12px',
+          marginTop: 10,
+          padding: '0 4px',
           fontSize: 12.5,
           lineHeight: 1.4,
-          color: siteTheme.text,
-          borderTop: `1px solid ${siteTheme.border}`,
-          whiteSpace: 'nowrap',
+          color: hovered ? siteTheme.accent : siteTheme.text,
+          transition: 'color 150ms ease',
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
           overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          width: '100%',
-          boxSizing: 'border-box',
         }}
       >
-        {tile.testCase.title}
+        {tile.title}
       </div>
     </button>
   );

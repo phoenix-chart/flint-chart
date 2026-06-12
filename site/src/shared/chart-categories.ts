@@ -27,6 +27,9 @@ import treemapIcon from '../assets/chart-icons/chart-icon-treemap.svg';
 import sunburstIcon from '../assets/chart-icons/chart-icon-sunburst.svg';
 import sankeyIcon from '../assets/chart-icons/chart-icon-sankey.svg';
 import rangedDotPlotIcon from '../assets/chart-icons/chart-icon-dot-plot-horizontal.svg';
+import calendarIcon from '../assets/chart-icons/chart-icon-calendar.svg';
+import parallelIcon from '../assets/chart-icons/chart-icon-parallel.svg';
+import bubbleIcon from '../assets/chart-icons/chart-icon-bubble.svg';
 
 export interface ChartEntry {
   id: string;
@@ -104,9 +107,9 @@ export const CHART_CATEGORIES: ChartCategory[] = [
       createChart('echarts', 'echarts-area', 'Area Chart', 'ECharts: Area', areaIcon),
       createChart('echarts', 'echarts-pie', 'Pie Chart', 'ECharts: Pie', pieIcon),
       createChart('echarts', 'echarts-heatmap', 'Heatmap', 'ECharts: Heatmap', heatmapIcon),
-      createChart('echarts', 'echarts-calendar', 'Calendar Heatmap *', 'ECharts: Calendar Heatmap *', heatmapIcon),
+      createChart('echarts', 'echarts-calendar', 'Calendar Heatmap *', 'ECharts: Calendar Heatmap *', calendarIcon),
       createChart('echarts', 'echarts-histogram', 'Histogram', 'ECharts: Histogram', histogramIcon),
-      createChart('echarts', 'echarts-parallel', 'Parallel Coordinates *', 'ECharts: Parallel Coordinates *', lineIcon),
+      createChart('echarts', 'echarts-parallel', 'Parallel Coordinates *', 'ECharts: Parallel Coordinates *', parallelIcon),
       createChart('echarts', 'echarts-boxplot', 'Boxplot', 'ECharts: Boxplot', boxplotIcon),
       createChart('echarts', 'echarts-radar', 'Radar Chart', 'ECharts: Radar', radarIcon),
       createChart('echarts', 'echarts-candlestick', 'Candlestick Chart', 'ECharts: Candlestick', candlestickIcon),
@@ -127,7 +130,7 @@ export const CHART_CATEGORIES: ChartCategory[] = [
     description: 'Practical Chart.js examples for familiar dashboard-style visuals.',
     charts: [
       createChart('chartjs', 'chartjs-scatter', 'Scatter Plot', 'Chart.js: Scatter', scatterIcon),
-      createChart('chartjs', 'chartjs-bubble', 'Bubble Chart *', 'Chart.js: Bubble *', scatterIcon),
+      createChart('chartjs', 'chartjs-bubble', 'Bubble Chart *', 'Chart.js: Bubble *', bubbleIcon),
       createChart('chartjs', 'chartjs-line', 'Line Chart', 'Chart.js: Line', lineIcon),
       createChart('chartjs', 'chartjs-bar', 'Bar Chart', 'Chart.js: Bar', barIcon),
       createChart('chartjs', 'chartjs-combo', 'Combo Chart *', 'Chart.js: Combo *', barIcon),

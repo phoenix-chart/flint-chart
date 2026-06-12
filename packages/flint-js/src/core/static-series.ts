@@ -12,7 +12,7 @@
  * This runs BEFORE Phase 0 (resolveChannelSemantics).
  */
 
-import type { ChartEncoding, EncodingValue, StaticSeriesMetadata } from './types';
+import type { ChartEncoding, EncodingValue, RawEncodingValue, StaticSeriesMetadata } from './types';
 import type { SemanticAnnotation } from './field-semantics';
 import { getVisCategory, inferVisCategory } from './semantic-types';
 
@@ -26,6 +26,38 @@ export const STATIC_SERIES_VALUE_COLUMN = '__flint_series_value';
 
 /** Channels that may accept array-valued (multi-field) encodings */
 const MEASURE_CHANNELS = new Set(['x', 'y']);
+
+// ---------------------------------------------------------------------------
+// Shorthand normalization
+// ---------------------------------------------------------------------------
+
+/**
+ * Expand the bare-string channel shorthand into a full encoding object.
+ *
+ * `"weight"` → `{ field: "weight" }`. Array entries (static series) are
+ * expanded element-by-element, so `["a", "b"]` → `[{ field: "a" }, { field: "b" }]`.
+ * Non-string values pass through unchanged.
+ */
+export function coerceEncodingValue(value: RawEncodingValue): EncodingValue {
+    if (typeof value === 'string') {
+        return { field: value };
+    }
+    if (Array.isArray(value)) {
+        return value.map((entry) => (typeof entry === 'string' ? { field: entry } : entry));
+    }
+    return value;
+}
+
+/** Normalize a raw channel→value map, expanding any bare-string shorthands. */
+export function normalizeEncodingShorthand(
+    encodings: Record<string, RawEncodingValue>,
+): Record<string, EncodingValue> {
+    const out: Record<string, EncodingValue> = {};
+    for (const [channel, value] of Object.entries(encodings)) {
+        out[channel] = coerceEncodingValue(value);
+    }
+    return out;
+}
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -54,10 +86,14 @@ export interface NormalizeStaticSeriesResult {
  *         color binding, multiple array channels, etc.)
  */
 export function normalizeStaticSeries(
-    encodings: Record<string, EncodingValue>,
+    rawEncodings: Record<string, RawEncodingValue>,
     data: any[],
     semanticTypes: Record<string, string | SemanticAnnotation>,
 ): NormalizeStaticSeriesResult {
+    // Expand bare-string channel shorthands (e.g. `{ x: "weight" }`) first so
+    // the rest of the pipeline only ever sees full encoding objects.
+    const encodings = normalizeEncodingShorthand(rawEncodings);
+
     // Find array-valued channels
     const arrayChannels: { channel: string; entries: ChartEncoding[] }[] = [];
     for (const [channel, enc] of Object.entries(encodings)) {

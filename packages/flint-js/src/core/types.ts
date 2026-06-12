@@ -60,6 +60,25 @@ export interface ChartEncoding {
 export type EncodingValue = ChartEncoding | ChartEncoding[];
 
 /**
+ * Shorthand for a channel encoding: a bare field-name string is treated as
+ * `{ field: <string> }`. This lets callers write `{ x: "weight" }` instead of
+ * `{ x: { field: "weight" } }` to keep simple specs terse (e.g. for demos).
+ *
+ * Shorthands are also accepted inside static-series arrays, so
+ * `{ y: ["sales", "profit"] }` expands to `[{ field: "sales" }, { field: "profit" }]`.
+ */
+export type EncodingShorthand = string;
+
+/**
+ * Channel value as accepted in raw user input, before shorthand normalization.
+ * Normalized to {@link EncodingValue} by `normalizeEncodingShorthand`.
+ */
+export type RawEncodingValue =
+    | ChartEncoding
+    | EncodingShorthand
+    | (ChartEncoding | EncodingShorthand)[];
+
+/**
  * Metadata produced by static series normalization.
  * Captures the original multi-field intent so backends can emit
  * appropriate legend labels and the pipeline can short-circuit
@@ -813,8 +832,9 @@ export interface ChartAssemblyInput {
     chart_spec: {
         /** Template name, e.g. `"Scatter Plot"`, `"Bar Chart"` */
         chartType: string;
-        /** Channel → encoding map (e.g., `{ x: { field: 'weight' }, y: { field: 'mpg' } }`) */
-        encodings: Record<string, EncodingValue>;
+        /** Channel → encoding map (e.g., `{ x: { field: 'weight' }, y: { field: 'mpg' } }`).
+         * A bare string is shorthand for `{ field: <string> }` (e.g. `{ x: 'weight' }`). */
+        encodings: Record<string, RawEncodingValue>;
         /** Target canvas size in pixels (default: `{ width: 400, height: 320 }`) */
         canvasSize?: { width: number; height: number };
         /** Template-specific configurable properties (e.g., bar corner radius, show labels) */

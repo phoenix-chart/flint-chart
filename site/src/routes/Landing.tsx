@@ -39,7 +39,7 @@ export function Landing() {
         </p>
 
         <div style={{ display: 'flex', gap: 12, marginTop: 28, flexWrap: 'wrap' }}>
-          <Link to="/gallery" style={primaryBtn}>
+          <Link to="/wall" style={primaryBtn}>
             Browse Gallery
           </Link>
           <Link to="/editor" style={secondaryBtn}>
@@ -48,7 +48,7 @@ export function Landing() {
         </div>
 
         <div style={{ marginTop: 48, display: 'grid', gap: 12 }}>
-          <Card to="/gallery" title="Gallery">
+          <Card to="/wall" title="Gallery">
             Examples grouped by chart type — bar, line, scatter, facet, and more. Each case opens
             in the live editor with one click.
           </Card>

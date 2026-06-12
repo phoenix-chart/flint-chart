@@ -998,7 +998,11 @@ const gfSpec   = assembleGoFish(input);    // → GoFish imperative spec
 
 **`ChartAssemblyInput` fields:**
 - `chartType` — template name (e.g., `"Grouped Bar Chart"`)
-- `encodings` — channel → `ChartEncoding` (field, aggregate, sort, scheme)
+- `encodings` — channel → `ChartEncoding` (field, aggregate, sort, scheme).
+  A bare string is shorthand for `{ field: <string> }`, so
+  `{ x: 'weight', y: 'mpg' }` is equivalent to
+  `{ x: { field: 'weight' }, y: { field: 'mpg' } }`. The shorthand also works
+  inside static-series arrays: `{ y: ['sales', 'profit'] }`.
 - `table` — array of row objects
 - `semanticTypes` — field name → semantic type string (e.g., `"Revenue"`, `"Year"`)
 - `canvasSize` — `{ width, height }` in pixels

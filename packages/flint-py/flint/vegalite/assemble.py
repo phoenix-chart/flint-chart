@@ -86,10 +86,28 @@ def _strip_undef_in_options(node: Any) -> Any:
     return node
 
 
+def _coerce_encoding_value(value):
+    """Expand the bare-string channel shorthand into a full encoding object.
+
+    ``"weight"`` -> ``{"field": "weight"}``. Strings inside a list (static
+    series) are expanded element-by-element. Other values pass through.
+    """
+    if isinstance(value, str):
+        return {"field": value}
+    if isinstance(value, list):
+        return [{"field": v} if isinstance(v, str) else v for v in value]
+    return value
+
+
+def normalize_encoding_shorthand(encodings: dict) -> dict:
+    """Normalize a raw channel->value map, expanding bare-string shorthands."""
+    return {ch: _coerce_encoding_value(v) for ch, v in encodings.items()}
+
+
 def assemble_vegalite(input_doc: dict) -> dict:
     chart_spec = input_doc["chart_spec"]
     chart_type = chart_spec["chartType"]
-    raw_encodings = chart_spec.get("encodings") or {}
+    raw_encodings = normalize_encoding_shorthand(chart_spec.get("encodings") or {})
     data = (input_doc.get("data") or {}).get("values") or []
     semantic_types = input_doc.get("semantic_types") or {}
     canvas_size = chart_spec.get("canvasSize") or {"width": 400, "height": 320}

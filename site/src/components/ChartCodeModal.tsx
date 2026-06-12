@@ -39,7 +39,7 @@ export function ChartCodeModal({
   const [index, setIndex] = useState(() =>
     Math.min(Math.max(initialIndex, 0), Math.max(tests.length - 1, 0)),
   );
-  const [tab, setTab] = useState<CodeTab>('output');
+  const [tab, setTab] = useState<CodeTab>('input');
   const [copied, setCopied] = useState(false);
 
   const testCase = tests[index];
@@ -265,11 +265,11 @@ export function ChartCodeModal({
                 flexShrink: 0,
               }}
             >
+              <CodeTabButton active={tab === 'input'} onClick={() => setTab('input')}>
+                Flint spec
+              </CodeTabButton>
               <CodeTabButton active={tab === 'output'} onClick={() => setTab('output')}>
                 {chart.backendLabel} spec
-              </CodeTabButton>
-              <CodeTabButton active={tab === 'input'} onClick={() => setTab('input')}>
-                Flint input
               </CodeTabButton>
               <div style={{ flex: 1 }} />
               <button type="button" onClick={copy} style={copyBtnStyle}>

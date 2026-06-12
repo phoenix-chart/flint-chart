@@ -18,6 +18,8 @@ export {
     type ChartAssemblyInput,
     type ChartEncoding,
     type EncodingValue,
+    type EncodingShorthand,
+    type RawEncodingValue,
     type StaticSeriesMetadata,
     type AssembleOptions,
     type ChartTemplateDef,
@@ -93,6 +95,8 @@ export { filterOverflow } from './filter-overflow';
 export { computeLayout, computeChannelBudgets } from './compute-layout';
 export {
     normalizeStaticSeries,
+    normalizeEncodingShorthand,
+    coerceEncodingValue,
     STATIC_SERIES_KEY_COLUMN,
     STATIC_SERIES_VALUE_COLUMN,
     type NormalizeStaticSeriesResult,

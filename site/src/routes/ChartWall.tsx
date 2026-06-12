@@ -16,7 +16,7 @@ import type { PreviewBackend } from '../shared/supported-backends';
 import { siteTheme } from '../shared/theme';
 
 const MAX_VARIANTS = 4;
-const TILE_CHART_HEIGHT = 150;
+const TILE_CHART_HEIGHT = 200;
 
 function loadTests(generator: string): TestCase[] {
   const gen = TEST_GENERATORS[generator];
@@ -105,22 +105,25 @@ export function ChartWall() {
   return (
     <SiteShell>
       <main style={{ flex: 1, minHeight: 0, overflowY: 'auto', background: siteTheme.surface }}>
-        <div style={{ maxWidth: 1160, margin: '0 auto', padding: '40px 32px 96px' }}>
+        <div style={{ maxWidth: 1240, margin: '0 auto', padding: '40px 32px 96px' }}>
           <header style={{ textAlign: 'center', marginBottom: 28 }}>
             <h1 style={{ margin: 0, fontSize: 30, fontWeight: 600, letterSpacing: -0.4 }}>
               Example Gallery
             </h1>
             <p
               style={{
-                margin: '10px auto 0',
-                maxWidth: 620,
+                margin: '12px auto 0',
+                maxWidth: 680,
                 color: siteTheme.textMuted,
                 fontSize: 15,
-                lineHeight: 1.6,
+                lineHeight: 1.65,
               }}
             >
-              {totalTiles} {category.label} examples grouped by chart family. Click any example to
-              browse its variations and copy the generated code.
+              Flint Chart turns table data, field semantic types, and a short chart spec into a
+              fully styled chart — no hand-written scales, axes, or legends. Browse the
+              {' '}
+              {totalTiles} {category.label} examples below, grouped by chart family. Click any
+              example to step through its variations and copy the Flint spec or compiled output.
             </p>
           </header>
 
@@ -146,8 +149,8 @@ export function ChartWall() {
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(176px, 1fr))',
-                  gap: '20px 16px',
+                  gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+                  gap: '28px 24px',
                   alignItems: 'start',
                 }}
               >
@@ -229,13 +232,14 @@ function VariantCard({ tile, onOpen }: { tile: Tile; onOpen: () => void }) {
       <div
         style={{
           width: '100%',
-          borderRadius: 6,
+          borderRadius: 8,
           overflow: 'hidden',
           background: siteTheme.surface,
-          border: `1px solid ${hovered ? siteTheme.borderMuted : siteTheme.border}`,
-          boxShadow: hovered ? '0 4px 14px rgba(27,31,36,0.10)' : 'none',
+          boxShadow: hovered
+            ? '0 6px 20px rgba(27,31,36,0.12)'
+            : '0 1px 3px rgba(27,31,36,0.06)',
           transform: hovered ? 'translateY(-2px)' : 'none',
-          transition: 'transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease',
+          transition: 'transform 150ms ease, box-shadow 150ms ease',
         }}
       >
         {visible ? (

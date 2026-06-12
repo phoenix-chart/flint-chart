@@ -31,8 +31,8 @@
     "axisX": {
       "labelLimit": 100,
       "labelFontSize": 10,
-      "labelAngle": 0,
-      "labelAlign": "center",
+      "labelAngle": -45,
+      "labelAlign": "right",
       "labelBaseline": "top",
       "titleFontWeight": "normal",
       "titleFontSize": 11,

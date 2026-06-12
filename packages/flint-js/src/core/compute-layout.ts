@@ -816,21 +816,50 @@ export function computeLayout(
             // yields many/wide numbers that crowd. Decide horizontal vs. angled
             // by whether the widest label fits within one band.
             const numericLike = xt === 'quantitative' || stats.allNumeric;
-            const labelPx = stats.maxLen * xLabel.fontSize * APPROX_CHAR_WIDTH_RATIO;
-            const fitsHorizontally = labelPx <= xStepSize;
+            let labelPx = stats.maxLen * xLabel.fontSize * APPROX_CHAR_WIDTH_RATIO;
             const fewShortStrings = !numericLike
                 && stats.count <= VL_SHORT_DISCRETE_CATEGORY_COUNT
                 && stats.maxLen <= VL_SHORT_DISCRETE_LABEL_MAX_LEN;
 
-            if (fewShortStrings || (numericLike && fitsHorizontally)) {
-                // Must be explicit: omitting labelAngle leaves VL defaults (e.g. -45° on ordinal).
-                xLabel = {
-                    ...xLabel,
-                    labelAngle: 0,
-                    labelAlign: 'center',
-                    labelBaseline: 'top',
-                };
-            } else if (numericLike && !fitsHorizontally && xLabel.labelAngle === undefined) {
+            if (fewShortStrings || (numericLike && labelPx <= xStepSize)) {
+                // We want horizontal labels here. But a small number of short
+                // string categories can still collide when the band step is
+                // narrower than the widest label (e.g. box marks declare a tiny
+                // defaultBandSize). Before committing to horizontal, make sure
+                // the label actually fits — widen the band within the stretch
+                // budget if it can, otherwise angle the labels instead of
+                // letting them overlap. (xStepSize is the per-label band width:
+                // the item step when ungrouped, the group step when grouped.)
+                if (labelPx > xStepSize) {
+                    const desiredStep = Math.ceil(labelPx) + 6; // label width + inter-label gap
+                    const cap = Math.max(minStepVal, Math.floor(maxSubplotW / stats.count));
+                    if (desiredStep <= cap) {
+                        xStepSize = Math.max(xStepSize, desiredStep);
+                        xLabel = computeLabelSizing(xStepSize, xHasDiscreteItems);
+                        labelPx = stats.maxLen * xLabel.fontSize * APPROX_CHAR_WIDTH_RATIO;
+                    }
+                }
+
+                if (labelPx <= xStepSize) {
+                    // Fits horizontally (already, or after widening the band).
+                    // Must be explicit: omitting labelAngle leaves VL defaults (e.g. -45° on ordinal).
+                    xLabel = {
+                        ...xLabel,
+                        labelAngle: 0,
+                        labelAlign: 'center',
+                        labelBaseline: 'top',
+                    };
+                } else {
+                    // Even the stretch budget can't fit a wide-enough band →
+                    // angle the labels rather than let them run together.
+                    xLabel = {
+                        ...xLabel,
+                        labelAngle: -45,
+                        labelAlign: 'right',
+                        labelBaseline: 'top',
+                    };
+                }
+            } else if (numericLike && labelPx > xStepSize && xLabel.labelAngle === undefined) {
                 // Numeric labels that don't fit horizontally and weren't already
                 // rotated by step-based sizing (which only rotates at narrow
                 // steps). Without this, VL keeps them horizontal and the numbers

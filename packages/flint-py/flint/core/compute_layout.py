@@ -622,16 +622,37 @@ def compute_layout(
             # by whether the widest label fits within one band.
             numeric_like = xt == "quantitative" or stats["allNumeric"]
             label_px = stats["maxLen"] * x_label["fontSize"] * APPROX_CHAR_WIDTH_RATIO
-            fits_horizontally = label_px <= x_step_size
             few_short_strings = (
                 not numeric_like
                 and stats["count"] <= VL_SHORT_DISCRETE_CATEGORY_COUNT
                 and stats["maxLen"] <= VL_SHORT_DISCRETE_LABEL_MAX_LEN
             )
-            if few_short_strings or (numeric_like and fits_horizontally):
-                # Must be explicit: omitting labelAngle leaves VL defaults (e.g. -45 on ordinal).
-                x_label = {**x_label, "labelAngle": 0, "labelAlign": "center", "labelBaseline": "top"}
-            elif numeric_like and not fits_horizontally and x_label.get("labelAngle") is None:
+            if few_short_strings or (numeric_like and label_px <= x_step_size):
+                # We want horizontal labels here. But a small number of short
+                # string categories can still collide when the band step is
+                # narrower than the widest label (e.g. box marks declare a tiny
+                # defaultBandSize). Before committing to horizontal, make sure
+                # the label actually fits - widen the band within the stretch
+                # budget if it can, otherwise angle the labels instead of
+                # letting them overlap. (x_step_size is the per-label band width:
+                # the item step when ungrouped, the group step when grouped.)
+                if label_px > x_step_size:
+                    desired_step = math.ceil(label_px) + 6  # label width + inter-label gap
+                    cap = max(min_step_val, math.floor(max_subplot_w / stats["count"]))
+                    if desired_step <= cap:
+                        x_step_size = max(x_step_size, desired_step)
+                        x_label = compute_label_sizing(x_step_size, x_has_discrete_items)
+                        label_px = stats["maxLen"] * x_label["fontSize"] * APPROX_CHAR_WIDTH_RATIO
+
+                if label_px <= x_step_size:
+                    # Fits horizontally (already, or after widening the band).
+                    # Must be explicit: omitting labelAngle leaves VL defaults (e.g. -45 on ordinal).
+                    x_label = {**x_label, "labelAngle": 0, "labelAlign": "center", "labelBaseline": "top"}
+                else:
+                    # Even the stretch budget can't fit a wide-enough band ->
+                    # angle the labels rather than let them run together.
+                    x_label = {**x_label, "labelAngle": -45, "labelAlign": "right", "labelBaseline": "top"}
+            elif numeric_like and label_px > x_step_size and x_label.get("labelAngle") is None:
                 # Numeric labels that don't fit horizontally and weren't already
                 # rotated by step-based sizing (which only rotates at narrow
                 # steps). Without this, VL keeps them horizontal and the numbers

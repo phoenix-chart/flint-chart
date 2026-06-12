@@ -23,7 +23,17 @@ const asFinite = (v: unknown): number | undefined =>
  * definite width/height; `maxWidth: 100%` prevents overflow on narrow viewports
  * while still letting Chart.js shrink responsively.
  */
-export function ChartjsView({ config, height = 320 }: { config: any; height?: number }) {
+export function ChartjsView({
+  config,
+  height = 320,
+  constrain = true,
+}: {
+  config: any;
+  height?: number;
+  /** When false, render at the designed pixel size without clamping to the
+   *  container width (used by the photo-wall, which scales charts to fit). */
+  constrain?: boolean;
+}) {
   const ref = useRef<HTMLCanvasElement>(null);
 
   const designedWidth = asFinite(config?._width);
@@ -50,7 +60,7 @@ export function ChartjsView({ config, height = 320 }: { config: any; height?: nu
         position: 'relative',
         width: designedWidth != null ? designedWidth : '100%',
         height: renderHeight,
-        maxWidth: '100%',
+        maxWidth: constrain ? '100%' : undefined,
       }}
     >
       <canvas ref={ref} />

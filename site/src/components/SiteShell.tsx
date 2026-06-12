@@ -48,6 +48,9 @@ export function SiteNavBar() {
         <NavLink to="/gallery" active={pathname.startsWith('/gallery')}>
           Gallery
         </NavLink>
+        <NavLink to="/wall" active={pathname.startsWith('/wall')}>
+          Wall
+        </NavLink>
         <NavLink to="/tutorials/quick-start" active={pathname.startsWith('/tutorials')}>
           Tutorials
         </NavLink>

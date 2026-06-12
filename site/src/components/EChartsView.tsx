@@ -5,7 +5,17 @@ import { siteTheme } from '../shared/theme';
 const asFinite = (v: unknown): number | undefined =>
   typeof v === 'number' && Number.isFinite(v) ? v : undefined;
 
-export function EChartsView({ option, height }: { option: any; height?: number }) {
+export function EChartsView({
+  option,
+  height,
+  constrain = true,
+}: {
+  option: any;
+  height?: number;
+  /** When false, render at the designed pixel size without clamping to the
+   *  container width (used by the photo-wall, which scales charts to fit). */
+  constrain?: boolean;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const chartRef = useRef<echarts.ECharts | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -66,7 +76,7 @@ export function EChartsView({ option, height }: { option: any; height?: number }
       style={{
         width: designedWidth != null ? designedWidth : '100%',
         height: renderHeight,
-        maxWidth: '100%',
+        maxWidth: constrain ? '100%' : undefined,
       }}
     />
   );

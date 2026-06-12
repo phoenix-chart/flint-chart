@@ -97,7 +97,11 @@ export const ecCalendarHeatmapDef: ChartTemplateDef = {
         const calLeft = 44;   // room for weekday labels
         const calRight = 16;
         const calTop = 34;    // room for the month-label row
-        const vmHeight = 46;  // visualMap bar + gap at the bottom
+        // Bottom band for the continuous visualMap. In the gallery `calculable`
+        // is on, so the colour bar also draws value labels + drag handles above
+        // it; reserve enough height that none of it rides up into the last
+        // weekday row of the calendar.
+        const vmHeight = 70;
         const gridH = 7 * cell;
 
         const canvasW = calLeft + weeks * cell + calRight;

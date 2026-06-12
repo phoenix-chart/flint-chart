@@ -32,6 +32,10 @@ import { ecWaterfallChartDef } from './waterfall';
 import { ecPyramidChartDef } from './pyramid';
 import { ecRangedDotPlotDef } from './ranged-dot';
 import { ecDensityPlotDef } from './density';
+import { ecCalendarHeatmapDef } from './calendar';
+import { ecParallelCoordinatesDef } from './parallel';
+import { ecGraphDef } from './graph';
+import { ecTreeDef } from './tree';
 
 /**
  * ECharts chart template definitions, grouped by category.
@@ -39,15 +43,15 @@ import { ecDensityPlotDef } from './density';
  */
 export const ecTemplateDefs: { [key: string]: ChartTemplateDef[] } = {
     'Scatter & Point': [ecScatterPlotDef, ecRegressionDef, ecRangedDotPlotDef, ecBoxplotDef, ecStripPlotDef],
-    'Bar':             [ecBarChartDef, ecGroupedBarChartDef, ecStackedBarChartDef, ecLollipopChartDef, ecPyramidChartDef, ecHeatmapDef],
+    'Bar':             [ecBarChartDef, ecGroupedBarChartDef, ecStackedBarChartDef, ecLollipopChartDef, ecPyramidChartDef, ecHeatmapDef, ecCalendarHeatmapDef],
     'Line & Area':     [ecLineChartDef, ecBumpChartDef, ecAreaChartDef, ecStreamgraphDef],
-    'Part-to-Whole':   [ecPieChartDef, ecFunnelChartDef, ecTreemapDef, ecSunburstDef],
-    'Statistical':     [ecHistogramDef, ecDensityPlotDef],
+    'Part-to-Whole':   [ecPieChartDef, ecFunnelChartDef, ecTreemapDef, ecSunburstDef, ecTreeDef],
+    'Statistical':     [ecHistogramDef, ecDensityPlotDef, ecParallelCoordinatesDef],
     'Financial':       [ecCandlestickDef],
     'Other':           [ecWaterfallChartDef],
     'Polar':           [ecRadarChartDef, ecRoseChartDef],
     'Indicator':       [ecGaugeChartDef],
-    'Flow':            [ecSankeyDef],
+    'Flow':            [ecSankeyDef, ecGraphDef],
 };
 
 /**

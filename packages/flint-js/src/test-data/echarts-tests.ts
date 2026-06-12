@@ -2216,3 +2216,337 @@ export function genEChartsUniqueStressTests(): TestCase[] {
 
     return tests;
 }
+// ---------------------------------------------------------------------------
+// Calendar Heatmap (NEW — flagged with * for inspection)
+// ---------------------------------------------------------------------------
+
+function genDailySeries(startISO: string, days: number, seed: number) {
+    const rand = seededRandom(seed);
+    const start = new Date(startISO + 'T00:00:00Z');
+    return Array.from({ length: days }, (_, i) => {
+        const d = new Date(start);
+        d.setUTCDate(start.getUTCDate() + i);
+        const weekday = d.getUTCDay(); // 0 Sun .. 6 Sat
+        const base = weekday === 0 || weekday === 6 ? 2 : 8;
+        const v = Math.max(0, Math.round(base + (rand() - 0.5) * 10));
+        return { date: d.toISOString().slice(0, 10), commits: v };
+    });
+}
+
+export function genEChartsCalendarTests(): TestCase[] {
+    const tests: TestCase[] = [];
+    const meta = {
+        date: { type: Type.Date, semanticType: 'Date', levels: [] },
+        commits: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+    };
+    const enc = { x: makeEncodingItem('date'), color: makeEncodingItem('commits') };
+    const fields = [makeField('date'), makeField('commits')];
+
+    // 1. One quarter
+    tests.push({
+        title: 'EC: Calendar Heatmap — One Quarter *',
+        description: '~120 daily values laid out on a calendar; weekdays run higher than weekends.',
+        tags: ['echarts', 'calendar', 'heatmap', 'temporal'],
+        chartType: 'Calendar Heatmap',
+        data: genDailySeries('2023-01-01', 120, 7),
+        fields, metadata: meta, encodingMap: enc,
+    });
+
+    // 2. Full year
+    tests.push({
+        title: 'EC: Calendar Heatmap — Full Year *',
+        description: 'A full year of daily activity (365 cells), GitHub-contributions style.',
+        tags: ['echarts', 'calendar', 'heatmap', 'temporal'],
+        chartType: 'Calendar Heatmap',
+        data: genDailySeries('2023-01-01', 365, 11),
+        fields, metadata: meta, encodingMap: enc,
+    });
+
+    // 3. Multi-year span
+    tests.push({
+        title: 'EC: Calendar Heatmap — 18 Months *',
+        description: 'A range that crosses a year boundary (~550 daily cells).',
+        tags: ['echarts', 'calendar', 'heatmap', 'temporal', 'multi-year'],
+        chartType: 'Calendar Heatmap',
+        data: genDailySeries('2022-06-01', 550, 13),
+        fields, metadata: meta, encodingMap: enc,
+    });
+
+    return tests;
+}
+
+// ---------------------------------------------------------------------------
+// Parallel Coordinates (NEW — flagged with * for inspection)
+// ---------------------------------------------------------------------------
+
+function genCarRows(n: number, seed: number, withOrigin: boolean) {
+    const rand = seededRandom(seed);
+    const origins = ['USA', 'Europe', 'Japan'];
+    const gauss = () => (rand() + rand() + rand() - 1.5); // ~N(0,~0.5)
+    return Array.from({ length: n }, (_, i) => {
+        const origin = origins[i % origins.length];
+        let mpg, hp, wt, acc;
+        if (origin === 'USA') { mpg = 20 + gauss() * 8; hp = 150 + gauss() * 60; wt = 3400 + gauss() * 800; acc = 15 + gauss() * 4; }
+        else if (origin === 'Europe') { mpg = 27 + gauss() * 8; hp = 110 + gauss() * 50; wt = 2800 + gauss() * 700; acc = 16 + gauss() * 4; }
+        else { mpg = 31 + gauss() * 8; hp = 95 + gauss() * 40; wt = 2300 + gauss() * 600; acc = 16.5 + gauss() * 4; }
+        const row: Record<string, any> = {
+            MPG: Math.round(mpg * 10) / 10,
+            Horsepower: Math.round(hp),
+            Weight: Math.round(wt),
+            Acceleration: Math.round(acc * 10) / 10,
+        };
+        if (withOrigin) row.Origin = origin;
+        return row;
+    });
+}
+
+export function genEChartsParallelTests(): TestCase[] {
+    const tests: TestCase[] = [];
+
+    // 1. Grouped by Origin (4 dims, 3 groups)
+    {
+        const data = genCarRows(45, 11, true);
+        tests.push({
+            title: 'EC: Parallel Coordinates — Cars by Origin *',
+            description: '4 quantitative dimensions, lines colored by Origin (3 groups).',
+            tags: ['echarts', 'parallel', 'multivariate', 'color'],
+            chartType: 'Parallel Coordinates',
+            data,
+            fields: [makeField('MPG'), makeField('Horsepower'), makeField('Weight'), makeField('Acceleration'), makeField('Origin')],
+            metadata: {
+                MPG: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Horsepower: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Weight: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Acceleration: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Origin: { type: Type.String, semanticType: 'Category', levels: ['USA', 'Europe', 'Japan'] },
+            },
+            encodingMap: { color: makeEncodingItem('Origin') },
+            chartProperties: { dimensions: ['MPG', 'Horsepower', 'Weight', 'Acceleration'] },
+        });
+    }
+
+    // 2. Single series (no color)
+    {
+        const data = genCarRows(40, 17, false);
+        tests.push({
+            title: 'EC: Parallel Coordinates — Single Series *',
+            description: '4 quantitative dimensions, no grouping.',
+            tags: ['echarts', 'parallel', 'multivariate'],
+            chartType: 'Parallel Coordinates',
+            data,
+            fields: [makeField('MPG'), makeField('Horsepower'), makeField('Weight'), makeField('Acceleration')],
+            metadata: {
+                MPG: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Horsepower: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Weight: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Acceleration: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+            },
+            encodingMap: {},
+            chartProperties: { dimensions: ['MPG', 'Horsepower', 'Weight', 'Acceleration'] },
+        });
+    }
+
+    // 3. Six dimensions, more rows
+    {
+        const rand = seededRandom(31);
+        const tiers = ['A', 'B', 'C', 'D'];
+        const data = Array.from({ length: 90 }, (_, i) => ({
+            Speed: Math.round(rand() * 1000) / 10,
+            Power: Math.round(rand() * 1000) / 10,
+            Range: Math.round(rand() * 1000) / 10,
+            Comfort: Math.round(rand() * 1000) / 10,
+            Price: Math.round(rand() * 1000) / 10,
+            Safety: Math.round(rand() * 1000) / 10,
+            Tier: tiers[i % tiers.length],
+        }));
+        tests.push({
+            title: 'EC: Parallel Coordinates — Six Metrics *',
+            description: '6 quantitative dimensions, 90 rows, 4 groups.',
+            tags: ['echarts', 'parallel', 'multivariate', 'dense'],
+            chartType: 'Parallel Coordinates',
+            data,
+            fields: [makeField('Speed'), makeField('Power'), makeField('Range'), makeField('Comfort'), makeField('Price'), makeField('Safety'), makeField('Tier')],
+            metadata: {
+                Speed: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Power: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Range: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Comfort: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Price: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Safety: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Tier: { type: Type.String, semanticType: 'Category', levels: ['A', 'B', 'C', 'D'] },
+            },
+            encodingMap: { color: makeEncodingItem('Tier') },
+            chartProperties: { dimensions: ['Speed', 'Power', 'Range', 'Comfort', 'Price', 'Safety'] },
+        });
+    }
+
+    return tests;
+}
+
+// ---------------------------------------------------------------------------
+// Network Graph (NEW — flagged with * for inspection)
+// ---------------------------------------------------------------------------
+
+export function genEChartsGraphTests(): TestCase[] {
+    const tests: TestCase[] = [];
+    const meta = {
+        Source: { type: Type.String, semanticType: 'Category', levels: [] as string[] },
+        Target: { type: Type.String, semanticType: 'Category', levels: [] as string[] },
+        Weight: { type: Type.Number, semanticType: 'Quantity', levels: [] as string[] },
+    };
+    const fields = [makeField('Source'), makeField('Target'), makeField('Weight')];
+    const enc = { x: makeEncodingItem('Source'), y: makeEncodingItem('Target'), size: makeEncodingItem('Weight') };
+
+    // 1. Small team collaboration network (weighted edges)
+    {
+        const people = ['Ana', 'Ben', 'Cara', 'Dan', 'Eve', 'Finn', 'Gia'];
+        const rand = seededRandom(71);
+        const data: any[] = [];
+        for (let i = 0; i < people.length; i++) {
+            for (let j = i + 1; j < people.length; j++) {
+                if (rand() < 0.45) {
+                    data.push({ Source: people[i], Target: people[j], Weight: Math.round(1 + rand() * 9) });
+                }
+            }
+        }
+        // Guarantee connectivity for a clean render.
+        if (data.length < 6) {
+            for (let i = 1; i < people.length; i++) data.push({ Source: people[0], Target: people[i], Weight: 3 });
+        }
+        tests.push({
+            title: 'EC: Network Graph — Team Collaboration *',
+            description: '7 nodes, weighted edges; node size encodes degree, circular layout.',
+            tags: ['echarts', 'graph', 'network'],
+            chartType: 'Network Graph',
+            data,
+            fields, metadata: meta, encodingMap: enc,
+        });
+    }
+
+    // 2. Hub-and-spoke (one dominant node)
+    {
+        const data: any[] = [];
+        const spokes = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8'];
+        const rand = seededRandom(73);
+        for (const s of spokes) data.push({ Source: 'Hub', Target: s, Weight: Math.round(2 + rand() * 8) });
+        // A few peripheral links between spokes.
+        data.push({ Source: 'S1', Target: 'S2', Weight: 1 });
+        data.push({ Source: 'S3', Target: 'S4', Weight: 1 });
+        tests.push({
+            title: 'EC: Network Graph — Hub & Spoke *',
+            description: 'A dominant hub connected to 8 spokes; the hub should render largest.',
+            tags: ['echarts', 'graph', 'network', 'hub'],
+            chartType: 'Network Graph',
+            data,
+            fields, metadata: meta, encodingMap: enc,
+        });
+    }
+
+    // 3. Larger unweighted graph (tests density + sizing)
+    {
+        const n = 16;
+        const nodes = Array.from({ length: n }, (_, i) => `N${i + 1}`);
+        const rand = seededRandom(79);
+        const data: any[] = [];
+        for (let i = 0; i < n; i++) {
+            for (let j = i + 1; j < n; j++) {
+                if (rand() < 0.18) data.push({ Source: nodes[i], Target: nodes[j], Weight: 1 });
+            }
+        }
+        for (let i = 1; i < n; i++) data.push({ Source: nodes[i - 1], Target: nodes[i], Weight: 1 });
+        tests.push({
+            title: 'EC: Network Graph — 16 Nodes (dense) *',
+            description: '16 nodes with many unweighted edges; exercises canvas sizing for larger graphs.',
+            tags: ['echarts', 'graph', 'network', 'dense'],
+            chartType: 'Network Graph',
+            data,
+            fields, metadata: meta, encodingMap: enc,
+        });
+    }
+
+    return tests;
+}
+
+// ---------------------------------------------------------------------------
+// Tree (NEW — flagged with * for inspection)
+// ---------------------------------------------------------------------------
+
+export function genEChartsTreeTests(): TestCase[] {
+    const tests: TestCase[] = [];
+
+    // 1. Two-level org / category tree (color + detail + size)
+    {
+        const rand = seededRandom(83);
+        const groups: Record<string, string[]> = {
+            Engineering: ['Backend', 'Frontend', 'Infra', 'QA'],
+            Sales: ['EMEA', 'AMER', 'APAC'],
+            Marketing: ['Brand', 'Growth'],
+            Support: ['Tier 1', 'Tier 2'],
+        };
+        const data: any[] = [];
+        for (const [dept, teams] of Object.entries(groups)) {
+            for (const team of teams) data.push({ Dept: dept, Team: team, Headcount: Math.round(3 + rand() * 20) });
+        }
+        tests.push({
+            title: 'EC: Tree — Org Hierarchy *',
+            description: 'Three levels (root → department → team); leaf value = headcount, left-to-right.',
+            tags: ['echarts', 'tree', 'hierarchy'],
+            chartType: 'Tree',
+            data,
+            fields: [makeField('Dept'), makeField('Team'), makeField('Headcount')],
+            metadata: {
+                Dept: { type: Type.String, semanticType: 'Category', levels: Object.keys(groups) },
+                Team: { type: Type.String, semanticType: 'Category', levels: [] },
+                Headcount: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+            },
+            encodingMap: { color: makeEncodingItem('Dept'), detail: makeEncodingItem('Team'), size: makeEncodingItem('Headcount') },
+        });
+    }
+
+    // 2. Single-level tree (color only → root → categories)
+    {
+        const rand = seededRandom(89);
+        const cats = ['North', 'South', 'East', 'West', 'Central'];
+        const data = cats.map((c) => ({ Region: c, Sales: Math.round(40 + rand() * 120) }));
+        tests.push({
+            title: 'EC: Tree — Regions (single level) *',
+            description: 'Two levels (root → region); no detail channel.',
+            tags: ['echarts', 'tree', 'hierarchy'],
+            chartType: 'Tree',
+            data,
+            fields: [makeField('Region'), makeField('Sales')],
+            metadata: {
+                Region: { type: Type.String, semanticType: 'Category', levels: cats },
+                Sales: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+            },
+            encodingMap: { color: makeEncodingItem('Region'), size: makeEncodingItem('Sales') },
+        });
+    }
+
+    // 3. Many leaves (tall tree → tests vertical sizing)
+    {
+        const rand = seededRandom(97);
+        const groups = ['A', 'B', 'C', 'D'];
+        const data: any[] = [];
+        for (const g of groups) {
+            const count = 5 + Math.floor(rand() * 4);
+            for (let i = 0; i < count; i++) data.push({ Group: g, Item: `${g}${i + 1}`, Value: Math.round(1 + rand() * 50) });
+        }
+        tests.push({
+            title: 'EC: Tree — Many Leaves *',
+            description: '4 groups with many leaves each; exercises vertical canvas growth.',
+            tags: ['echarts', 'tree', 'hierarchy', 'dense'],
+            chartType: 'Tree',
+            data,
+            fields: [makeField('Group'), makeField('Item'), makeField('Value')],
+            metadata: {
+                Group: { type: Type.String, semanticType: 'Category', levels: groups },
+                Item: { type: Type.String, semanticType: 'Category', levels: [] },
+                Value: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+            },
+            encodingMap: { color: makeEncodingItem('Group'), detail: makeEncodingItem('Item'), size: makeEncodingItem('Value') },
+        });
+    }
+
+    return tests;
+}

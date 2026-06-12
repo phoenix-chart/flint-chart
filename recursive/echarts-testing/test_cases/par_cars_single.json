@@ -1,0 +1,294 @@
+{
+  "test_id": "par_cars_single",
+  "description": "Parallel coords, 4 dims, no color grouping",
+  "input": {
+    "data": {
+      "values": [
+        {
+          "MPG": 32.2,
+          "Horsepower": 73,
+          "Weight": 2875,
+          "Acceleration": 13.8
+        },
+        {
+          "MPG": 33.7,
+          "Horsepower": 129,
+          "Weight": 1891,
+          "Acceleration": 16.9
+        },
+        {
+          "MPG": 22.8,
+          "Horsepower": 164,
+          "Weight": 4014,
+          "Acceleration": 17.0
+        },
+        {
+          "MPG": 27.4,
+          "Horsepower": 75,
+          "Weight": 2038,
+          "Acceleration": 17.8
+        },
+        {
+          "MPG": 29.2,
+          "Horsepower": 87,
+          "Weight": 2666,
+          "Acceleration": 16.7
+        },
+        {
+          "MPG": 28.0,
+          "Horsepower": 164,
+          "Weight": 2837,
+          "Acceleration": 13.0
+        },
+        {
+          "MPG": 19.8,
+          "Horsepower": 128,
+          "Weight": 2303,
+          "Acceleration": 15.7
+        },
+        {
+          "MPG": 28.7,
+          "Horsepower": 110,
+          "Weight": 2599,
+          "Acceleration": 14.3
+        },
+        {
+          "MPG": 38.7,
+          "Horsepower": 94,
+          "Weight": 2232,
+          "Acceleration": 14.8
+        },
+        {
+          "MPG": 19.0,
+          "Horsepower": 149,
+          "Weight": 3224,
+          "Acceleration": 14.6
+        },
+        {
+          "MPG": 22.3,
+          "Horsepower": 126,
+          "Weight": 4149,
+          "Acceleration": 14.0
+        },
+        {
+          "MPG": 22.1,
+          "Horsepower": 217,
+          "Weight": 3767,
+          "Acceleration": 15.6
+        },
+        {
+          "MPG": 29.8,
+          "Horsepower": 100,
+          "Weight": 1942,
+          "Acceleration": 14.0
+        },
+        {
+          "MPG": 25.2,
+          "Horsepower": 128,
+          "Weight": 3158,
+          "Acceleration": 16.2
+        },
+        {
+          "MPG": 24.2,
+          "Horsepower": 185,
+          "Weight": 3846,
+          "Acceleration": 15.2
+        },
+        {
+          "MPG": 29.2,
+          "Horsepower": 139,
+          "Weight": 2585,
+          "Acceleration": 16.4
+        },
+        {
+          "MPG": 31.5,
+          "Horsepower": 74,
+          "Weight": 2076,
+          "Acceleration": 17.8
+        },
+        {
+          "MPG": 28.0,
+          "Horsepower": 150,
+          "Weight": 3929,
+          "Acceleration": 14.6
+        },
+        {
+          "MPG": 21.0,
+          "Horsepower": 179,
+          "Weight": 3750,
+          "Acceleration": 12.7
+        },
+        {
+          "MPG": 22.2,
+          "Horsepower": 154,
+          "Weight": 3348,
+          "Acceleration": 15.1
+        },
+        {
+          "MPG": 29.4,
+          "Horsepower": 110,
+          "Weight": 2417,
+          "Acceleration": 16.9
+        },
+        {
+          "MPG": 30.5,
+          "Horsepower": 92,
+          "Weight": 2016,
+          "Acceleration": 18.5
+        },
+        {
+          "MPG": 24.4,
+          "Horsepower": 141,
+          "Weight": 2684,
+          "Acceleration": 13.2
+        },
+        {
+          "MPG": 17.6,
+          "Horsepower": 131,
+          "Weight": 3474,
+          "Acceleration": 17.7
+        },
+        {
+          "MPG": 33.4,
+          "Horsepower": 125,
+          "Weight": 2485,
+          "Acceleration": 16.0
+        },
+        {
+          "MPG": 31.0,
+          "Horsepower": 87,
+          "Weight": 2656,
+          "Acceleration": 16.4
+        },
+        {
+          "MPG": 16.9,
+          "Horsepower": 148,
+          "Weight": 3375,
+          "Acceleration": 13.0
+        },
+        {
+          "MPG": 29.4,
+          "Horsepower": 80,
+          "Weight": 2741,
+          "Acceleration": 17.2
+        },
+        {
+          "MPG": 33.1,
+          "Horsepower": 94,
+          "Weight": 1867,
+          "Acceleration": 16.9
+        },
+        {
+          "MPG": 28.6,
+          "Horsepower": 84,
+          "Weight": 2476,
+          "Acceleration": 15.8
+        },
+        {
+          "MPG": 23.7,
+          "Horsepower": 163,
+          "Weight": 3401,
+          "Acceleration": 15.6
+        },
+        {
+          "MPG": 23.5,
+          "Horsepower": 134,
+          "Weight": 3025,
+          "Acceleration": 17.4
+        },
+        {
+          "MPG": 32.8,
+          "Horsepower": 106,
+          "Weight": 2633,
+          "Acceleration": 13.5
+        },
+        {
+          "MPG": 12.3,
+          "Horsepower": 114,
+          "Weight": 3028,
+          "Acceleration": 15.3
+        },
+        {
+          "MPG": 27.8,
+          "Horsepower": 109,
+          "Weight": 2537,
+          "Acceleration": 14.3
+        },
+        {
+          "MPG": 30.2,
+          "Horsepower": 105,
+          "Weight": 2596,
+          "Acceleration": 17.5
+        },
+        {
+          "MPG": 26.3,
+          "Horsepower": 57,
+          "Weight": 2756,
+          "Acceleration": 12.9
+        },
+        {
+          "MPG": 23.4,
+          "Horsepower": 140,
+          "Weight": 3375,
+          "Acceleration": 13.6
+        },
+        {
+          "MPG": 27.9,
+          "Horsepower": 108,
+          "Weight": 2740,
+          "Acceleration": 16.0
+        },
+        {
+          "MPG": 27.1,
+          "Horsepower": 113,
+          "Weight": 2205,
+          "Acceleration": 16.0
+        },
+        {
+          "MPG": 33.3,
+          "Horsepower": 105,
+          "Weight": 2068,
+          "Acceleration": 17.4
+        },
+        {
+          "MPG": 29.5,
+          "Horsepower": 74,
+          "Weight": 1936,
+          "Acceleration": 17.1
+        },
+        {
+          "MPG": 31.0,
+          "Horsepower": 90,
+          "Weight": 2024,
+          "Acceleration": 15.1
+        },
+        {
+          "MPG": 21.9,
+          "Horsepower": 146,
+          "Weight": 3510,
+          "Acceleration": 12.1
+        },
+        {
+          "MPG": 27.0,
+          "Horsepower": 114,
+          "Weight": 2634,
+          "Acceleration": 18.9
+        }
+      ]
+    },
+    "semantic_types": {
+      "MPG": "Quantity",
+      "Horsepower": "Quantity",
+      "Weight": "Quantity",
+      "Acceleration": "Quantity"
+    },
+    "chart_spec": {
+      "chartType": "Parallel Coordinates",
+      "encodings": {},
+      "canvasSize": {
+        "width": 480,
+        "height": 320
+      }
+    }
+  }
+}

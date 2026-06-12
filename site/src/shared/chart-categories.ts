@@ -27,6 +27,13 @@ import treemapIcon from '../assets/chart-icons/chart-icon-treemap.svg';
 import sunburstIcon from '../assets/chart-icons/chart-icon-sunburst.svg';
 import sankeyIcon from '../assets/chart-icons/chart-icon-sankey.svg';
 import rangedDotPlotIcon from '../assets/chart-icons/chart-icon-dot-plot-horizontal.svg';
+import calendarIcon from '../assets/chart-icons/chart-icon-calendar.svg';
+import parallelIcon from '../assets/chart-icons/chart-icon-parallel.svg';
+import bubbleIcon from '../assets/chart-icons/chart-icon-bubble.svg';
+import doughnutIcon from '../assets/chart-icons/chart-icon-doughnut.svg';
+import comboIcon from '../assets/chart-icons/chart-icon-combo.svg';
+import treeIcon from '../assets/chart-icons/chart-icon-tree.svg';
+import networkIcon from '../assets/chart-icons/chart-icon-network.svg';
 
 export interface ChartEntry {
   id: string;
@@ -104,7 +111,9 @@ export const CHART_CATEGORIES: ChartCategory[] = [
       createChart('echarts', 'echarts-area', 'Area Chart', 'ECharts: Area', areaIcon),
       createChart('echarts', 'echarts-pie', 'Pie Chart', 'ECharts: Pie', pieIcon),
       createChart('echarts', 'echarts-heatmap', 'Heatmap', 'ECharts: Heatmap', heatmapIcon),
+      createChart('echarts', 'echarts-calendar', 'Calendar Heatmap *', 'ECharts: Calendar Heatmap *', calendarIcon),
       createChart('echarts', 'echarts-histogram', 'Histogram', 'ECharts: Histogram', histogramIcon),
+      createChart('echarts', 'echarts-parallel', 'Parallel Coordinates *', 'ECharts: Parallel Coordinates *', parallelIcon),
       createChart('echarts', 'echarts-boxplot', 'Boxplot', 'ECharts: Boxplot', boxplotIcon),
       createChart('echarts', 'echarts-radar', 'Radar Chart', 'ECharts: Radar', radarIcon),
       createChart('echarts', 'echarts-candlestick', 'Candlestick Chart', 'ECharts: Candlestick', candlestickIcon),
@@ -114,7 +123,9 @@ export const CHART_CATEGORIES: ChartCategory[] = [
       createChart('echarts', 'echarts-funnel', 'Funnel', 'ECharts: Funnel', funnelIcon),
       createChart('echarts', 'echarts-treemap', 'Treemap', 'ECharts: Treemap', treemapIcon),
       createChart('echarts', 'echarts-sunburst', 'Sunburst', 'ECharts: Sunburst', sunburstIcon),
+      createChart('echarts', 'echarts-tree', 'Tree *', 'ECharts: Tree *', treeIcon),
       createChart('echarts', 'echarts-sankey', 'Sankey', 'ECharts: Sankey', sankeyIcon),
+      createChart('echarts', 'echarts-graph', 'Network Graph *', 'ECharts: Network Graph *', networkIcon),
     ],
   },
   {
@@ -123,12 +134,15 @@ export const CHART_CATEGORIES: ChartCategory[] = [
     description: 'Practical Chart.js examples for familiar dashboard-style visuals.',
     charts: [
       createChart('chartjs', 'chartjs-scatter', 'Scatter Plot', 'Chart.js: Scatter', scatterIcon),
+      createChart('chartjs', 'chartjs-bubble', 'Bubble Chart *', 'Chart.js: Bubble *', bubbleIcon),
       createChart('chartjs', 'chartjs-line', 'Line Chart', 'Chart.js: Line', lineIcon),
       createChart('chartjs', 'chartjs-bar', 'Bar Chart', 'Chart.js: Bar', barIcon),
+      createChart('chartjs', 'chartjs-combo', 'Combo Chart *', 'Chart.js: Combo *', comboIcon),
       createChart('chartjs', 'chartjs-stacked-bar', 'Stacked Bar Chart', 'Chart.js: Stacked Bar', stackedBarIcon),
       createChart('chartjs', 'chartjs-grouped-bar', 'Grouped Bar Chart', 'Chart.js: Grouped Bar', groupedBarIcon),
       createChart('chartjs', 'chartjs-area', 'Area Chart', 'Chart.js: Area', areaIcon),
       createChart('chartjs', 'chartjs-pie', 'Pie Chart', 'Chart.js: Pie', pieIcon),
+      createChart('chartjs', 'chartjs-doughnut', 'Doughnut Chart *', 'Chart.js: Doughnut *', doughnutIcon),
       createChart('chartjs', 'chartjs-histogram', 'Histogram', 'Chart.js: Histogram', histogramIcon),
       createChart('chartjs', 'chartjs-radar', 'Radar Chart', 'Chart.js: Radar', radarIcon),
       createChart('chartjs', 'chartjs-rose', 'Rose Chart', 'Chart.js: Rose', roseIcon),

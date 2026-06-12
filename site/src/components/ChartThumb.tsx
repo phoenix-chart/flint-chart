@@ -10,9 +10,11 @@ import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
  * inside the fixed bounding box — never cropping axes or legends and never
  * upscaling past the designed size (capped at 1).
  *
- * On hover the chart gently zooms in (a Vega-Lite-gallery-style affordance);
- * the box clips the overflow so the lift reads as a subtle "lean in" rather
- * than spilling into neighbouring tiles.
+ * On hover, *only* charts whose aspect ratio mismatches the tile (so contain
+ * fitting leaves a letterbox gap) grow slightly to reveal more — a Vega-Lite-
+ * gallery-style affordance — bounded so they never upscale past their designed
+ * size. Charts that already fill the tile stay static, so the hover never
+ * clips a well-fitted chart or animates pointlessly.
  */
 export function ChartThumb({
   height,
@@ -31,6 +33,7 @@ export function ChartThumb({
   const outerRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
+  const [hoverScale, setHoverScale] = useState(1);
 
   useLayoutEffect(() => {
     const outer = outerRef.current;
@@ -43,10 +46,23 @@ export function ChartThumb({
       if (!natW || !natH) return;
       const boxW = outer.clientWidth - padding * 2;
       const boxH = height - padding * 2;
-      const next = Math.min(boxW / natW, boxH / natH, 1);
-      if (Number.isFinite(next) && next > 0) {
-        setScale((prev) => (Math.abs(prev - next) > 0.005 ? next : prev));
-      }
+      const sw = boxW / natW;
+      const sh = boxH / natH;
+      // Contain-fit: whole chart visible, never upscaled past its designed size.
+      const contain = Math.min(sw, sh, 1);
+      if (!Number.isFinite(contain) || contain <= 0) return;
+
+      // The hover "reveal" only makes sense when the chart's aspect ratio
+      // mismatches the tile — i.e. contain-fitting leaves a noticeable letterbox
+      // gap in one dimension. Charts that already fill the tile (matching aspect)
+      // would just clip on zoom, which reads as broken, so they stay static.
+      const cover = Math.max(sw, sh); // fills the box, cropping the overflow dim
+      const aspectMismatch = cover / Math.min(sw, sh); // >= 1
+      const hover =
+        aspectMismatch > 1.25 ? Math.min(contain * 1.18, cover, 1) : contain;
+
+      setScale((prev) => (Math.abs(prev - contain) > 0.005 ? contain : prev));
+      setHoverScale((prev) => (Math.abs(prev - hover) > 0.005 ? hover : prev));
     };
 
     measure();
@@ -73,7 +89,7 @@ export function ChartThumb({
         ref={innerRef}
         style={{
           position: 'absolute',
-          transform: `scale(${scale * (hovered ? 1.05 : 1)})`,
+          transform: `scale(${hovered ? hoverScale : scale})`,
           transformOrigin: 'center center',
           transition: 'transform 300ms ease',
         }}

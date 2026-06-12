@@ -3,17 +3,33 @@ import { Chart, registerables } from 'chart.js';
 
 Chart.register(...registerables);
 
+const asFinite = (v: unknown): number | undefined =>
+  typeof v === 'number' && Number.isFinite(v) ? v : undefined;
+
 /**
  * Chart.js renderer.
  *
- * NOTE: Chart.js + `responsive: true` (the default) recomputes canvas size
- * from the parent container on every frame. If the parent isn't bounded
- * (e.g. a flex column with `min-height: 0`), the canvas grows unboundedly
- * each tick. We pin the canvas inside a fixed-height wrapper and disable
- * `maintainAspectRatio` so width can flex but height stays fixed.
+ * The flint Chart.js assembler computes a designed canvas size (`_width`/`_height`)
+ * that already reserves a gutter for the right-hand legend column. Render into a
+ * wrapper sized to those dimensions so the plot and legend keep their designed
+ * proportions — the same way Vega-Lite and ECharts now render at their natural
+ * designed size. Previously the canvas stretched to a `100% × 260px` container,
+ * which squished plots vertically (designed heights are often 400+) and made the
+ * reserved legend gutter meaningless, so legends were mis-sized.
+ *
+ * NOTE: Chart.js + `responsive: true` recomputes canvas size from the parent on
+ * every frame. If the parent isn't bounded (e.g. a flex column with
+ * `min-height: 0`), the canvas grows unboundedly. The wrapper therefore keeps a
+ * definite width/height; `maxWidth: 100%` prevents overflow on narrow viewports
+ * while still letting Chart.js shrink responsively.
  */
-export function ChartjsView({ config, height = 260 }: { config: any; height?: number }) {
+export function ChartjsView({ config, height = 320 }: { config: any; height?: number }) {
   const ref = useRef<HTMLCanvasElement>(null);
+
+  const designedWidth = asFinite(config?._width);
+  const designedHeight = asFinite(config?._height);
+  const renderHeight = designedHeight ?? height;
+
   useEffect(() => {
     if (!ref.current) return;
     const merged = {
@@ -27,8 +43,16 @@ export function ChartjsView({ config, height = 260 }: { config: any; height?: nu
     const chart = new Chart(ref.current, merged);
     return () => chart.destroy();
   }, [config]);
+
   return (
-    <div style={{ position: 'relative', width: '100%', height }}>
+    <div
+      style={{
+        position: 'relative',
+        width: designedWidth != null ? designedWidth : '100%',
+        height: renderHeight,
+        maxWidth: '100%',
+      }}
+    >
       <canvas ref={ref} />
     </div>
   );

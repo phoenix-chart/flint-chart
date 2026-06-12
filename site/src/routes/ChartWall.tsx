@@ -16,7 +16,7 @@ import type { PreviewBackend } from '../shared/supported-backends';
 import { siteTheme } from '../shared/theme';
 
 const MAX_VARIANTS = 4;
-const TILE_CHART_HEIGHT = 162;
+const TILE_CHART_HEIGHT = 150;
 
 function loadTests(generator: string): TestCase[] {
   const gen = TEST_GENERATORS[generator];
@@ -146,8 +146,8 @@ export function ChartWall() {
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(208px, 1fr))',
-                  gap: '30px 24px',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(176px, 1fr))',
+                  gap: '20px 16px',
                   alignItems: 'start',
                 }}
               >
@@ -232,12 +232,14 @@ function VariantCard({ tile, onOpen }: { tile: Tile; onOpen: () => void }) {
           borderRadius: 6,
           overflow: 'hidden',
           background: siteTheme.surface,
+          border: `1px solid ${hovered ? siteTheme.borderMuted : siteTheme.border}`,
+          boxShadow: hovered ? '0 4px 14px rgba(27,31,36,0.10)' : 'none',
           transform: hovered ? 'translateY(-2px)' : 'none',
-          transition: 'transform 150ms ease',
+          transition: 'transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease',
         }}
       >
         {visible ? (
-          <ChartThumb height={TILE_CHART_HEIGHT} hovered={hovered} padding={6}>
+          <ChartThumb height={TILE_CHART_HEIGHT} hovered={hovered}>
             <WallChart testCase={tile.testCase} backend={tile.chart.backend} />
           </ChartThumb>
         ) : (

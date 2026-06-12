@@ -1,39 +1,33 @@
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 
 /**
- * Shrink-to-fit thumbnail wrapper for the photo-wall.
+ * Vega-Lite-gallery-style thumbnail wrapper for the photo-wall.
  *
  * Charts render at their *designed* pixel size (which varies widely — wide
- * legends, tall calendars, square pies, etc.). This wrapper measures the
- * child's natural layout size (`offsetWidth/Height`, which ignore CSS
- * transforms) and applies a uniform `scale()` so the whole chart always *fits*
- * inside the fixed bounding box — never cropping axes or legends and never
- * upscaling past the designed size (capped at 1).
+ * legends, tall calendars, square pies…). Rather than shrink every chart to
+ * fit (which leaves ragged letterbox gaps and tiny charts), this wrapper
+ * *fills* the tile and crops the overflow — exactly like the Vega-Lite example
+ * gallery. At rest the top-left of the chart is shown; on hover it slowly pans
+ * to reveal the cropped edge (the x-axis at the bottom, or the legend on the
+ * right), so every tile reads as a clean, uniform thumbnail.
  *
- * On hover, *only* charts whose aspect ratio mismatches the tile (so contain
- * fitting leaves a letterbox gap) grow slightly to reveal more — a Vega-Lite-
- * gallery-style affordance — bounded so they never upscale past their designed
- * size. Charts that already fill the tile stay static, so the hover never
- * clips a well-fitted chart or animates pointlessly.
+ * The fit (scale + rest offset) applies instantly so entering the page never
+ * animates; only the hover pan is transitioned.
  */
 export function ChartThumb({
   height,
   hovered = false,
-  padding = 8,
   children,
 }: {
   /** Fixed height of the bounding box in px. Width fills the container. */
   height: number;
-  /** Drives the gentle hover zoom (owned by the parent card). */
+  /** Drives the hover pan-to-reveal (owned by the parent card). */
   hovered?: boolean;
-  /** Inner padding kept clear around the fitted chart. */
-  padding?: number;
   children: ReactNode;
 }) {
   const outerRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-  const [hoverScale, setHoverScale] = useState(1);
+  const [fit, setFit] = useState({ scale: 1, restX: 0, restY: 0, panX: 0, panY: 0 });
 
   useLayoutEffect(() => {
     const outer = outerRef.current;
@@ -44,25 +38,34 @@ export function ChartThumb({
       const natW = inner.offsetWidth;
       const natH = inner.offsetHeight;
       if (!natW || !natH) return;
-      const boxW = outer.clientWidth - padding * 2;
-      const boxH = height - padding * 2;
+      const boxW = outer.clientWidth;
+      const boxH = height;
       const sw = boxW / natW;
       const sh = boxH / natH;
-      // Contain-fit: whole chart visible, never upscaled past its designed size.
-      const contain = Math.min(sw, sh, 1);
-      if (!Number.isFinite(contain) || contain <= 0) return;
+      // Cover-fit: fill the tile, cropping the overflowing dimension. Never
+      // upscale past the designed size (so charts smaller than the tile just
+      // sit centred rather than blowing up blurry).
+      const scale = Math.min(Math.max(sw, sh), 1);
+      if (!Number.isFinite(scale) || scale <= 0) return;
 
-      // The hover "reveal" only makes sense when the chart's aspect ratio
-      // mismatches the tile — i.e. contain-fitting leaves a noticeable letterbox
-      // gap in one dimension. Charts that already fill the tile (matching aspect)
-      // would just clip on zoom, which reads as broken, so they stay static.
-      const cover = Math.max(sw, sh); // fills the box, cropping the overflow dim
-      const aspectMismatch = cover / Math.min(sw, sh); // >= 1
-      const hover =
-        aspectMismatch > 1.25 ? Math.min(contain * 1.18, cover, 1) : contain;
+      const contentW = natW * scale;
+      const contentH = natH * scale;
+      const overflowX = Math.max(contentW - boxW, 0);
+      const overflowY = Math.max(contentH - boxH, 0);
+      // Overflowing axis: rest at the start, pan to the end on hover. Other
+      // axis: centre it (no pan).
+      const restX = overflowX > 0 ? 0 : (boxW - contentW) / 2;
+      const restY = overflowY > 0 ? 0 : (boxH - contentH) / 2;
+      const panX = overflowX > 0 ? -overflowX / scale : 0;
+      const panY = overflowY > 0 ? -overflowY / scale : 0;
 
-      setScale((prev) => (Math.abs(prev - contain) > 0.005 ? contain : prev));
-      setHoverScale((prev) => (Math.abs(prev - hover) > 0.005 ? hover : prev));
+      setFit((prev) => {
+        const next = { scale, restX, restY, panX, panY };
+        const same = (Object.keys(next) as (keyof typeof next)[]).every(
+          (k) => Math.abs(prev[k] - next[k]) < 0.5,
+        );
+        return same ? prev : next;
+      });
     };
 
     measure();
@@ -70,7 +73,7 @@ export function ChartThumb({
     ro.observe(inner);
     ro.observe(outer);
     return () => ro.disconnect();
-  }, [height, padding]);
+  }, [height]);
 
   return (
     <div
@@ -80,27 +83,25 @@ export function ChartThumb({
         width: '100%',
         height,
         overflow: 'hidden',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
       }}
     >
-      {/* Fit scale applies instantly (no transition) so entering the page never
-          animates the initial shrink. */}
+      {/* Fit (scale + rest position) applies instantly — no entry animation. */}
       <div
         style={{
           position: 'absolute',
-          transform: `scale(${scale})`,
-          transformOrigin: 'center center',
+          top: 0,
+          left: 0,
+          transform: `translate(${fit.restX}px, ${fit.restY}px) scale(${fit.scale})`,
+          transformOrigin: '0 0',
         }}
       >
-        {/* Only the hover zoom animates. */}
+        {/* Only the hover pan animates. */}
         <div
           ref={innerRef}
           style={{
-            transform: `scale(${hovered && scale > 0 ? hoverScale / scale : 1})`,
-            transformOrigin: 'center center',
-            transition: 'transform 300ms ease',
+            transform: hovered ? `translate(${fit.panX}px, ${fit.panY}px)` : 'none',
+            transformOrigin: '0 0',
+            transition: 'transform 900ms ease-in-out',
           }}
         >
           {children}

@@ -23,7 +23,6 @@ type DType = 'quantitative' | 'nominal' | 'ordinal' | 'temporal' | undefined;
 
 const CIRCULAR = /pie|doughnut|donut|rose/;
 const HIER = /tree|treemap|sunburst|sankey|network|funnel|gauge/;
-const SCALE_TAGS = ['overstretch', 'many-stages', 'many-categories', 'high-cardinality', 'scaling', 'dense'];
 const DASH = ' \u2014 ';
 
 function fieldName(t: TestCase, id?: string): string | undefined {
@@ -116,8 +115,10 @@ function finish(prefix: string[], base: string, suffix: string[], impliesColor: 
 // ---- disambiguation qualifiers --------------------------------------------
 
 function pluralize(n: number, unit: string): string {
-  if (n === 1) return `1 ${unit === 'categories' ? 'category' : unit.replace(/s$/, '')}`;
-  return `${n} ${unit}`;
+  if (n !== 1) return `${n} ${unit}`;
+  const sing =
+    unit === 'categories' ? 'category' : unit === 'series' ? 'series' : unit.replace(/s$/, '');
+  return `1 ${sing}`;
 }
 
 function pointUnit(lower: string): string {
@@ -154,8 +155,8 @@ function humanSubtitle(t: TestCase, baseLabel: string): string | null {
   s = s.replace(/\s*\(.*$/, '').trim(); // drop parentheticals / extra measures
   s = s.replace(CHART_WORDS, '').trim();
   s = s
-    .replace(/^[\s+&,\-]+/, '')
-    .replace(/[\s+&,\-]+$/, '')
+    .replace(/^[\s+&,\u2013\u2014\-]+/, '')
+    .replace(/[\s+&,\u2013\u2014\-]+$/, '')
     .replace(/\s{2,}/g, ' ')
     .trim();
   if (!s || s.length < 2 || s.length > 22) return null;
@@ -167,16 +168,75 @@ function humanSubtitle(t: TestCase, baseLabel: string): string | null {
 }
 
 /** A descriptive word for notably dense / sparse / high-cardinality variants. */
-function scaleWord(t: TestCase): string | null {
+function isCatAxis(t: TestCase, ch: Channel): boolean {
+  const dt = dtypeOf(t, ch);
+  return dt === 'nominal' || dt === 'ordinal';
+}
+
+const STRETCH_TAGS = [
+  'scaling',
+  'large',
+  'very-large',
+  'overstretch',
+  'stretch-test',
+  'high-cardinality',
+  'dense',
+  'many-categories',
+  'many-stages',
+];
+
+function isStretchDemo(t: TestCase): boolean {
   const tags = new Set(t.tags ?? []);
+  return STRETCH_TAGS.some((g) => tags.has(g));
+}
+
+/**
+ * A concrete count of what an example actually puts on screen, with a unit
+ * chosen to reflect the encoding — so the *kind* of data is legible too:
+ * "5 categories" (categorical axis) vs "20 points" (continuous axis) vs
+ * "10 series" (colour split) vs "8 slices" (pie) vs "12×6" (heatmap grid).
+ * This is how high-cardinality "stretch" examples and different data-type
+ * combinations get named specifically rather than generically.
+ */
+function featureNote(t: TestCase): string | null {
   const lower = (t.chartType ?? '').toLowerCase();
-  if (tags.has('sparse')) return '(Sparse)';
-  if (SCALE_TAGS.some((g) => tags.has(g))) {
-    if (/line|area|stream|scatter|point|heatmap|calendar|candlestick/.test(lower)) return '(Dense)';
-    if (HIER.test(lower)) return '(Large)';
-    return 'with Many Categories';
+  const circular = CIRCULAR.test(lower);
+  const colorN = has(t, 'color') ? card(t, 'color') : undefined;
+  const xN = isCatAxis(t, 'x') ? card(t, 'x') : undefined;
+  const yN = isCatAxis(t, 'y') ? card(t, 'y') : undefined;
+  const axisN = Math.max(xN ?? 0, yN ?? 0) || undefined;
+  const rows = (t.data ?? []).length || undefined;
+  const sparse = (t.tags ?? []).includes('sparse');
+  const withSparse = (note: string | null): string | null =>
+    sparse ? (note ? `${note}, sparse` : 'sparse') : note;
+
+  if (circular) {
+    const n = card(t, 'color') ?? card(t, 'x');
+    return withSparse(n ? pluralize(n, 'slices') : null);
   }
-  return null;
+  if (/heatmap/.test(lower)) {
+    if (xN && yN) return withSparse(`${xN}\u00d7${yN}`);
+    return withSparse(rows ? pluralize(rows, 'cells') : null);
+  }
+  if (colorN && colorN >= 2 && /line|area|stream|bump/.test(lower)) {
+    return withSparse(pluralize(colorN, 'series'));
+  }
+  if (axisN) {
+    const unit = /box/.test(lower)
+      ? 'groups'
+      : /funnel/.test(lower)
+        ? 'stages'
+        : /pyramid/.test(lower)
+          ? 'levels'
+          : 'categories';
+    return withSparse(pluralize(axisN, unit));
+  }
+  if (HIER.test(lower) && rows) return withSparse(pluralize(rows, pointUnit(lower)));
+  if (rows) {
+    const unit = /hist|density/.test(lower) ? 'values' : pointUnit(lower);
+    return withSparse(pluralize(rows, unit));
+  }
+  return withSparse(null);
 }
 
 type CardKey = 'color' | 'x' | 'y' | 'pts';
@@ -221,44 +281,81 @@ function cardQualifierKey(variants: TestCase[], idxs: number[]): CardKey {
 /**
  * Human-readable captions for a chart type's curated variant set, made unique
  * within the set.
+ *
+ * Built in passes that each re-group by the current titles and only touch
+ * still-colliding groups: a human dataset subtitle, then the concrete
+ * encoding count ("12 categories", "10 series", "500 points"…), then a
+ * fallback cardinality dimension, then a bare ordinal as a last resort. In
+ * addition, examples that exist to demonstrate stretching / high cardinality
+ * are *always* annotated with that concrete count, collision or not.
  */
 export function humanizeVariants(variants: TestCase[]): string[] {
   const out = variants.map(baseTitle);
+  const hasParen = (s: string) => s.includes('(');
 
-  const regroup = (idxs: number[]): number[][] => {
+  const groupsOf = (): number[][] => {
     const g: Record<string, number[]> = {};
-    for (const i of idxs) (g[out[i]] ??= []).push(i);
+    out.forEach((label, i) => (g[label] ??= []).push(i));
     return Object.values(g);
   };
 
-  const resolve = (idxs: number[], stage: number): void => {
-    if (idxs.length < 2) return;
-    if (stage === 0 || stage === 1) {
-      const val = stage === 0 ? (i: number) => humanSubtitle(variants[i], out[i]) : (i: number) => scaleWord(variants[i]);
-      const join = stage === 0 ? (b: string, v: string) => `${b}${DASH}${v}` : (b: string, v: string) => `${b} ${v}`;
-      const vals = idxs.map(val);
-      if (new Set(vals.map((v) => (v == null ? '\u2205' : v))).size > 1) {
-        idxs.forEach((i, k) => {
-          if (vals[k] != null) out[i] = join(out[i], vals[k] as string);
-        });
-      }
-      for (const sub of regroup(idxs)) resolve(sub, stage + 1);
-    } else if (stage === 2) {
-      const key = cardQualifierKey(variants, idxs);
-      for (const i of idxs) {
-        const label = cardLabel(variants[i], key);
-        if (label) out[i] = `${out[i]} ${label}`;
-      }
-      for (const sub of regroup(idxs)) resolve(sub, stage + 1);
-    } else {
-      idxs.forEach((i, k) => {
-        if (k > 0) out[i] = `${out[i]} (${k + 1})`;
+  // Pass: append a per-variant qualifier to every still-colliding group where
+  // the qualifier actually distinguishes the members.
+  const disambiguate = (
+    val: (i: number) => string | null,
+    join: (base: string, v: string) => string,
+  ) => {
+    for (const group of groupsOf()) {
+      if (group.length < 2) continue;
+      const vals = group.map(val);
+      if (new Set(vals.map((v) => v ?? '\u2205')).size <= 1) continue;
+      group.forEach((i, k) => {
+        const v = vals[k];
+        if (v != null && !out[i].includes(v)) out[i] = join(out[i], v);
       });
     }
   };
 
-  const groups: Record<string, number[]> = {};
-  out.forEach((label, i) => (groups[label] ??= []).push(i));
-  for (const idxs of Object.values(groups)) resolve(idxs, 0);
+  // 1. Human dataset name pulled from the raw title ("Sales Pipeline").
+  disambiguate(
+    (i) => humanSubtitle(variants[i], out[i]),
+    (b, v) => `${b}${DASH}${v}`,
+  );
+
+  // 2. Proactively name what stretch / high-cardinality demos put on screen,
+  //    unless the title already shows that count (avoid "30 Bars (30 …)").
+  variants.forEach((t, i) => {
+    if (!isStretchDemo(t)) return;
+    const note = featureNote(t);
+    if (!note || hasParen(out[i])) return;
+    const n = note.match(/\d+/)?.[0];
+    if (n && out[i].includes(n)) return;
+    out[i] = `${out[i]} (${note})`;
+  });
+
+  // 3. Concrete encoding count, with a unit that reflects the data type.
+  disambiguate(
+    (i) => (hasParen(out[i]) ? null : featureNote(variants[i])),
+    (b, v) => `${b} (${v})`,
+  );
+
+  // 4. Fallback: best-separating cardinality dimension.
+  for (const group of groupsOf()) {
+    if (group.length < 2) continue;
+    const key = cardQualifierKey(variants, group);
+    for (const i of group) {
+      const label = cardLabel(variants[i], key);
+      if (label && !out[i].includes(label.slice(1, -1))) out[i] = `${out[i]} ${label}`;
+    }
+  }
+
+  // 5. Last resort: a bare ordinal so titles are never identical.
+  for (const group of groupsOf()) {
+    if (group.length < 2) continue;
+    group.forEach((i, k) => {
+      if (k > 0) out[i] = `${out[i]} (${k + 1})`;
+    });
+  }
+
   return out;
 }

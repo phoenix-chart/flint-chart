@@ -36,6 +36,23 @@ function isNumericField(table: any[], field: string): boolean {
     return total > 0 && numeric / total >= 0.9;
 }
 
+/**
+ * Round a [min, max] data extent outward to tidy bounds (multiples of a
+ * 1/2/5×10ⁿ step) so axis labels are clean and always contain the data.
+ */
+function niceBounds(min: number, max: number): [number, number] | null {
+    if (!isFinite(min) || !isFinite(max)) return null;
+    if (min === max) {
+        const pad = Math.abs(min) > 1e-9 ? Math.abs(min) * 0.1 : 1;
+        return [min - pad, max + pad];
+    }
+    const rawStep = (max - min) / 5;
+    const mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
+    const norm = rawStep / mag;
+    const step = (norm < 1.5 ? 1 : norm < 3 ? 2 : norm < 7 ? 5 : 10) * mag;
+    return [Math.floor(min / step) * step, Math.ceil(max / step) * step];
+}
+
 export const ecParallelCoordinatesDef: ChartTemplateDef = {
     chart: 'Parallel Coordinates',
     template: { mark: 'line', encoding: {} },
@@ -61,13 +78,29 @@ export const ecParallelCoordinatesDef: ChartTemplateDef = {
         const palette = colorField ? getChartJsPalette(ctx, 'color') : DEFAULT_COLORS;
         const colors = palette.length > 0 ? palette : DEFAULT_COLORS;
 
-        const parallelAxis = dims.map((name, i) => ({
-            dim: i,
-            name,
-            nameTextStyle: { fontSize: 11 },
-            nameGap: 8,
-            axisLabel: { fontSize: 10 },
-        }));
+        const parallelAxis = dims.map((name, i) => {
+            // Derive each axis range from every row. ECharts otherwise infers a
+            // parallelAxis extent from only the first series, which clips lines
+            // from later groups above the top label.
+            let lo = Infinity;
+            let hi = -Infinity;
+            for (const row of table) {
+                const v = Number(row[name]);
+                if (isFinite(v)) {
+                    if (v < lo) lo = v;
+                    if (v > hi) hi = v;
+                }
+            }
+            const bounds = niceBounds(lo, hi);
+            return {
+                dim: i,
+                name,
+                nameTextStyle: { fontSize: 11 },
+                nameGap: 8,
+                axisLabel: { fontSize: 10 },
+                ...(bounds ? { min: bounds[0], max: bounds[1] } : {}),
+            };
+        });
 
         const toLine = (row: any) => dims.map((d) => {
             const v = Number(row[d]);

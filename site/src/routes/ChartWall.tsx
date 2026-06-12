@@ -130,13 +130,11 @@ export function ChartWall() {
             <section key={section.id} style={{ marginTop: 36 }}>
               <h2
                 style={{
-                  margin: '0 0 16px',
-                  paddingBottom: 8,
+                  margin: '0 0 14px',
                   fontSize: 17,
                   fontWeight: 600,
                   letterSpacing: -0.2,
                   color: siteTheme.text,
-                  borderBottom: `1px solid ${siteTheme.border}`,
                 }}
               >
                 {section.label}

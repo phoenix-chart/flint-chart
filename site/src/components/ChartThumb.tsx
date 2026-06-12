@@ -85,16 +85,26 @@ export function ChartThumb({
         justifyContent: 'center',
       }}
     >
+      {/* Fit scale applies instantly (no transition) so entering the page never
+          animates the initial shrink. */}
       <div
-        ref={innerRef}
         style={{
           position: 'absolute',
-          transform: `scale(${hovered ? hoverScale : scale})`,
+          transform: `scale(${scale})`,
           transformOrigin: 'center center',
-          transition: 'transform 300ms ease',
         }}
       >
-        {children}
+        {/* Only the hover zoom animates. */}
+        <div
+          ref={innerRef}
+          style={{
+            transform: `scale(${hovered && scale > 0 ? hoverScale / scale : 1})`,
+            transformOrigin: 'center center',
+            transition: 'transform 300ms ease',
+          }}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );

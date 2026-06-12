@@ -284,6 +284,46 @@ export function genEChartsBarTests(): TestCase[] {
         });
     }
 
+    // 3. Diverging bar (positive + negative values around the zero baseline)
+    {
+        const cats = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
+        const vals = [120, -45, 80, -30, 60, -20, 95];
+        const data = cats.map((c, i) => ({ Month: c, NetChange: vals[i] }));
+        tests.push({
+            title: 'EC: Bar — Net Change (diverging)',
+            description: 'Positive and negative values render bars on both sides of the zero baseline.',
+            tags: ['echarts', 'bar', 'diverging'],
+            chartType: 'Bar Chart',
+            data,
+            fields: [makeField('Month'), makeField('NetChange')],
+            metadata: {
+                Month: { type: Type.String, semanticType: 'Month', levels: cats },
+                NetChange: { type: Type.Number, semanticType: 'Amount', levels: [] },
+            },
+            encodingMap: { x: makeEncodingItem('Month'), y: makeEncodingItem('NetChange') },
+        });
+    }
+
+    // 4. Clean medium-cardinality categorical bar
+    {
+        const rand = seededRandom(502);
+        const cats = genCategories('Team', 8);
+        const data = cats.map(c => ({ Team: c, Points: Math.round(20 + rand() * 180) }));
+        tests.push({
+            title: 'EC: Bar — 8 Teams',
+            description: 'A clean categorical bar with eight evenly-labelled categories.',
+            tags: ['echarts', 'bar', 'medium'],
+            chartType: 'Bar Chart',
+            data,
+            fields: [makeField('Team'), makeField('Points')],
+            metadata: {
+                Team: { type: Type.String, semanticType: 'Category', levels: cats },
+                Points: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+            },
+            encodingMap: { x: makeEncodingItem('Team'), y: makeEncodingItem('Points') },
+        });
+    }
+
     return tests;
 }
 

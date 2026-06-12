@@ -261,6 +261,33 @@ export function genChartJsLineTests(): TestCase[] {
         });
     }
 
+    // 3. Medium multi-series line (5 regions)
+    {
+        const rand = seededRandom(301);
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const regions = genCategories('Region', 5);
+        const data: any[] = [];
+        for (const m of months) {
+            for (const r of regions) {
+                data.push({ Month: m, Value: Math.round(200 + rand() * 800), Region: r });
+            }
+        }
+        tests.push({
+            title: 'CJS: Line — 5 Regions × 12 Months',
+            description: 'Higher series count exercises legend layout and the colour palette.',
+            tags: ['chartjs', 'line', 'multi-series', 'medium'],
+            chartType: 'Line Chart',
+            data,
+            fields: [makeField('Month'), makeField('Value'), makeField('Region')],
+            metadata: {
+                Month: { type: Type.String, semanticType: 'Month', levels: months },
+                Value: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Region: { type: Type.String, semanticType: 'Category', levels: regions },
+            },
+            encodingMap: { x: makeEncodingItem('Month'), y: makeEncodingItem('Value'), color: makeEncodingItem('Region') },
+        });
+    }
+
     return tests;
 }
 
@@ -305,6 +332,46 @@ export function genChartJsBarTests(): TestCase[] {
                 Population: { type: Type.Number, semanticType: 'Quantity', levels: [] },
             },
             encodingMap: { x: makeEncodingItem('City'), y: makeEncodingItem('Population') },
+        });
+    }
+
+    // 3. Diverging bar (positive + negative values)
+    {
+        const cats = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
+        const vals = [120, -45, 80, -30, 60, -20, 95];
+        const data = cats.map((c, i) => ({ Month: c, NetChange: vals[i] }));
+        tests.push({
+            title: 'CJS: Bar — Net Change (diverging)',
+            description: 'Positive and negative values render bars on both sides of the zero baseline.',
+            tags: ['chartjs', 'bar', 'diverging'],
+            chartType: 'Bar Chart',
+            data,
+            fields: [makeField('Month'), makeField('NetChange')],
+            metadata: {
+                Month: { type: Type.String, semanticType: 'Month', levels: cats },
+                NetChange: { type: Type.Number, semanticType: 'Amount', levels: [] },
+            },
+            encodingMap: { x: makeEncodingItem('Month'), y: makeEncodingItem('NetChange') },
+        });
+    }
+
+    // 4. Clean medium-cardinality categorical bar
+    {
+        const rand = seededRandom(151);
+        const cats = genCategories('Team', 8);
+        const data = cats.map(c => ({ Team: c, Points: Math.round(20 + rand() * 180) }));
+        tests.push({
+            title: 'CJS: Bar — 8 Teams',
+            description: 'A clean categorical bar with eight evenly-labelled categories.',
+            tags: ['chartjs', 'bar', 'medium'],
+            chartType: 'Bar Chart',
+            data,
+            fields: [makeField('Team'), makeField('Points')],
+            metadata: {
+                Team: { type: Type.String, semanticType: 'Category', levels: cats },
+                Points: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+            },
+            encodingMap: { x: makeEncodingItem('Team'), y: makeEncodingItem('Points') },
         });
     }
 

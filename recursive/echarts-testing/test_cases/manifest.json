@@ -222,5 +222,29 @@
   {
     "test_id": "waterfall_basic",
     "description": "Basic waterfall chart"
+  },
+  {
+    "test_id": "cal_quarter",
+    "description": "Calendar heatmap, ~120 daily values (one quarter)"
+  },
+  {
+    "test_id": "cal_year",
+    "description": "Calendar heatmap, full year (365 daily values)"
+  },
+  {
+    "test_id": "cal_multiyear",
+    "description": "Calendar heatmap spanning ~18 months across years"
+  },
+  {
+    "test_id": "par_cars_grouped",
+    "description": "Parallel coords, 4 dims, colored by Origin (3 groups)"
+  },
+  {
+    "test_id": "par_cars_single",
+    "description": "Parallel coords, 4 dims, no color grouping"
+  },
+  {
+    "test_id": "par_metrics6",
+    "description": "Parallel coords, 6 dims, 120 rows, 4 groups (hairball test)"
   }
 ]

@@ -613,3 +613,100 @@ export function genChartJsRoseTests(): TestCase[] {
 
     return tests;
 }
+
+// ---------------------------------------------------------------------------
+// Bubble Chart (NEW — flagged with * for inspection)
+// ---------------------------------------------------------------------------
+
+function genBubbleData(n: number, seed: number, withRegion: boolean) {
+    const rand = seededRandom(seed);
+    const regions = ['Asia', 'Europe', 'Africa', 'Americas'];
+    return Array.from({ length: n }, (_, i) => {
+        const row: Record<string, any> = {
+            GDP: Math.round((1 + rand() * 59) * 10) / 10,
+            LifeExp: Math.round((50 + rand() * 35) * 10) / 10,
+            Population: Math.round((1 + rand() * 1400) * 10) / 10,
+        };
+        if (withRegion) row.Region = regions[i % regions.length];
+        return row;
+    });
+}
+
+export function genChartJsBubbleTests(): TestCase[] {
+    const tests: TestCase[] = [];
+
+    // 1. Grouped bubble: size + color
+    {
+        const data = genBubbleData(40, 17, true);
+        tests.push({
+            title: 'CJS: Bubble — GDP × LifeExp × Population *',
+            description: 'Bubble chart: x=GDP, y=LifeExp, size=Population, color=Region (4 groups).',
+            tags: ['chartjs', 'bubble', 'size', 'color'],
+            chartType: 'Bubble Chart',
+            data,
+            fields: [makeField('GDP'), makeField('LifeExp'), makeField('Population'), makeField('Region')],
+            metadata: {
+                GDP: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                LifeExp: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Population: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Region: { type: Type.String, semanticType: 'Category', levels: ['Asia', 'Europe', 'Africa', 'Americas'] },
+            },
+            encodingMap: {
+                x: makeEncodingItem('GDP'),
+                y: makeEncodingItem('LifeExp'),
+                size: makeEncodingItem('Population'),
+                color: makeEncodingItem('Region'),
+            },
+        });
+    }
+
+    // 2. Single-series bubble: size only
+    {
+        const data = genBubbleData(36, 23, false);
+        tests.push({
+            title: 'CJS: Bubble — Single Series (size only) *',
+            description: 'Bubble chart with one series; bubble area encodes Population.',
+            tags: ['chartjs', 'bubble', 'size'],
+            chartType: 'Bubble Chart',
+            data,
+            fields: [makeField('GDP'), makeField('LifeExp'), makeField('Population')],
+            metadata: {
+                GDP: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                LifeExp: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Population: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+            },
+            encodingMap: {
+                x: makeEncodingItem('GDP'),
+                y: makeEncodingItem('LifeExp'),
+                size: makeEncodingItem('Population'),
+            },
+        });
+    }
+
+    // 3. Dense bubble: tests density-aware radius scaling
+    {
+        const data = genBubbleData(120, 29, true);
+        tests.push({
+            title: 'CJS: Bubble — Dense (120 points) *',
+            description: 'Dense bubble chart; radius shrinks with point density to stay legible.',
+            tags: ['chartjs', 'bubble', 'dense', 'size', 'color'],
+            chartType: 'Bubble Chart',
+            data,
+            fields: [makeField('GDP'), makeField('LifeExp'), makeField('Population'), makeField('Region')],
+            metadata: {
+                GDP: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                LifeExp: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Population: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Region: { type: Type.String, semanticType: 'Category', levels: ['Asia', 'Europe', 'Africa', 'Americas'] },
+            },
+            encodingMap: {
+                x: makeEncodingItem('GDP'),
+                y: makeEncodingItem('LifeExp'),
+                size: makeEncodingItem('Population'),
+                color: makeEncodingItem('Region'),
+            },
+        });
+    }
+
+    return tests;
+}

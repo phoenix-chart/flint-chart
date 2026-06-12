@@ -2216,3 +2216,169 @@ export function genEChartsUniqueStressTests(): TestCase[] {
 
     return tests;
 }
+// ---------------------------------------------------------------------------
+// Calendar Heatmap (NEW — flagged with * for inspection)
+// ---------------------------------------------------------------------------
+
+function genDailySeries(startISO: string, days: number, seed: number) {
+    const rand = seededRandom(seed);
+    const start = new Date(startISO + 'T00:00:00Z');
+    return Array.from({ length: days }, (_, i) => {
+        const d = new Date(start);
+        d.setUTCDate(start.getUTCDate() + i);
+        const weekday = d.getUTCDay(); // 0 Sun .. 6 Sat
+        const base = weekday === 0 || weekday === 6 ? 2 : 8;
+        const v = Math.max(0, Math.round(base + (rand() - 0.5) * 10));
+        return { date: d.toISOString().slice(0, 10), commits: v };
+    });
+}
+
+export function genEChartsCalendarTests(): TestCase[] {
+    const tests: TestCase[] = [];
+    const meta = {
+        date: { type: Type.Date, semanticType: 'Date', levels: [] },
+        commits: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+    };
+    const enc = { x: makeEncodingItem('date'), color: makeEncodingItem('commits') };
+    const fields = [makeField('date'), makeField('commits')];
+
+    // 1. One quarter
+    tests.push({
+        title: 'EC: Calendar Heatmap — One Quarter *',
+        description: '~120 daily values laid out on a calendar; weekdays run higher than weekends.',
+        tags: ['echarts', 'calendar', 'heatmap', 'temporal'],
+        chartType: 'Calendar Heatmap',
+        data: genDailySeries('2023-01-01', 120, 7),
+        fields, metadata: meta, encodingMap: enc,
+    });
+
+    // 2. Full year
+    tests.push({
+        title: 'EC: Calendar Heatmap — Full Year *',
+        description: 'A full year of daily activity (365 cells), GitHub-contributions style.',
+        tags: ['echarts', 'calendar', 'heatmap', 'temporal'],
+        chartType: 'Calendar Heatmap',
+        data: genDailySeries('2023-01-01', 365, 11),
+        fields, metadata: meta, encodingMap: enc,
+    });
+
+    // 3. Multi-year span
+    tests.push({
+        title: 'EC: Calendar Heatmap — 18 Months *',
+        description: 'A range that crosses a year boundary (~550 daily cells).',
+        tags: ['echarts', 'calendar', 'heatmap', 'temporal', 'multi-year'],
+        chartType: 'Calendar Heatmap',
+        data: genDailySeries('2022-06-01', 550, 13),
+        fields, metadata: meta, encodingMap: enc,
+    });
+
+    return tests;
+}
+
+// ---------------------------------------------------------------------------
+// Parallel Coordinates (NEW — flagged with * for inspection)
+// ---------------------------------------------------------------------------
+
+function genCarRows(n: number, seed: number, withOrigin: boolean) {
+    const rand = seededRandom(seed);
+    const origins = ['USA', 'Europe', 'Japan'];
+    const gauss = () => (rand() + rand() + rand() - 1.5); // ~N(0,~0.5)
+    return Array.from({ length: n }, (_, i) => {
+        const origin = origins[i % origins.length];
+        let mpg, hp, wt, acc;
+        if (origin === 'USA') { mpg = 20 + gauss() * 8; hp = 150 + gauss() * 60; wt = 3400 + gauss() * 800; acc = 15 + gauss() * 4; }
+        else if (origin === 'Europe') { mpg = 27 + gauss() * 8; hp = 110 + gauss() * 50; wt = 2800 + gauss() * 700; acc = 16 + gauss() * 4; }
+        else { mpg = 31 + gauss() * 8; hp = 95 + gauss() * 40; wt = 2300 + gauss() * 600; acc = 16.5 + gauss() * 4; }
+        const row: Record<string, any> = {
+            MPG: Math.round(mpg * 10) / 10,
+            Horsepower: Math.round(hp),
+            Weight: Math.round(wt),
+            Acceleration: Math.round(acc * 10) / 10,
+        };
+        if (withOrigin) row.Origin = origin;
+        return row;
+    });
+}
+
+export function genEChartsParallelTests(): TestCase[] {
+    const tests: TestCase[] = [];
+
+    // 1. Grouped by Origin (4 dims, 3 groups)
+    {
+        const data = genCarRows(45, 11, true);
+        tests.push({
+            title: 'EC: Parallel Coordinates — Cars by Origin *',
+            description: '4 quantitative dimensions, lines colored by Origin (3 groups).',
+            tags: ['echarts', 'parallel', 'multivariate', 'color'],
+            chartType: 'Parallel Coordinates',
+            data,
+            fields: [makeField('MPG'), makeField('Horsepower'), makeField('Weight'), makeField('Acceleration'), makeField('Origin')],
+            metadata: {
+                MPG: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Horsepower: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Weight: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Acceleration: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Origin: { type: Type.String, semanticType: 'Category', levels: ['USA', 'Europe', 'Japan'] },
+            },
+            encodingMap: { color: makeEncodingItem('Origin') },
+            chartProperties: { dimensions: ['MPG', 'Horsepower', 'Weight', 'Acceleration'] },
+        });
+    }
+
+    // 2. Single series (no color)
+    {
+        const data = genCarRows(40, 17, false);
+        tests.push({
+            title: 'EC: Parallel Coordinates — Single Series *',
+            description: '4 quantitative dimensions, no grouping.',
+            tags: ['echarts', 'parallel', 'multivariate'],
+            chartType: 'Parallel Coordinates',
+            data,
+            fields: [makeField('MPG'), makeField('Horsepower'), makeField('Weight'), makeField('Acceleration')],
+            metadata: {
+                MPG: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Horsepower: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Weight: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Acceleration: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+            },
+            encodingMap: {},
+            chartProperties: { dimensions: ['MPG', 'Horsepower', 'Weight', 'Acceleration'] },
+        });
+    }
+
+    // 3. Six dimensions, more rows
+    {
+        const rand = seededRandom(31);
+        const tiers = ['A', 'B', 'C', 'D'];
+        const data = Array.from({ length: 90 }, (_, i) => ({
+            Speed: Math.round(rand() * 1000) / 10,
+            Power: Math.round(rand() * 1000) / 10,
+            Range: Math.round(rand() * 1000) / 10,
+            Comfort: Math.round(rand() * 1000) / 10,
+            Price: Math.round(rand() * 1000) / 10,
+            Safety: Math.round(rand() * 1000) / 10,
+            Tier: tiers[i % tiers.length],
+        }));
+        tests.push({
+            title: 'EC: Parallel Coordinates — Six Metrics *',
+            description: '6 quantitative dimensions, 90 rows, 4 groups.',
+            tags: ['echarts', 'parallel', 'multivariate', 'dense'],
+            chartType: 'Parallel Coordinates',
+            data,
+            fields: [makeField('Speed'), makeField('Power'), makeField('Range'), makeField('Comfort'), makeField('Price'), makeField('Safety'), makeField('Tier')],
+            metadata: {
+                Speed: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Power: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Range: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Comfort: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Price: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Safety: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Tier: { type: Type.String, semanticType: 'Category', levels: ['A', 'B', 'C', 'D'] },
+            },
+            encodingMap: { color: makeEncodingItem('Tier') },
+            chartProperties: { dimensions: ['Speed', 'Power', 'Range', 'Comfort', 'Price', 'Safety'] },
+        });
+    }
+
+    return tests;
+}

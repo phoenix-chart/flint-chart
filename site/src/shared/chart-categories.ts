@@ -104,7 +104,9 @@ export const CHART_CATEGORIES: ChartCategory[] = [
       createChart('echarts', 'echarts-area', 'Area Chart', 'ECharts: Area', areaIcon),
       createChart('echarts', 'echarts-pie', 'Pie Chart', 'ECharts: Pie', pieIcon),
       createChart('echarts', 'echarts-heatmap', 'Heatmap', 'ECharts: Heatmap', heatmapIcon),
+      createChart('echarts', 'echarts-calendar', 'Calendar Heatmap *', 'ECharts: Calendar Heatmap *', heatmapIcon),
       createChart('echarts', 'echarts-histogram', 'Histogram', 'ECharts: Histogram', histogramIcon),
+      createChart('echarts', 'echarts-parallel', 'Parallel Coordinates *', 'ECharts: Parallel Coordinates *', lineIcon),
       createChart('echarts', 'echarts-boxplot', 'Boxplot', 'ECharts: Boxplot', boxplotIcon),
       createChart('echarts', 'echarts-radar', 'Radar Chart', 'ECharts: Radar', radarIcon),
       createChart('echarts', 'echarts-candlestick', 'Candlestick Chart', 'ECharts: Candlestick', candlestickIcon),
@@ -123,6 +125,7 @@ export const CHART_CATEGORIES: ChartCategory[] = [
     description: 'Practical Chart.js examples for familiar dashboard-style visuals.',
     charts: [
       createChart('chartjs', 'chartjs-scatter', 'Scatter Plot', 'Chart.js: Scatter', scatterIcon),
+      createChart('chartjs', 'chartjs-bubble', 'Bubble Chart *', 'Chart.js: Bubble *', scatterIcon),
       createChart('chartjs', 'chartjs-line', 'Line Chart', 'Chart.js: Line', lineIcon),
       createChart('chartjs', 'chartjs-bar', 'Bar Chart', 'Chart.js: Bar', barIcon),
       createChart('chartjs', 'chartjs-stacked-bar', 'Stacked Bar Chart', 'Chart.js: Stacked Bar', stackedBarIcon),

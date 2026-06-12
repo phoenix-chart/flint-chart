@@ -10,6 +10,7 @@
 
 import { ChartTemplateDef } from '../../core/types';
 import { cjsScatterPlotDef } from './scatter';
+import { cjsBubbleChartDef } from './bubble';
 import { cjsBarChartDef, cjsStackedBarChartDef, cjsGroupedBarChartDef } from './bar';
 import { cjsLineChartDef } from './line';
 import { cjsAreaChartDef } from './area';
@@ -22,7 +23,7 @@ import { cjsRoseChartDef } from './rose';
  * Chart.js chart template definitions, grouped by category.
  */
 export const cjsTemplateDefs: { [key: string]: ChartTemplateDef[] } = {
-    'Scatter & Point': [cjsScatterPlotDef],
+    'Scatter & Point': [cjsScatterPlotDef, cjsBubbleChartDef],
     'Bar':             [cjsBarChartDef, cjsGroupedBarChartDef, cjsStackedBarChartDef, cjsHistogramDef],
     'Line & Area':     [cjsLineChartDef, cjsAreaChartDef],
     'Part-to-Whole':   [cjsPieChartDef],

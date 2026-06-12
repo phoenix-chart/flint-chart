@@ -1,0 +1,277 @@
+{
+  "test_id": "bubble_grouped",
+  "description": "Bubble, x=GDP y=LifeExp size=Population color=Region",
+  "input": {
+    "data": {
+      "values": [
+        {
+          "GDP": 48.6,
+          "LifeExp": 83.6,
+          "Population": 406.2,
+          "Region": "Americas"
+        },
+        {
+          "GDP": 7.5,
+          "LifeExp": 50.9,
+          "Population": 538.5,
+          "Region": "Africa"
+        },
+        {
+          "GDP": 15.9,
+          "LifeExp": 67.6,
+          "Population": 445.1,
+          "Region": "Americas"
+        },
+        {
+          "GDP": 9.1,
+          "LifeExp": 69.3,
+          "Population": 196.7,
+          "Region": "Americas"
+        },
+        {
+          "GDP": 9.9,
+          "LifeExp": 74.7,
+          "Population": 782.9,
+          "Region": "Europe"
+        },
+        {
+          "GDP": 20.5,
+          "LifeExp": 54.3,
+          "Population": 1002.1,
+          "Region": "Europe"
+        },
+        {
+          "GDP": 19.2,
+          "LifeExp": 52.9,
+          "Population": 1315.7,
+          "Region": "Asia"
+        },
+        {
+          "GDP": 38.8,
+          "LifeExp": 71.0,
+          "Population": 956.0,
+          "Region": "Americas"
+        },
+        {
+          "GDP": 49.0,
+          "LifeExp": 82.2,
+          "Population": 26.0,
+          "Region": "Americas"
+        },
+        {
+          "GDP": 34.7,
+          "LifeExp": 81.4,
+          "Population": 1034.7,
+          "Region": "Africa"
+        },
+        {
+          "GDP": 57.6,
+          "LifeExp": 63.1,
+          "Population": 1084.4,
+          "Region": "Asia"
+        },
+        {
+          "GDP": 15.1,
+          "LifeExp": 69.5,
+          "Population": 1340.4,
+          "Region": "Americas"
+        },
+        {
+          "GDP": 4.4,
+          "LifeExp": 52.2,
+          "Population": 386.4,
+          "Region": "Africa"
+        },
+        {
+          "GDP": 15.8,
+          "LifeExp": 60.8,
+          "Population": 487.6,
+          "Region": "Europe"
+        },
+        {
+          "GDP": 20.6,
+          "LifeExp": 81.8,
+          "Population": 810.1,
+          "Region": "Europe"
+        },
+        {
+          "GDP": 20.8,
+          "LifeExp": 51.8,
+          "Population": 1386.8,
+          "Region": "Africa"
+        },
+        {
+          "GDP": 28.6,
+          "LifeExp": 59.5,
+          "Population": 886.7,
+          "Region": "Asia"
+        },
+        {
+          "GDP": 19.3,
+          "LifeExp": 52.6,
+          "Population": 1381.5,
+          "Region": "Europe"
+        },
+        {
+          "GDP": 2.2,
+          "LifeExp": 69.7,
+          "Population": 960.7,
+          "Region": "Americas"
+        },
+        {
+          "GDP": 29.6,
+          "LifeExp": 83.3,
+          "Population": 1370.0,
+          "Region": "Americas"
+        },
+        {
+          "GDP": 11.8,
+          "LifeExp": 84.8,
+          "Population": 1345.3,
+          "Region": "Americas"
+        },
+        {
+          "GDP": 54.5,
+          "LifeExp": 51.8,
+          "Population": 1362.6,
+          "Region": "Asia"
+        },
+        {
+          "GDP": 48.5,
+          "LifeExp": 82.2,
+          "Population": 1135.3,
+          "Region": "Africa"
+        },
+        {
+          "GDP": 10.5,
+          "LifeExp": 64.7,
+          "Population": 968.2,
+          "Region": "Asia"
+        },
+        {
+          "GDP": 50.5,
+          "LifeExp": 73.0,
+          "Population": 565.8,
+          "Region": "Africa"
+        },
+        {
+          "GDP": 33.0,
+          "LifeExp": 69.0,
+          "Population": 1371.0,
+          "Region": "Asia"
+        },
+        {
+          "GDP": 32.4,
+          "LifeExp": 59.3,
+          "Population": 229.6,
+          "Region": "Europe"
+        },
+        {
+          "GDP": 3.9,
+          "LifeExp": 81.1,
+          "Population": 821.4,
+          "Region": "Africa"
+        },
+        {
+          "GDP": 14.1,
+          "LifeExp": 64.3,
+          "Population": 877.9,
+          "Region": "Americas"
+        },
+        {
+          "GDP": 58.1,
+          "LifeExp": 76.3,
+          "Population": 321.5,
+          "Region": "Asia"
+        },
+        {
+          "GDP": 49.4,
+          "LifeExp": 83.9,
+          "Population": 837.8,
+          "Region": "Africa"
+        },
+        {
+          "GDP": 4.2,
+          "LifeExp": 79.1,
+          "Population": 1350.2,
+          "Region": "Americas"
+        },
+        {
+          "GDP": 55.9,
+          "LifeExp": 69.5,
+          "Population": 858.6,
+          "Region": "Europe"
+        },
+        {
+          "GDP": 11.2,
+          "LifeExp": 84.0,
+          "Population": 296.3,
+          "Region": "Africa"
+        },
+        {
+          "GDP": 22.0,
+          "LifeExp": 70.7,
+          "Population": 726.6,
+          "Region": "Americas"
+        },
+        {
+          "GDP": 12.3,
+          "LifeExp": 70.1,
+          "Population": 985.8,
+          "Region": "Asia"
+        },
+        {
+          "GDP": 27.5,
+          "LifeExp": 65.6,
+          "Population": 706.5,
+          "Region": "Europe"
+        },
+        {
+          "GDP": 27.7,
+          "LifeExp": 60.3,
+          "Population": 258.5,
+          "Region": "Americas"
+        },
+        {
+          "GDP": 49.8,
+          "LifeExp": 66.4,
+          "Population": 1053.0,
+          "Region": "Asia"
+        },
+        {
+          "GDP": 4.1,
+          "LifeExp": 53.4,
+          "Population": 934.3,
+          "Region": "Europe"
+        }
+      ]
+    },
+    "semantic_types": {
+      "GDP": "Quantity",
+      "LifeExp": "Quantity",
+      "Population": "Quantity",
+      "Region": "Category"
+    },
+    "chart_spec": {
+      "chartType": "Bubble Chart",
+      "encodings": {
+        "x": {
+          "field": "GDP"
+        },
+        "y": {
+          "field": "LifeExp"
+        },
+        "size": {
+          "field": "Population"
+        },
+        "color": {
+          "field": "Region"
+        }
+      },
+      "canvasSize": {
+        "width": 480,
+        "height": 320
+      }
+    }
+  }
+}

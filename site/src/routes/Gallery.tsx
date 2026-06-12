@@ -101,6 +101,7 @@ function expandCategoryForChart(
 export function Gallery() {
   const { chartId: chartIdParam } = useParams<{ chartId?: string }>();
   const mainRef = useRef<HTMLElement>(null);
+  const asideRef = useRef<HTMLElement>(null);
   const navScrollingRef = useRef(false);
   const navScrollCleanupRef = useRef<(() => void) | null>(null);
   const activeChartIdRef = useRef(DEFAULT_CHART_ID);
@@ -229,18 +230,36 @@ export function Gallery() {
 
     if (sectionEls.length === 0) return;
 
+    // Track the *complete* set of currently-intersecting sections. IntersectionObserver
+    // only reports entries whose intersection changed, so we accumulate state across
+    // callbacks and then pick the topmost still-visible section. Reading the entries
+    // alone (as a snapshot of "what's visible") mis-identifies the active section and
+    // makes the sidebar highlight drift out of sync with the content.
+    const intersecting = new Set<HTMLElement>();
+
     const observer = new IntersectionObserver(
       (entries) => {
+        for (const entry of entries) {
+          const el = entry.target as HTMLElement;
+          if (entry.isIntersecting) intersecting.add(el);
+          else intersecting.delete(el);
+        }
+
         if (navScrollingRef.current) return;
 
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        let topEl: HTMLElement | null = null;
+        let topValue = Infinity;
+        for (const el of intersecting) {
+          const top = el.getBoundingClientRect().top;
+          if (top < topValue) {
+            topValue = top;
+            topEl = el;
+          }
+        }
 
-        const top = visible[0]?.target;
-        if (!top?.id || !isValidChartId(top.id)) return;
-
-        applyActiveChart(top.id);
+        if (topEl && isValidChartId(topEl.id)) {
+          applyActiveChart(topEl.id);
+        }
       },
       { root, rootMargin: SCROLL_SPY_ROOT_MARGIN, threshold: 0 },
     );
@@ -248,6 +267,27 @@ export function Gallery() {
     sectionEls.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
   }, [applyActiveChart]);
+
+  // Keep the active item visible inside the (independently scrolling) sidebar so the
+  // left nav stays aligned with the content the user is viewing on the right. Only the
+  // aside's own scrollTop is touched — never the page or the content pane.
+  useEffect(() => {
+    const aside = asideRef.current;
+    if (!aside) return;
+
+    const el = aside.querySelector<HTMLElement>(`[data-chart-nav="${CSS.escape(activeChartId)}"]`);
+    if (!el) return;
+
+    const asideRect = aside.getBoundingClientRect();
+    const elRect = el.getBoundingClientRect();
+    const pad = 8;
+
+    if (elRect.top < asideRect.top + pad) {
+      aside.scrollTop -= asideRect.top + pad - elRect.top;
+    } else if (elRect.bottom > asideRect.bottom - pad) {
+      aside.scrollTop += elRect.bottom - (asideRect.bottom - pad);
+    }
+  }, [activeChartId, expandedCategories]);
 
   useEffect(() => () => releaseNavScrollLock(), [releaseNavScrollLock]);
 
@@ -274,6 +314,7 @@ export function Gallery() {
         }}
       >
         <aside
+          ref={asideRef}
           style={{
             borderRight: `1px solid ${siteTheme.border}`,
             overflowY: 'auto',
@@ -575,6 +616,7 @@ function SidebarItem({
   return (
     <button
       type="button"
+      data-chart-nav={chart.id}
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}

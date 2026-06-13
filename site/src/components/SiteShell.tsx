@@ -48,7 +48,7 @@ export function SiteNavBar({ flush = false }: { flush?: boolean } = {}) {
         <NavLink to="/wall" active={pathname.startsWith('/wall') || pathname.startsWith('/gallery')}>
           Gallery
         </NavLink>
-        <NavLink to="/tutorials/quick-start" active={pathname.startsWith('/tutorials')}>
+        <NavLink to="/tutorials/getting-started" active={pathname.startsWith('/tutorials')}>
           Tutorials
         </NavLink>
         <NavLink to="/documentation/overview" active={pathname.startsWith('/documentation')}>

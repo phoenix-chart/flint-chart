@@ -1,55 +1,130 @@
 # Adding a semantic type
 
-Semantic types are the **only** thing LLMs (and humans) tag fields with.
-Every visual decision in flint-chart traces back to one.
+Semantic types are what LLMs and users attach to fields. Every format, aggregation, scale, and color decision traces back to a registered type (or graceful fallback to `Unknown`).
 
-## 1. Decide what's intrinsic
+For the full type hierarchy and resolution rules, see [Semantic types](/documentation/semantic-types).
 
-Before adding a type, ask: *does this carry information no other type
-already does?* Avoid synonyms (`Money` vs `Currency` vs `Price`). Pick one,
-document it, alias the rest.
+---
 
-Properties a semantic type can carry:
+## Table of Contents
 
-| Property | Example for `Price` |
+- [§1 Design check](#1-design-check)
+- [§2 Register in the type registry](#2-register-in-the-type-registry)
+- [§3 Sync constants and annotations](#3-sync-constants-and-annotations)
+- [§4 Test and verify](#4-test-and-verify)
+- [§5 Related](#5-related)
+
+---
+
+# §1 Design check
+
+Before adding a type, confirm it **changes compilation behavior** compared to its T1 parent. Avoid synonyms (`Money` vs `Price` vs `Currency`) — pick one name, register it, and alias others in agent prompts if needed.
+
+| Question | If yes |
 |---|---|
-| `visCategory` | `'measure'` |
-| `defaultFormat` | `'$,.0f'` |
-| `zero` | `'include'` (numeric axes start at 0) |
-| `scaleDirection` | `'normal'` |
-| `colorScheme` | sequential |
-| `aggregationDefault` | `'sum'` |
-| `intrinsicDomain` | unset (data-driven) |
+| Does an existing T2 type already compile the same way? | Use that type + `SemanticAnnotation` metadata instead |
+| Does the type need a bounded scale or unit? | Keep the type; document required `intrinsicDomain` / `unit` in annotations |
+| Is it only a friendlier label for agents? | Prefer T1 (`Amount`, `SignedMeasure`) over a new T2 |
 
-## 2. Register
+Dropped-type guidance and the full inventory live in [Semantic types §2.4](/documentation/semantic-types#24-tier-2-specific-types).
 
-Edit [`src/core/semantic-types.ts`](../src/core/semantic-types.ts):
+---
 
-```ts
-'StockReturn': {
-  visCategory: 'measure',
-  defaultFormat: '+.1%',
-  zero: 'exclude',           // returns center around 0; include is misleading
-  colorScheme: 'diverging',  // negative ↔ positive
-  aggregationDefault: 'average',
+# §2 Register in the type registry
+
+**Single source of truth:** `packages/flint-js/src/core/type-registry.ts`
+
+Add one entry to `TYPE_REGISTRY`. The record key is the **T2 type name** (the string used in `semantic_types`).
+
+```typescript
+PercentageChange: {
+    t0: 'Measure',
+    t1: 'SignedMeasure',
+    visEncodings: ['quantitative'],
+    aggRole: 'signed-additive',
+    domainShape: 'open',
+    diverging: 'conditional',
+    formatClass: 'percent',
+    zeroBaseline: 'contextual',
+    zeroPad: 0.05,
 },
 ```
 
-## 3. Update the table in the README
+### `TypeRegistryEntry` fields
 
-Find the semantic-types table and add a row. Keep the family taxonomy
-balanced — if a new family emerges, it gets its own row group.
+| Field | Values | Drives |
+|---|---|---|
+| `t0` | `T0Family` | Parser / encoding family |
+| `t1` | `T1Category` | Mid-level rule selection |
+| `visEncodings` | `VisCategory[]` (preference order) | Default Q/O/N/T encoding |
+| `aggRole` | `additive`, `intensive`, `signed-additive`, `dimension`, `identifier` | `aggregationDefault` via `resolveAggregationDefault()` |
+| `domainShape` | `open`, `bounded`, `fixed`, `cyclic` | Domain constraints, ticks, polar hints |
+| `diverging` | `none`, `conditional`, `inherent` | Diverging color + midpoint |
+| `formatClass` | `currency`, `percent`, `unit-suffix`, `integer`, `decimal`, `plain` | Axis/tooltip format via `resolveFormat()` |
+| `zeroBaseline` | `meaningful`, `arbitrary`, `contextual`, `none` | Hint for `computeZeroDecision()` in Stage 4 |
+| `zeroPad` | `number` (0–1 fraction) | Padding when axis does not include zero |
 
-## 4. Test it
+Query API: `getRegistryEntry()`, `isRegistered()`, `getRegisteredTypes()` in the same file.
 
-Add or update a test case in `src/test-data/semantic-tests.ts` that uses
-the new type, and verify in the gallery that:
+**Not on the registry** (resolved elsewhere): explicit `pattern` strings, `reversed` axis, `colorScheme` name, `stackable` — these come from `field-semantics.ts` / `resolve-semantics.ts` reading registry dimensions plus data and channel context.
 
-- formatting follows `defaultFormat`
-- the axis behaves per `zero` and `scaleDirection`
-- the color scheme is appropriate when the field is on `color`
+---
 
-## 5. Document migration if applicable
+# §3 Sync constants and annotations
 
-If you've renamed or merged a type, add a one-line note to
-`CHANGELOG.md` under "Changed" so downstream agents can adapt.
+### `SemanticTypes` constants
+
+Add a matching key to `packages/flint-js/src/core/semantic-types.ts` so call sites can reference the type safely:
+
+```typescript
+export const SemanticTypes = {
+    // ...
+    PercentageChange: 'PercentageChange',
+} as const;
+```
+
+### Field-level metadata (optional)
+
+Per-field overrides that are **not** intrinsic to the type belong on `SemanticAnnotation` (`field-semantics.ts`), not in `TYPE_REGISTRY`:
+
+```typescript
+interface SemanticAnnotation {
+    semanticType: string;
+    intrinsicDomain?: [number, number];  // e.g. Rating [1, 5]
+    unit?: string;                        // e.g. USD, °C
+    sortOrder?: string[];                 // custom ordinal order
+}
+```
+
+Chart input accepts `Record<string, string | SemanticAnnotation>` as `semantic_types`.
+
+---
+
+# §4 Test and verify
+
+1. **Gallery case** — add or extend a generator in `packages/flint-js/src/test-data/semantic-tests.ts` that uses the new type on a relevant channel.
+2. **Register generator** — if it is a new gallery page, wire the key in `packages/flint-js/src/test-data/index.ts` (`TEST_GENERATORS`) and optionally `gallery-tree.ts`.
+3. **Run checks:**
+
+```bash
+npm run typecheck
+npm run test
+npm run site    # open Gallery → Semantic Context (or your new page)
+```
+
+Verify:
+
+- Axis format matches `formatClass` (and `unit` when annotated)
+- Aggregation follows `aggRole` when `autoAggregate` applies
+- Zero baseline and reversal match type + mark (bar vs line)
+- Diverging color appears only when `diverging` + data warrant it
+
+4. **Changelog** — if renaming or removing a type, note it under `packages/flint-js/CHANGELOG.md` so downstream agents can adapt.
+
+---
+
+# §5 Related
+
+- [Semantic types](/documentation/semantic-types) — T0/T1/T2 hierarchy, annotations, resolution rules
+- [Architecture](/documentation/architecture) — where `resolveChannelSemantics` sits in the pipeline
+- [API reference](/documentation/api-reference) — `semantic_types` / `semantic_annotations` on `ChartAssemblyInput`

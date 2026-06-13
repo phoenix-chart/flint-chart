@@ -2,8 +2,18 @@ import type { DocEntry, DocSection } from './docs-catalog';
 import { DOCUMENTATION_DOCS, TUTORIAL_DOCS, getDocEntry } from './docs-catalog';
 
 /** Eager raw imports of markdown files from the repo root and docs/. */
-const RAW_MODULES = import.meta.glob<string>(['../../../README.md', '../../../docs/*.md'], {
-  query: '?raw',
+const RAW_MODULES = import.meta.glob<string>(
+  ['../../../README.md', '../../../docs/*.md', '../../../docs/tutorials/*.md'],
+  {
+    query: '?raw',
+    import: 'default',
+    eager: true,
+  },
+);
+
+/** Doc figures under docs/figs/ — resolved to bundled asset URLs. */
+const FIGURE_MODULES = import.meta.glob<string>(['../../../docs/figs/*'], {
+  query: '?url',
   import: 'default',
   eager: true,
 });
@@ -18,6 +28,17 @@ export function getDocMarkdownBySlug(section: DocSection, slug: string): string 
   const entry = getDocEntry(section, slug);
   if (!entry) return null;
   return getDocMarkdown(entry);
+}
+
+/** Resolve relative image paths in docs markdown (e.g. figs/overview.png). */
+export function resolveMarkdownImageSrc(src: string): string | null {
+  const normalized = src.replace(/^\.\//, '');
+  for (const [path, url] of Object.entries(FIGURE_MODULES)) {
+    if (path.endsWith(`/${normalized}`) || path.endsWith(normalized)) {
+      return url;
+    }
+  }
+  return null;
 }
 
 /** Map in-doc `.md` links to on-site routes. */

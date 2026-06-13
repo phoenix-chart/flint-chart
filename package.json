@@ -18,7 +18,8 @@
     "lint:all": "npm run lint && npm run lint:py",
     "clean": "npm run clean -w packages/flint-js",
     "site": "npm run dev -w site",
-    "site:build": "npm run build -w site"
+    "site:build": "npm run build -w site",
+    "postinstall": "node scripts/link-site-react.mjs"
   },
   "engines": {
     "node": ">=18"

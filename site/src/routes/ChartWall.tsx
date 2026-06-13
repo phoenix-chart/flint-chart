@@ -9,6 +9,7 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import { TEST_GENERATORS, type TestCase } from 'flint-chart/test-data';
 import { SiteShell } from '../components/SiteShell';
+import { CodeBlock } from '../components/CodeBlock';
 import { ChartThumb } from '../components/ChartThumb';
 import { WallChart } from '../components/WallChart';
 import { ChartCodeModal } from '../components/ChartCodeModal';
@@ -483,9 +484,9 @@ function BackendIntro({ category, totalTiles }: { category: ChartCategory; total
         and render the result directly:
       </p>
 
-      <pre style={snippetStyle}>
-        <code>{snippet}</code>
-      </pre>
+      <CodeBlock customStyle={{ marginTop: 12, maxWidth: 520, fontSize: 12.5 }}>
+        {snippet}
+      </CodeBlock>
 
       <p
         style={{
@@ -611,18 +612,4 @@ const inlineCodeStyle: CSSProperties = {
   border: `1px solid ${siteTheme.border}`,
   borderRadius: 4,
   padding: '1px 5px',
-};
-
-const snippetStyle: CSSProperties = {
-  margin: '12px 0 0',
-  padding: '12px 14px',
-  background: siteTheme.bg,
-  border: `1px solid ${siteTheme.border}`,
-  borderRadius: siteTheme.radius,
-  fontFamily: siteTheme.fontMono,
-  fontSize: 12.5,
-  lineHeight: 1.55,
-  color: siteTheme.text,
-  overflowX: 'auto',
-  maxWidth: 520,
 };

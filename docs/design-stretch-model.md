@@ -1,75 +1,73 @@
-# Design: Axis Layout Compression
+# Layout model
 
-> **Physics-based models for automatically sizing chart axes when data
-> overflows the available canvas.**
+Physics-based models for automatically sizing chart axes when data overflows the available canvas.
 
-Four models cover the four geometric contexts in which layout pressure arises:
+**How to read this document:** [§1](#1-layout-mode-classification) classifies banded vs continuous axes and routes to the right model. [§2](#2-discrete-axis-elastic-budget-model)–[§5](#5-area-layout-2d-pressure-model) describe the four geometry-specific models. [§6](#6-unified-summary) collects the shared pressure–stretch pattern, decision tree, and implementation map.
 
 | § | Model | Geometry | Chart types |
 |---|---|---|---|
-| [§1](#1-discrete-axis-elastic-budget-model) | Elastic Budget | 1D banded axis | Bar, Histogram, Heatmap, Boxplot |
-| [§2](#2-continuous-axis-gas-pressure-model) | Gas Pressure | 2D point cloud | Scatter, Line, Area |
-| [§3](#3-circumference-radial-pressure-model) | Circumference | 1D closed loop | Pie, Rose, Sunburst, Radar, Gauge |
-| [§4](#4-area-layout-2d-pressure-model) | Area (2D) | 2D filled space | Treemap |
-
-All four share a common pattern:
-
-1. **Pressure = demand / supply.** Items need space; the base canvas provides it. Pressure > 1 means overflow.
-2. **Elastic stretch.** `stretch = min(maxStretch, pressure ^ elasticity)`. The power-law exponent controls how aggressively the chart grows.
-3. **Per-dimension cap.** No axis grows beyond `maxStretch × base`. For radial/area models this becomes a radius or area cap.
+| [§2](#2-discrete-axis-elastic-budget-model) | Elastic Budget | 1D banded axis | Bar, Histogram, Heatmap, Boxplot |
+| [§3](#3-continuous-axis-gas-pressure-model) | Gas Pressure | 2D point cloud | Scatter, Line, Area |
+| [§4](#4-circumference-radial-pressure-model) | Circumference | 1D closed loop | Pie, Rose, Sunburst, Radar, Gauge |
+| [§5](#5-area-layout-2d-pressure-model) | Area (2D) | 2D filled space | Treemap |
 
 ---
 
 ## Table of Contents
 
-- [§0 Layout Mode Classification](#0-layout-mode-classification)
-  - [§0.1 Banded vs Non-Banded](#01-banded-vs-non-banded)
-  - [§0.2 Decision Tree](#02-decision-tree)
-  - [§0.3 Vega-Lite Implementation Notes](#03-vega-lite-implementation-notes)
-- [§1 Discrete Axis (Elastic Budget Model)](#1-discrete-axis-elastic-budget-model)
-  - [§1.1 Problem](#11-problem)
-  - [§1.2 Parameters](#12-parameters)
-  - [§1.3 Three Regimes](#13-three-regimes)
-  - [§1.4 Power-Law Elastic Budget](#14-power-law-elastic-budget)
-  - [§1.5 Linear Spring Model (Theoretical Foundation)](#15-linear-spring-model-theoretical-foundation)
-  - [§1.6 Relationship Between Formulations](#16-relationship-between-formulations)
-  - [§1.7 Grouped Items](#17-grouped-items)
-  - [§1.8 Per-Mark-Type Guidelines](#18-per-mark-type-guidelines)
-  - [§1.9 Faceted Charts](#19-faceted-charts)
-  - [§1.10 Summary](#110-summary)
-- [§2 Continuous Axis (Gas Pressure Model)](#2-continuous-axis-gas-pressure-model)
+- [§1 Layout Mode Classification](#1-layout-mode-classification)
+  - [§1.1 Banded vs Non-Banded](#11-banded-vs-non-banded)
+  - [§1.2 Decision Tree](#12-decision-tree)
+  - [§1.3 Vega-Lite Implementation Notes](#13-vega-lite-implementation-notes)
+- [§2 Discrete Axis (Elastic Budget Model)](#2-discrete-axis-elastic-budget-model)
   - [§2.1 Problem](#21-problem)
   - [§2.2 Parameters](#22-parameters)
-  - [§2.3 Per-Axis Stretch](#23-per-axis-stretch)
-  - [§2.4 Positional ≥ Series Constraint](#24-positional--series-constraint)
-  - [§2.5 Parameter Table](#25-parameter-table)
-  - [§2.6 Worked Examples](#26-worked-examples)
-  - [§2.7 Summary](#27-summary)
-  - [§2.8 Faceted Continuous Layout](#28-faceted-continuous-layout-per-subplot-baseline--pressure--ar-blend--fit)
-  - [§2.9 Band AR Blending](#29-band-ar-blending)
-- [§3 Circumference (Radial Pressure Model)](#3-circumference-radial-pressure-model)
+  - [§2.3 Three Regimes](#23-three-regimes)
+  - [§2.4 Power-Law Elastic Budget](#24-power-law-elastic-budget)
+  - [§2.5 Theoretical foundation](#25-theoretical-foundation-spring-model)
+  - [§2.6 Grouped Items](#26-grouped-items)
+  - [§2.7 Per-Mark-Type Guidelines](#27-per-mark-type-guidelines)
+  - [§2.8 Faceted Charts](#28-faceted-charts)
+  - [§2.9 Summary](#29-summary)
+- [§3 Continuous Axis (Gas Pressure Model)](#3-continuous-axis-gas-pressure-model)
   - [§3.1 Problem](#31-problem)
   - [§3.2 Parameters](#32-parameters)
-  - [§3.3 Effective Item Count](#33-effective-item-count)
-  - [§3.4 Pressure and Stretch](#34-pressure-and-stretch)
-  - [§3.5 Canvas Sizing](#35-canvas-sizing)
-  - [§3.6 Gauge Faceting](#36-gauge-faceting)
-  - [§3.7 Parameter Table](#37-parameter-table)
-  - [§3.8 Summary](#38-summary)
-- [§4 Area Layout (2D Pressure Model)](#4-area-layout-2d-pressure-model)
+  - [§3.3 Per-Axis Stretch](#33-per-axis-stretch)
+  - [§3.4 Positional ≥ Series Constraint](#34-positional--series-constraint)
+  - [§3.5 Parameter Table](#35-parameter-table)
+  - [§3.6 Worked Examples](#36-worked-examples)
+  - [§3.7 Summary](#37-summary)
+  - [§3.8 Faceted continuous layout](#38-faceted-continuous-layout-per-subplot-baseline--pressure--ar-blend--fit)
+    - [§3.8.1 Problem](#381-problem)
+    - [§3.8.2 Per-subplot baseline](#382-per-subplot-baseline-canvas)
+    - [§3.8.3 Banking AR](#383-banking-ar-multi-scale-slope-optimization)
+    - [§3.8.4 Gas–Banking blend](#384-gasbanking-ar-blend)
+    - [§3.8.5 Area budget](#385-area-budget-and-shape)
+    - [§3.8.6 Fit to budget](#386-fit-to-budget-preserving-ar)
+  - [§3.9 Band AR blending](#39-band-ar-blending)
+- [§4 Circumference (Radial Pressure Model)](#4-circumference-radial-pressure-model)
   - [§4.1 Problem](#41-problem)
   - [§4.2 Parameters](#42-parameters)
   - [§4.3 Effective Item Count](#43-effective-item-count)
-  - [§4.4 Pressure and Biased Split](#44-pressure-and-biased-split)
-  - [§4.5 Worked Examples](#45-worked-examples)
-  - [§4.6 Summary](#46-summary)
-- [§5 Unified Summary](#5-unified-summary)
+  - [§4.4 Pressure and Stretch](#44-pressure-and-stretch)
+  - [§4.5 Canvas Sizing](#45-canvas-sizing)
+  - [§4.6 Gauge Faceting](#46-gauge-faceting)
+  - [§4.7 Parameter Table](#47-parameter-table)
+  - [§4.8 Summary](#48-summary)
+- [§5 Area Layout (2D Pressure Model)](#5-area-layout-2d-pressure-model)
+  - [§5.1 Problem](#51-problem)
+  - [§5.2 Parameters](#52-parameters)
+  - [§5.3 Effective Item Count](#53-effective-item-count)
+  - [§5.4 Pressure and Biased Split](#54-pressure-and-biased-split)
+  - [§5.5 Worked Examples](#55-worked-examples)
+  - [§5.6 Summary](#56-summary)
+- [§6 Unified Summary](#6-unified-summary)
 
 ---
 
-# §0 Layout Mode Classification
+# §1 Layout Mode Classification
 
-## §0.1 Banded vs Non-Banded
+## §1.1 Banded vs Non-Banded
 
 The layout model needs to decide **how** to allocate space for each positional axis. This depends on two independent properties:
 
@@ -98,35 +96,35 @@ A **non-banded** axis places items at data-determined positions within a continu
 
 |  | Band mark (bar, rect, boxplot) | Point mark (circle, line, area) |
 |---|---|---|
-| **Discrete scale** (N/O) | Banded — §1 | Banded — §1 (*) |
-| **Continuous scale** (Q/T) | Banded — §1 | Non-banded — §2 |
+| **Discrete scale** (N/O) | Banded — §2 | Banded — §2 (*) |
+| **Continuous scale** (Q/T) | Banded — §2 | Non-banded — §3 |
 
 (*) Discrete scales are always banded regardless of mark type — VL allocates a band per category.
 
-## §0.2 Decision Tree
+## §1.2 Decision Tree
 
 ```
 For each positional axis (x, y):
 
 1. Is the VL encoding type nominal or ordinal?
-   → YES: Banded (discrete). Use §1 directly.
+   → YES: Banded (discrete). Use §2 directly.
 
 2. Is the axis binned (enc.bin = true)?
-   → YES: Banded (continuous). Use §1 with bin count as N.
+   → YES: Banded (continuous). Use §2 with bin count as N.
 
 3. Does the template declare this axis as banded?
    (axisFlags.banded = true, e.g. bar/rect/boxplot marks)
-   → YES: Banded (continuous). Use §1 with field cardinality as N.
+   → YES: Banded (continuous). Use §2 with field cardinality as N.
 
 4. Otherwise:
-   → Non-banded (continuous). Use §2.
+   → Non-banded (continuous). Use §3.
 ```
 
 > **Implementation:** The decision is made in `compute-layout.ts` via `axisFlags.x.banded` / `axisFlags.y.banded` and `isDiscreteType()` checks. See `computeLayout()` lines ~155–230.
 
-## §0.3 Vega-Lite Implementation Notes
+## §1.3 Vega-Lite Implementation Notes
 
-The §1 elastic budget model applies to both discrete-banded and continuous-banded axes, but the **Vega-Lite implementation differs**:
+The §2 elastic budget model applies to both discrete-banded and continuous-banded axes, but the **Vega-Lite implementation differs**:
 
 ### Discrete banded (nominal / ordinal)
 
@@ -184,9 +182,9 @@ The `detectBandedAxis` function in `templates/utils.ts` handles this decision.
 
 ---
 
-# §1 Discrete Axis (Elastic Budget Model)
+# §2 Discrete Axis (Elastic Budget Model)
 
-## §1.1 Problem
+## §2.1 Problem
 
 A discrete axis displays $N$ banded items (categories, bins, groups) along a 1D segment of length $L_0$ pixels. Each item ideally occupies $\ell_0$ pixels (the natural length). When $N \cdot \ell_0 > L_0$, the items overflow.
 
@@ -195,7 +193,7 @@ Two competing goals must be balanced:
 1. **Items resist compression** — each item pushes outward to maintain $\ell_0$, and cannot shrink below $\ell_{\min}$.
 2. **The axis resists expansion** — the axis can stretch beyond $L_0$ but has a hard maximum $L_{\max}$.
 
-## §1.2 Parameters
+## §2.2 Parameters
 
 | Symbol | Meaning | Code mapping | Default |
 |---|---|---|---|
@@ -209,7 +207,7 @@ Two competing goals must be balanced:
 
 > **Code defaults:** `ElasticStretchParams` in `core/decisions.ts` — `elasticity: 0.5`, `maxStretch: 2`, `minStep: 6`. The `defaultStepSize` is computed dynamically based on canvas size: `round(20 × max(1, sizeRatio) × defaultStepMultiplier)`.
 
-## §1.3 Three Regimes
+## §2.3 Three Regimes
 
 ### Regime 1: No compression needed
 
@@ -233,7 +231,7 @@ $$N' = \left\lfloor \frac{L_{\max}}{\ell_{\min}} \right\rfloor, \quad \ell = \el
 
 Items overflow but can be accommodated by compressing items and/or stretching the axis. This is where the elastic model applies.
 
-## §1.4 Power-Law Elastic Budget
+## §2.4 Power-Law Elastic Budget
 
 This is the **implemented model**. The axis stretches using a power-law of the pressure ratio:
 
@@ -255,7 +253,7 @@ With $\alpha = 0.5$, doubling the overflow only increases the stretch by $\sqrt{
 
 > **Implementation:** `computeElasticBudget()` in `core/decisions.ts` (lines ~549–569). Called by `computeAxisStep()` which handles both nominal and continuous-as-discrete cases.
 
-## §1.5 Linear Spring Model (Theoretical Foundation)
+## §2.5 Theoretical foundation (spring model)
 
 The power-law model can be motivated by a physical analogy: $N$ identical springs packed inside a box.
 
@@ -280,7 +278,7 @@ The linear spring model is more physically intuitive and allows independent tuni
 
 **Nonlinear (progressive-rate) variant:** Replacing the linear spring with a hardening spring $F_1(\ell) = k_1 \cdot ((\ell_0 - \ell) / (\ell_0 - \ell_{\min}))^{\gamma}$ leads directly to the power-law formulation used in the implementation.
 
-## §1.6 Relationship Between Formulations
+**Mapping to the power-law implementation:**
 
 | Linear spring model | Power-law implementation |
 |---|---|
@@ -290,7 +288,7 @@ The linear spring model is more physically intuitive and allows independent tuni
 | Two parameters ($k_1$, $k_2$) | One parameter ($\alpha$) |
 | More physically intuitive | More compact; naturally progressive |
 
-## §1.7 Grouped Items
+## §2.6 Grouped Items
 
 Grouped items (e.g., grouped bar with $m$ sub-bars per group) are treated as a special case — the **group** is the unit of compression, not the individual item.
 
@@ -309,7 +307,7 @@ The elastic budget formula is unchanged — only the parameter values change.
 
 > **Implementation:** In `computeLayout()`, grouping is detected via the `group` channel. When `xHasGrouping` is true, step is computed per-group with `xStepUnit = 'group'` and a minimum group gap of 3 px is enforced.
 
-## §1.8 Per-Mark-Type Guidelines
+## §2.7 Per-Mark-Type Guidelines
 
 Different mark types have different visual footprints and compression tolerances. Templates can tune behavior via `defaultStepMultiplier` and `overrideDefaultSettings`.
 
@@ -335,11 +333,11 @@ Different mark types have different visual footprints and compression tolerances
 
 > **Note:** Currently, templates primarily adjust layout via `defaultStepMultiplier` (scales $\ell_0$ proportionally) and `overrideDefaultSettings`. Per-mark-type spring stiffness ($\kappa$) is a design aspiration, not yet individually parameterized in the code.
 
-## §1.9 Faceted Charts
+## §2.8 Faceted Charts
 
-Faceting splits one chart into a grid of subplots. This introduces an additional layer of layout compression: the canvas must accommodate $F$ panels, each containing its own axis.
+Faceting splits one chart into a grid of subplots. The canvas must accommodate $F$ panels, each with its own axis sizing. This section covers **grid layout** (stretch, subplot sizing, wrap). Continuous-axis AR blending within facets is [§3.8](#38-faceted-continuous-layout-per-subplot-baseline--pressure--ar-blend--fit).
 
-### §1.9.1 Facet stretch factor
+### §2.8.1 Facet stretch factor
 
 The total canvas stretches to accommodate facets:
 
@@ -351,7 +349,7 @@ The facet stretch uses a **gentler exponent** ($\alpha_f = 0.3$ vs $\alpha = 0.5
 
 > **Implementation:** `computeLayout()` lines ~256–270 in `compute-layout.ts`. Uses `facetElasticityVal = 0.3` and `maxStretchVal = 2`.
 
-### §1.9.2 Subplot sizing
+### §2.8.2 Subplot sizing
 
 Each subplot gets a share of the stretched canvas:
 
@@ -363,7 +361,7 @@ $$W_{\text{sub}} = \max\!\left(S_{\min},\; \frac{W_0 \cdot \lambda_f - \text{fix
 | $\alpha_f$ | Facet elasticity | 0.3 |
 | $S_{\min}$ | Minimum subplot size (continuous axis) | 60 px |
 
-### §1.9.3 Facet-mode shrink limits
+### §2.8.3 Facet-mode shrink limits
 
 Under faceting, axes can shrink **further** than in single-chart mode because the reader compares patterns across panels rather than reading individual values precisely.
 
@@ -376,15 +374,15 @@ Under faceting, axes can shrink **further** than in single-chart mode because th
 | Ridge / density | — | 20 px |
 | Scatter | — | 60 px |
 
-### §1.9.4 Faceted discrete axis
+### §2.8.4 Faceted discrete axis
 
 The spring model runs **per subplot**: $W_{\text{sub}}$ becomes $L_0$ and $N_{\text{items}}$ is the per-panel count. If items still overflow, they are truncated to $N' = \lfloor W_{\text{sub}} / \ell_{\min} \rfloor$.
 
-### §1.9.5 Faceted continuous axis
+### §2.8.5 Faceted continuous axis
 
-The gas pressure model (§2) runs within each subplot using $W_{\text{sub}} \times H_{\text{sub}}$ as the container. Subplot dimensions are uniform across panels for visual consistency.
+The gas pressure model (§3) runs within each subplot using $W_{\text{sub}} \times H_{\text{sub}}$ as the container. Subplot dimensions are uniform across panels for visual consistency.
 
-### §1.9.6 Facet wrap (column-only folding)
+### §2.8.6 Facet wrap (column-only folding)
 
 When only a column facet is specified and $F$ exceeds the maximum columns that fit, panels wrap into a 2D grid:
 
@@ -399,7 +397,7 @@ The minimum subplot size ($S_{\min}$) is axis-aware:
 
 > **Implementation:** `computeFacetGrid()` in `compute-layout.ts`. Runs **before** `computeLayout()` to break the circularity between wrapping and axis sizing.
 
-## §1.10 Summary
+## §2.9 Summary
 
 | Symbol | Meaning | Default |
 |---|---|---|
@@ -431,15 +429,15 @@ else:
 
 ---
 
-# §2 Continuous Axis (Gas Pressure Model)
+# §3 Continuous Axis (Gas Pressure Model)
 
-## §2.1 Problem
+## §3.1 Problem
 
 A continuous axis displays $N$ point-like items (scatter dots, line vertices) across a 2D canvas. Unlike discrete items, these marks do not occupy fixed bands — they float at data-determined positions. Each mark has a visual cross-section $\sigma$ (px²).
 
 **Why springs don't apply:** Continuous marks don't own slots. A scatter plot with 100 points and one with 10 can both fit in the same canvas — the difference is **density**, not per-item allocation. This is the domain of gas physics.
 
-## §2.2 Parameters
+## §3.2 Parameters
 
 | Symbol | Meaning | Code mapping | Default |
 |---|---|---|---|
@@ -458,7 +456,7 @@ A continuous axis displays $N$ point-like items (scatter dots, line vertices) ac
 | Primary encoding | Length / area of band | Position along scale |
 | Recommended $\beta$ | 2.0 | 1.5 |
 
-## §2.3 Per-Axis Stretch
+## §3.3 Per-Axis Stretch
 
 Crowding is almost always asymmetric — e.g., on a line chart, X is driven by time points while Y is driven by overlapping series. Each axis is stretched independently.
 
@@ -468,10 +466,12 @@ Count unique pixel positions along the axis (bucketed at ~1 px resolution). Each
 
 $$p_{1d} = \frac{\text{uniquePos} \cdot \sigma_{1d}}{\text{dim}_0}$$
 
-$$s = \begin{cases}
-1 & \text{if } p_{1d} \leq 1 \\
+$$
+s = \begin{cases}
+1 & \text{if } p_{1d} \leq 1 \cr
 \min(\beta_c,\; p_{1d}^{\,\alpha_c}) & \text{if } p_{1d} > 1
-\end{cases}$$
+\end{cases}
+$$
 
 ### Mode 2: Series-count (`seriesCountAxis`)
 
@@ -485,7 +485,7 @@ Here $\sigma$ is used **directly** (not square-rooted) since series count is inh
 
 > **Implementation:** `computeGasPressure()` in `core/decisions.ts` (lines ~442–508). The 2D path (both axes continuous) and 1D path (one axis continuous) are handled separately in `computeLayout()` lines ~275–425.
 
-## §2.4 Positional ≥ Series Constraint
+## §3.4 Positional ≥ Series Constraint
 
 For charts where both axes are continuous (line, area), more series means more visual clutter on the **positional** axis too — more overlapping lines means more crossings and parallel strokes competing for the reader's attention. The positional axis ideal stretch is lifted to at least the series axis ideal stretch:
 
@@ -493,7 +493,7 @@ $$\text{ideal}_{\text{positional}} = \max(\text{ideal}_{\text{positional}},\; \t
 
 When `maintainContinuousAxisRatio` is set, both axes use the maximum of the two stretches.
 
-## §2.5 Parameter Table
+## §3.5 Parameter Table
 
 | Chart type | $\sigma_x$ | $\sigma_y$ | $\alpha_c$ | $\beta_c$ | seriesCountAxis |
 |---|---|---|---|---|---|
@@ -505,9 +505,9 @@ When `maintainContinuousAxisRatio` is set, both axes use the maximum of the two 
 | Bump | 80 | 20 | 0.3 | 1.5 | auto (→ Y) |
 | Stacked Bar | 20 | 20 | 0.3 | 1.5 | auto (→ Y*) |
 
-\* For stacked bar, X is discrete (§1), Y is continuous. `auto` resolves to Y via the 1D path.
+\* For stacked bar, X is discrete (§2), Y is continuous. `auto` resolves to Y via the 1D path.
 
-## §2.6 Worked Examples
+## §3.6 Worked Examples
 
 ### Series-axis stretch ($\sigma = 20$, $\text{dim}_0 = 300$, $\alpha_c = 0.3$, $\beta_c = 1.5$)
 
@@ -528,7 +528,7 @@ When `maintainContinuousAxisRatio` is set, both axes use the maximum of the two 
 | 200 dates × 3 series | 200 | 3 | 1.50 | 1.0 | 1.50 | 1.0 |
 | 200 dates × 20 series | 200 | 20 | 1.50 | 1.09 | 1.50 | 1.09 |
 
-## §2.7 Summary
+## §3.7 Summary
 
 | Symbol | Meaning | Default |
 |---|---|---|
@@ -556,7 +556,7 @@ For each axis (X, Y):
     else:
         stretch = min(βc, pressure^αc)
 
-# Positional ≥ Series constraint (when seriesCountAxis is set):
+// Positional ≥ Series constraint (when seriesCountAxis is set):
 stretch_positional = max(stretch_positional, stretch_series)
 
 W = W₀ · stretch_x
@@ -565,9 +565,9 @@ H = H₀ · stretch_y
 
 > **Key functions:** `computeGasPressure()` in `core/decisions.ts`; gas-pressure integration in `computeLayout()` in `core/compute-layout.ts`.
 
-## §2.8 Faceted Continuous Layout (Per-Subplot Baseline → Pressure → AR Blend → Fit)
+## §3.8 Faceted Continuous Layout (Per-Subplot Baseline → Pressure → AR Blend → Fit)
 
-### §2.8.1 Problem
+### §3.8.1 Problem
 
 When faceted, the gas pressure model must answer: **what canvas does each subplot's data crowd against?**
 
@@ -577,19 +577,19 @@ Alternative naive approach: divide the raw canvas by column/row count first, the
 
 The correct answer is: **gas pressure runs against the per-subplot canvas that already accounts for facet elasticity** — the same stretch formula used for discrete axes.
 
-### §2.8.2 Per-Subplot Baseline Canvas
+### §3.8.2 Per-Subplot Baseline Canvas
 
 Before gas pressure runs, we compute what each subplot would get from facet stretch alone:
 
 $$W_{\text{sub}} = \max\!\left(S_{\min},\; \frac{W_0 \cdot \lambda_f - \text{fixPad}}{F_c} - \text{gap}\right)$$
 
-where $\lambda_f = \min(\beta,\; F_c^{\,\alpha_f})$ is the facet elasticity stretch (§1.9.1). For a single-panel chart ($F_c = 1$), $W_{\text{sub}} = W_0$.
+where $\lambda_f = \min(\beta,\; F_c^{\,\alpha_f})$ is the facet elasticity stretch (§2.8.1). For a single-panel chart ($F_c = 1$), $W_{\text{sub}} = W_0$.
 
 This gives gas pressure a realistic baseline: the space the subplot will actually occupy before any gas-pressure-driven stretch.
 
 > **Implementation:** `perSubplotCanvasW/H` in `computeLayout()` (~line 410–420). Uses `facetElasticityVal = 0.3` and `maxStretchVal = 2`.
 
-### §2.8.3 Banking AR (Multi-Scale Slope Optimization)
+### §3.8.3 Banking AR (Multi-Scale Slope Optimization)
 
 For charts with connected marks (line, area, streamgraph), the data has a **perceptually optimal aspect ratio** determined by the slopes of the line segments. This is the *banking to 45°* principle (Cleveland, 1993): the chart should be shaped so that the median line segment slope approaches 45°, making trends maximally visible.
 
@@ -609,11 +609,11 @@ We use a **multi-scale banking** approach (Heer & Agrawala, 2006) that considers
 
 **For scatter plots** (non-connected): Instead of line slopes, use the standard-deviation ratio $\sigma_x / \sigma_y$ in normalized coordinates, with a dampened response: $\text{AR} = 1 + 0.3 \times (\text{sdRatio} - 1)$.
 
-**No dampening.** The raw combined slope is returned without any multiplicative dampening. The 50/50 blend with gas pressure (§2.8.4) is the sole moderation — applying dampening on top would double-moderate.
+**No dampening.** The raw combined slope is returned without any multiplicative dampening. The 50/50 blend with gas pressure (§3.8.4) is the sole moderation — applying dampening on top would double-moderate.
 
 > **Implementation:** `computeBankingAR()` in `compute-layout.ts` (~line 819). Returns W/H aspect ratio in $[0.5,\; 3.0]$.
 
-### §2.8.4 Gas–Banking AR Blend
+### §3.8.4 Gas–Banking AR Blend
 
 Gas pressure knows which axis is more crowded (density asymmetry). Banking knows the perceptual ideal AR (slope optimization). We blend both signals in **log space** with equal weight:
 
@@ -625,7 +625,7 @@ This is the geometric mean: if gas pressure says 2:1 (X crowded) and banking say
 
 **Coverage gate:** Banking is only applied when both X and Y data cover at least 20% of their respective domains. When data is concentrated in a small region (e.g., a cluster in one corner), slopes are unreliable and gas pressure alone drives the AR.
 
-### §2.8.5 Area Budget and Shape
+### §3.8.5 Area Budget and Shape
 
 The blend decides the AR; gas pressure decides the total area:
 
@@ -639,7 +639,7 @@ Distribute area to match the blended AR:
 
 $$\text{idealW} = \sqrt{\text{area} \times \text{blendedAR}} \qquad \text{idealH} = \sqrt{\text{area} / \text{blendedAR}}$$
 
-### §2.8.6 Fit to Budget (Preserving AR)
+### §3.8.6 Fit to Budget (Preserving AR)
 
 Hard ceiling per subplot: $W_0 \times \beta$ total, shared across facet panels:
 
@@ -653,7 +653,7 @@ $$\text{finalW} = \max(S_{\min},\; \text{idealW} \times \text{fitScale}) \qquad 
 
 The uniform `fitScale` ensures neither axis exceeds its budget AND the blended AR is preserved (except at minimum-size extremes).
 
-### §2.8.7 Worked Example
+### §3.8.7 Worked Example
 
 150 dates × 8 series × 3 column facets (base $400 \times 300$, $\beta = 2.0$, line chart: $\sigma_x = 100$, $\sigma_y = 20$, `seriesCountAxis: auto → Y`, `facetElasticity = 0.3`):
 
@@ -680,13 +680,13 @@ The uniform `fitScale` ensures neither axis exceeds its budget AND the blended A
 
 > **Implementation:** `computeLayout()` in `core/compute-layout.ts` — the cont×cont path (~lines 370–530). `computeBankingAR()` (~line 819). `computeGasPressure()` in `core/decisions.ts`.
 
-## §2.9 Band AR Blending
+## §3.9 Band AR Blending
 
-### §2.9.1 Problem
+### §3.9.1 Problem
 
-When one axis is banded (discrete) and the other is continuous — e.g., a bar chart with categories on X and values on Y — the step size from §1 determines the band width, while the continuous axis uses the default canvas height. If there are few categories with a tall canvas, each band becomes excessively elongated (tall, thin bars). This degrades readability: labels crowd, bar proportions look distorted, and the chart wastes vertical space.
+When one axis is banded (discrete) and the other is continuous — e.g., a bar chart with categories on X and values on Y — the step size from §2 determines the band width, while the continuous axis uses the default canvas height. If there are few categories with a tall canvas, each band becomes excessively elongated (tall, thin bars). This degrades readability: labels crowd, bar proportions look distorted, and the chart wastes vertical space.
 
-### §2.9.2 Target Band AR
+### §3.9.2 Target Band AR
 
 The **band aspect ratio** is the ratio of the continuous dimension to the step size:
 
@@ -694,9 +694,9 @@ $$\text{bandAR} = \frac{\text{continuousDim}}{\text{stepSize}}$$
 
 When `bandAR` is large (e.g., 20:1), each bar is 20× taller than it is wide — visually extreme. A `targetBandAR` parameter (default: 10) defines the maximum acceptable ratio.
 
-### §2.9.3 Log-Space Blend
+### §3.9.3 Log-Space Blend
 
-When the actual band AR exceeds the target, the continuous axis is **shrunk** toward the ideal via a 50/50 log-space blend (same mechanism as §2.8.4):
+When the actual band AR exceeds the target, the continuous axis is **shrunk** toward the ideal via a 50/50 log-space blend (same mechanism as §3.8.4):
 
 $$\text{idealDim} = \text{stepSize} \times \text{targetBandAR}$$
 
@@ -704,14 +704,14 @@ $$\text{blendedDim} = \exp\!\left(0.5 \cdot \ln(\text{actualDim}) + 0.5 \cdot \l
 
 The result is clamped to $[S_{\min},\; \text{actualDim}]$ — the blend only **shrinks**, never grows. If `bandAR ≤ targetBandAR`, no adjustment is made.
 
-### §2.9.4 Orientation Handling
+### §3.9.4 Orientation Handling
 
 | Axis layout | Band AR formula | Adjusted dimension |
 |---|---|---|
 | X banded, Y continuous | $H / \text{xStep}$ | Shrink $H$ |
 | Y banded, X continuous | $W / \text{yStep}$ | Shrink $W$ |
 
-### §2.9.5 Worked Example
+### §3.9.5 Worked Example
 
 5 categories on X, step = 40 px, canvas height = 300 px, targetBandAR = 10:
 
@@ -732,25 +732,25 @@ The result is clamped to $[S_{\min},\; \text{actualDim}]$ — the blend only **s
 
 ---
 
-# §3 Circumference (Radial Pressure Model)
+# §4 Circumference (Radial Pressure Model)
 
-## §3.1 Problem
+## §4.1 Problem
 
 Radial charts (pie, rose, sunburst, radar) arrange data items around a **circle**. The relevant dimension is the **circumference**. When many items crowd the circumference, the chart must grow to keep slices/spokes legible.
 
 **Why axis models don't apply:**
-- **§1 (Spring):** Assumes a 1D axis with endpoints. Radial charts have a closed loop — growing means increasing the **radius**, which increases circumference as $C = 2\pi r$.
-- **§2 (Gas):** Assumes 2D free-floating points. Radial items are angularly constrained to their slice/spoke positions.
+- **§2 (Spring):** Assumes a 1D axis with endpoints. Radial charts have a closed loop — growing means increasing the **radius**, which increases circumference as $C = 2\pi r$.
+- **§3 (Gas):** Assumes 2D free-floating points. Radial items are angularly constrained to their slice/spoke positions.
 
 The circumference model maps the spring intuition to polar geometry: treat the circumference as a "bent axis" and stretch the radius.
 
-## §3.2 Parameters
+## §4.2 Parameters
 
 | Symbol | Meaning | Default |
 |---|---|---|
 | $r_0$ | Base radius: $\max(r_{\min},\; \min(W_0, H_0)/2 - m)$ | derived |
 | $C_0$ | Base circumference: $2\pi r_0$ | derived |
-| $N_{\text{eff}}$ | Effective item count (§3.3) | data-dependent |
+| $N_{\text{eff}}$ | Effective item count (§4.3) | data-dependent |
 | $\ell_{\text{arc}}$ | Minimum arc-length per item (px) | 45 |
 | $\alpha$ | Elasticity exponent | 0.5 |
 | $\beta$ | Per-dimension max stretch | 2.0 |
@@ -760,7 +760,7 @@ The circumference model maps the spring intuition to polar geometry: treat the c
 
 > **Code defaults:** `CircumferencePressureParams` in `core/decisions.ts` — `minArcPx: 45`, `minRadius: 60`, `maxRadius: 400`, `elasticity: 0.5`, `maxStretch: 2.0`, `margin: 20`.
 
-## §3.3 Effective Item Count
+## §4.3 Effective Item Count
 
 Different radial chart types have different crowding dynamics, abstracted into a single number $N_{\text{eff}}$.
 
@@ -776,7 +776,7 @@ This answers: "how many of the smallest slice would fill the entire circle?" Cap
 
 > **Implementation:** `computeEffectiveBarCount()` in `core/decisions.ts` (lines ~906–920).
 
-## §3.4 Pressure and Stretch
+## §4.4 Pressure and Stretch
 
 **Pressure:**
 
@@ -788,16 +788,18 @@ $$s_{\max} = \min\!\left(\frac{r_{\max}}{r_0},\; \frac{\min(W_0 \cdot \beta,\; H
 
 **Stretch:**
 
-$$s = \begin{cases}
-1 & \text{if } p \leq 1 \\
+$$
+s = \begin{cases}
+1 & \text{if } p \leq 1 \cr
 \min(s_{\max},\; p^{\alpha}) & \text{if } p > 1
-\end{cases}$$
+\end{cases}
+$$
 
 **Radius:** $r = \text{clamp}(r_0 \cdot s,\; r_{\min},\; r_{\max})$
 
 > **Implementation:** `computeCircumferencePressure()` in `core/decisions.ts` (lines ~850–893).
 
-## §3.5 Canvas Sizing
+## §4.5 Canvas Sizing
 
 After computing the final radius $r$:
 
@@ -805,7 +807,7 @@ $$W = \max(W_0,\; 2r + 2m), \quad H = \max(H_0,\; 2r + 2m)$$
 
 Both canvas dimensions grow equally (maintaining circular aspect ratio).
 
-## §3.6 Gauge Faceting
+## §4.6 Gauge Faceting
 
 Gauge charts are a special case: each gauge is a single-item radial chart. Multiple gauges are laid out in a facet-style grid computed by the template (since the assembler's facet path doesn't apply to axis-less charts).
 
@@ -815,7 +817,7 @@ $$\text{elementSize} = \text{baseline} \times (r / r_{\text{ref}})$$
 
 where $r_{\text{ref}} = 100$ px. Each element is clamped to a minimum. This avoids threshold artifacts.
 
-## §3.7 Parameter Table
+## §4.7 Parameter Table
 
 | Chart type | $N_{\text{eff}}$ source | $\ell_{\text{arc}}$ | $\alpha$ | $\beta$ | $m$ |
 |---|---|---|---|---|---|
@@ -825,7 +827,7 @@ where $r_{\text{ref}} = 100$ px. Each element is clamped to a minimum. This avoi
 | **Radar** | N spokes | 45 | 0.5 | 2.0 | 20 |
 | **Gauge** | N dials (facet grid) | — | — | 2.0 | 20 |
 
-## §3.8 Summary
+## §4.8 Summary
 
 ```
 Given: N_eff items, minArc ℓ_arc, base canvas W₀×H₀,
@@ -835,7 +837,7 @@ r₀ = max(minRadius, (min(W₀, H₀) / 2) - m)
 C₀ = 2π · r₀
 p  = N_eff · ℓ_arc / C₀
 
-# Effective max stretch on radius (per-dimension cap)
+// Effective max stretch on radius (per-dimension cap)
 s_max = min(maxRadius / r₀,
             (min(W₀·β, H₀·β) - 2m) / (2·r₀))
 
@@ -853,23 +855,23 @@ H = max(H₀, 2r + 2m)
 
 ---
 
-# §4 Area Layout (2D Pressure Model)
+# §5 Area Layout (2D Pressure Model)
 
-## §4.1 Problem
+## §5.1 Problem
 
 Area-filling charts (treemap) divide a 2D canvas into rectangles whose area encodes value. Unlike Cartesian charts, the fundamental resource is **total area**. When many items crowd the space, every item ends up too small to display labels or be visually distinguishable.
 
 **Why other models don't apply:**
-- **§1 / §2:** Reason about 1D axes independently. Treemap items don't have stable positions on either axis — the squarify algorithm decides the partition on-the-fly.
-- **§3:** Reasons about a closed loop. Treemap items occupy 2D area, not angular sectors.
+- **§2 / §3:** Reason about 1D axes independently. Treemap items don't have stable positions on either axis — the squarify algorithm decides the partition on-the-fly.
+- **§4:** Reasons about a closed loop. Treemap items occupy 2D area, not angular sectors.
 
-## §4.2 Parameters
+## §5.2 Parameters
 
 | Symbol | Meaning | Default |
 |---|---|---|
 | $W_0, H_0$ | Base canvas dimensions | from context |
 | $A_0$ | Base canvas area: $W_0 \times H_0$ | derived |
-| $N_{\text{eff}}$ | Effective item count (§4.3) | data-dependent |
+| $N_{\text{eff}}$ | Effective item count (§5.3) | data-dependent |
 | $\ell_{\min}$ | Minimum width per effective item (px) | 30 |
 | $\alpha$ | Elasticity exponent | 0.5 |
 | $\beta$ | Per-dimension max stretch | 2.0 |
@@ -877,9 +879,9 @@ Area-filling charts (treemap) divide a 2D canvas into rectangles whose area enco
 
 > **Implementation note:** The area model is currently implemented **inline** in `echarts/templates/treemap.ts` (lines ~91–115), not as a shared core function in `decisions.ts`. The formulas and defaults match this document exactly.
 
-## §4.3 Effective Item Count
+## §5.3 Effective Item Count
 
-Uses the same formula as §3.3:
+Uses the same formula as §4.3:
 
 $$N_{\text{eff}} = \min\!\left(100,\; \frac{\sum v_i}{\min(v_i)}\right)$$
 
@@ -887,7 +889,7 @@ This captures the worst case: how many of the smallest item would fill the entir
 
 > **Implementation:** Calls `computeEffectiveBarCount()` from `core/decisions.ts`.
 
-## §4.4 Pressure and Biased Split
+## §5.4 Pressure and Biased Split
 
 ### Step 1: 1D Pressure
 
@@ -897,10 +899,12 @@ $$p = \frac{N_{\text{eff}} \cdot \ell_{\min}}{W_0}$$
 
 ### Step 2: Area stretch
 
-$$A_{\text{stretch}} = \begin{cases}
-1 & \text{if } p \leq 1 \\
+$$
+A_{\text{stretch}} = \begin{cases}
+1 & \text{if } p \leq 1 \cr
 \min(\beta^2,\; p^{\alpha}) & \text{if } p > 1
-\end{cases}$$
+\end{cases}
+$$
 
 The cap is $\beta^2$ because $A = W \times H$ and each dimension is capped at $\beta$.
 
@@ -925,7 +929,7 @@ $$s_y = \min(\beta,\; A_{\text{stretch}}^{\,1/(b+1)})$$
 
 $$W = \lfloor W_0 \cdot s_x \rceil, \quad H = \lfloor H_0 \cdot s_y \rceil$$
 
-## §4.5 Worked Examples
+## §5.5 Worked Examples
 
 Base canvas 400×300, $\ell_{\min} = 30$, $\alpha = 0.5$, $\beta = 2.0$, $b = 1.5$:
 
@@ -939,7 +943,7 @@ Base canvas 400×300, $\ell_{\min} = 30$, $\alpha = 0.5$, $\beta = 2.0$, $b = 1.
 
 **Why biased split?** Treemap squarify algorithms produce nearly square cells when the canvas is square. Giving X more stretch prioritizes horizontal readability: labels inside treemap cells are horizontal, so extra width is more valuable for label fitting.
 
-## §4.6 Summary
+## §5.6 Summary
 
 | Symbol | Meaning | Default |
 |---|---|---|
@@ -972,16 +976,16 @@ H = round(H₀ · s_y)
 
 ---
 
-# §5 Unified Summary
+# §6 Unified Summary
 
 The four models adapt the same core idea — **pressure → elastic stretch → clamped output** — to different geometric contexts:
 
 | § | Model | Geometry | Pressure formula | Stretch dimension(s) | Chart types |
 |---|---|---|---|---|---|
-| §1 | Elastic Budget | 1D axis | $N \cdot \ell_0 / L_0$ | 1D (axis length) | Bar, Histogram, Heatmap, Boxplot |
-| §2 | Gas Pressure | 2D point cloud | $\text{uniquePos} \cdot \sigma_{1d} / \text{dim}$ | Per-axis (X, Y independent) | Scatter, Line, Area |
-| §3 | Circumference | 1D closed loop | $N_{\text{eff}} \cdot \ell_{\text{arc}} / C_0$ | Radius (both W, H equally) | Pie, Rose, Sunburst, Radar, Gauge |
-| §4 | Area | 2D filled space | $N_{\text{eff}} \cdot \ell_{\min} / W_0$ | Area (biased X/Y split) | Treemap |
+| §2 | Elastic Budget | 1D axis | $N \cdot \ell_0 / L_0$ | 1D (axis length) | Bar, Histogram, Heatmap, Boxplot |
+| §3 | Gas Pressure | 2D point cloud | $\text{uniquePos} \cdot \sigma_{1d} / \text{dim}$ | Per-axis (X, Y independent) | Scatter, Line, Area |
+| §4 | Circumference | 1D closed loop | $N_{\text{eff}} \cdot \ell_{\text{arc}} / C_0$ | Radius (both W, H equally) | Pie, Rose, Sunburst, Radar, Gauge |
+| §5 | Area | 2D filled space | $N_{\text{eff}} \cdot \ell_{\min} / W_0$ | Area (biased X/Y split) | Treemap |
 
 ### Shared concepts
 
@@ -990,41 +994,41 @@ The four models adapt the same core idea — **pressure → elastic stretch → 
 3. **Per-dimension cap $\beta$.** No axis grows beyond $\beta \times$ base. For radial/area models this translates to radius or area caps.
 4. **Effective item count.** For variable-width items (pie, treemap), $N_{\text{eff}} = \sum v_i / \min(v_i)$ measures worst-case crowding.
 
-### AR-aware extensions (§2.8–§2.9)
+### AR-aware extensions (§3.8–§3.9)
 
 For continuous axes, raw pressure is augmented with aspect-ratio intelligence:
 
-5. **Banking AR (§2.8.3).** Multi-scale slope analysis (Heer & Agrawala 2006) determines the perceptual ideal W/H ratio. Connected marks get a landscape floor (AR ≥ 1). Scatter uses σ-ratio.
-6. **Gas–Banking blend (§2.8.4).** 50/50 geometric mean in log space: gasAR (density) × bankingAR (perception).
-7. **Per-subplot baseline (§2.8.2).** Faceted charts feed per-subplot canvas (with facet elasticity) to gas pressure, not the full canvas.
-8. **Band AR blending (§2.9).** When one axis is banded and the other continuous, `targetBandAR` prevents excessively elongated bands via log-space blend.
+5. **Banking AR (§3.8.3).** Multi-scale slope analysis (Heer & Agrawala 2006) determines the perceptual ideal W/H ratio. Connected marks get a landscape floor (AR ≥ 1). Scatter uses σ-ratio.
+6. **Gas–Banking blend (§3.8.4).** 50/50 geometric mean in log space: gasAR (density) × bankingAR (perception).
+7. **Per-subplot baseline (§3.8.2).** Faceted charts feed per-subplot canvas (with facet elasticity) to gas pressure, not the full canvas.
+8. **Band AR blending (§3.9).** When one axis is banded and the other continuous, `targetBandAR` prevents excessively elongated bands via log-space blend.
 
 ### Decision tree
 
 ```
 Is the chart axis-based?
 ├── YES: Does it have banded (discrete) axes?
-│   ├── Both banded  → §1 Elastic Budget on each axis
-│   ├── One banded   → §1 for banded axis, §2 for continuous axis
-│   │                  + §2.9 Band AR blending if targetBandAR set
-│   └── Neither      → §2 Gas Pressure (both axes continuous)
-│                      + §2.8 Banking AR + Gas–Banking blend
+│   ├── Both banded  → §2 Elastic Budget on each axis
+│   ├── One banded   → §2 for banded axis, §3 for continuous axis
+│   │                  + §3.9 Band AR blending if targetBandAR set
+│   └── Neither      → §3 Gas Pressure (both axes continuous)
+│                      + §3.8 Banking AR + Gas–Banking blend
 └── NO:  Is the layout radial (items around a circle)?
-    ├── YES → §3 Circumference Model
-    └── NO  → §4 Area Model (2D space-filling)
+    ├── YES → §4 Circumference Model
+    └── NO  → §5 Area Model (2D space-filling)
 ```
 
 ### Implementation map
 
 | Function | File | Model |
 |---|---|---|
-| `computeElasticBudget()` | `core/decisions.ts` | §1 |
-| `computeAxisStep()` | `core/decisions.ts` | §1 |
-| `computeGasPressure()` | `core/decisions.ts` | §2 |
-| `computeBankingAR()` | `core/compute-layout.ts` | §2.8 |
-| `computeCircumferencePressure()` | `core/decisions.ts` | §3 |
-| `computeEffectiveBarCount()` | `core/decisions.ts` | §3, §4 |
-| `computeLayout()` | `core/compute-layout.ts` | §1, §2, §2.8, §2.9 orchestration |
-| `computeFacetGrid()` | `core/compute-layout.ts` | §1.9 faceting, §2.8 min subplot |
-| `computeChannelBudgets()` | `core/compute-layout.ts` | §1.9 overflow budgets |
-| Area pressure (inline) | `echarts/templates/treemap.ts` | §4 |
+| `computeElasticBudget()` | `core/decisions.ts` | §2 |
+| `computeAxisStep()` | `core/decisions.ts` | §2 |
+| `computeGasPressure()` | `core/decisions.ts` | §3 |
+| `computeBankingAR()` | `core/compute-layout.ts` | §3.8 |
+| `computeCircumferencePressure()` | `core/decisions.ts` | §4 |
+| `computeEffectiveBarCount()` | `core/decisions.ts` | §4, §5 |
+| `computeLayout()` | `core/compute-layout.ts` | §2, §3, §3.8, §3.9 orchestration |
+| `computeFacetGrid()` | `core/compute-layout.ts` | §2.8 faceting, §3.8 min subplot |
+| `computeChannelBudgets()` | `core/compute-layout.ts` | §2.8 overflow budgets |
+| Area pressure (inline) | `echarts/templates/treemap.ts` | §5 |

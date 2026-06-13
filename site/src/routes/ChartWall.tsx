@@ -16,7 +16,7 @@ import type { PreviewBackend } from '../shared/supported-backends';
 import { siteTheme } from '../shared/theme';
 
 const MAX_VARIANTS = 4;
-const TILE_CHART_HEIGHT = 200;
+const TILE_CHART_HEIGHT = 190;
 
 function loadTests(generator: string): TestCase[] {
   const gen = TEST_GENERATORS[generator];
@@ -130,10 +130,10 @@ export function ChartWall() {
           <BackendTabs activeId={category.id} onSelect={(id) => navigate(`/wall/${id}`)} />
 
           {families.map((section) => (
-            <section key={section.id} style={{ marginTop: 36 }}>
+            <section key={section.id} style={{ marginTop: 48 }}>
               <h2
                 style={{
-                  margin: '0 0 14px',
+                  margin: '0 0 18px',
                   fontSize: 17,
                   fontWeight: 600,
                   letterSpacing: -0.2,
@@ -150,7 +150,7 @@ export function ChartWall() {
                 style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-                  gap: '28px 24px',
+                  gap: '32px 36px',
                   alignItems: 'start',
                 }}
               >
@@ -232,14 +232,9 @@ function VariantCard({ tile, onOpen }: { tile: Tile; onOpen: () => void }) {
       <div
         style={{
           width: '100%',
-          borderRadius: 8,
+          borderRadius: 4,
           overflow: 'hidden',
           background: siteTheme.surface,
-          boxShadow: hovered
-            ? '0 6px 20px rgba(27,31,36,0.12)'
-            : '0 1px 3px rgba(27,31,36,0.06)',
-          transform: hovered ? 'translateY(-2px)' : 'none',
-          transition: 'transform 150ms ease, box-shadow 150ms ease',
         }}
       >
         {visible ? (
@@ -264,9 +259,9 @@ function VariantCard({ tile, onOpen }: { tile: Tile; onOpen: () => void }) {
 
       <div
         style={{
-          marginTop: 10,
-          padding: '0 4px',
-          fontSize: 12.5,
+          marginTop: 7,
+          padding: '0 2px',
+          fontSize: 13,
           lineHeight: 1.4,
           color: hovered ? siteTheme.accent : siteTheme.text,
           transition: 'color 150ms ease',

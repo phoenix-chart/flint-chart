@@ -1,66 +1,117 @@
-import type { CSSProperties, ReactNode } from 'react';
+import { useMemo, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
+import { TEST_GENERATORS, type TestCase } from 'flint-chart/test-data';
 import { SiteNavBar, MicrosoftDisclosures } from '../components/SiteShell';
-import { siteTheme } from '../shared/theme';
+import { WallChart } from '../components/WallChart';
+import { ScaleToFit } from '../components/ScaleToFit';
+import { testCaseToFlintSummary } from '../shared/test-case-utils';
+import type { PreviewBackend } from '../shared/supported-backends';
+import { GITHUB_REPO, siteTheme } from '../shared/theme';
 
 /**
- * Landing page — one-line positioning + Gallery / Editor CTAs (Observable-style).
+ * Front page — data-formulator/about-style hero + zigzag feature rows, with copy
+ * learned from the Flint paper and the Vega-Lite homepage advertisement.
  */
 export function Landing() {
+  const heroCase = useTestCase('Line Chart', 1);
+
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        fontFamily: siteTheme.fontSans,
-        color: siteTheme.text,
-        background: siteTheme.bg,
-      }}
-    >
+    <div style={pageStyle}>
       <SiteNavBar />
 
-      <main
-        style={{
-          flex: 1,
-          maxWidth: 760,
-          margin: '0 auto',
-          padding: '72px 24px 48px',
-          width: '100%',
-        }}
-      >
-        <h1 style={{ fontSize: 36, margin: '0 0 12px', fontWeight: 700, letterSpacing: '-0.02em' }}>
-          Write less spec. Get clearer charts.
-        </h1>
-        <p style={{ color: siteTheme.textMuted, fontSize: 18, marginTop: 0, lineHeight: 1.5, maxWidth: 620 }}>
-          Flint Chart compiles table data, field semantic types, and a short{' '}
-          <code style={codeStyle}>chart_spec</code> into full configs for Vega-Lite, ECharts, and
-          Chart.js — without hand-writing encodings, scales, axes, and legends.
-        </p>
+      <main style={mainStyle}>
+        {/* ---- Hero ------------------------------------------------------ */}
+        <section style={{ ...sectionStyle, textAlign: 'center', paddingTop: 72 }}>
+          <div style={eyebrowStyle}>Semantic-driven data visualization</div>
+          <h1 style={heroTitleStyle}>Flint</h1>
+          <p style={taglineStyle}>
+            An intermediate language that turns concise, semantic specifications
+            into high-quality charts.
+          </p>
+          <p style={leadStyle}>
+            Flint is a high-level grammar for data visualization. You describe{' '}
+            <em>what your data means</em> and a short{' '}
+            <code style={codeStyle}>chart_spec</code>; the Flint compiler derives
+            the scales, axes, legends, color, and layout from those semantics and
+            renders the result with <strong>Vega-Lite</strong>,{' '}
+            <strong>Apache ECharts</strong>, or <strong>Chart.js</strong> — no
+            hand-tuning of low-level parameters.
+          </p>
 
-        <div style={{ display: 'flex', gap: 12, marginTop: 28, flexWrap: 'wrap' }}>
-          <Link to="/wall" style={primaryBtn}>
-            Browse Gallery
-          </Link>
-          <Link to="/editor" style={secondaryBtn}>
-            Try online
-          </Link>
-        </div>
+          <div style={ctaRowStyle}>
+            <Link to="/wall" style={primaryBtn}>
+              Browse the gallery
+            </Link>
+            <Link to="/editor" style={secondaryBtn}>
+              Try online
+            </Link>
+            <Link to="/documentation/overview" style={secondaryBtn}>
+              Documentation
+            </Link>
+            <a href={GITHUB_REPO} style={secondaryBtn} target="_blank" rel="noreferrer">
+              GitHub
+            </a>
+          </div>
 
-        <div style={{ marginTop: 48, display: 'grid', gap: 12 }}>
-          <Card to="/wall" title="Gallery">
-            Examples grouped by chart type — bar, line, scatter, facet, and more. Each case opens
-            in the live editor with one click.
-          </Card>
-          <Card to="/editor" title="Live editor">
-            Edit a single <code style={codeStyle}>ChartAssemblyInput</code> and see the compiled
-            Vega-Lite output side-by-side with multi-engine preview.
-          </Card>
-        </div>
+          <p style={{ marginTop: 18, color: siteTheme.textMuted, fontSize: 13 }}>
+            <code style={codeStyle}>npm install flint-chart</code> · MIT licensed
+          </p>
+        </section>
 
-        <p style={{ marginTop: 40, color: siteTheme.textMuted, fontSize: 13 }}>
-          <code style={codeStyle}>npm install flint-chart</code> · MIT licensed
-        </p>
+        {/* ---- Hero showcase: spec <-> live chart ----------------------- */}
+        {heroCase && (
+          <section style={{ ...sectionStyle, paddingTop: 8 }}>
+            <div style={showcaseCardStyle}>
+              <div style={showcasePaneStyle}>
+                <div style={paneHeaderStyle}>Flint spec</div>
+                <FlintSpecCode testCase={heroCase} />
+              </div>
+              <div style={{ ...showcasePaneStyle, borderLeft: `1px solid ${siteTheme.border}` }}>
+                <div style={paneHeaderStyle}>Compiled chart</div>
+                <div style={{ padding: 12 }}>
+                  <ScaleToFit height={300} padding={6}>
+                    <WallChart testCase={heroCase} backend="vegalite" />
+                  </ScaleToFit>
+                </div>
+              </div>
+            </div>
+            <p style={showcaseCaptionStyle}>
+              The same spec recompiles automatically as you change chart types,
+              encodings, or rendering backend — no full rewrite required.
+            </p>
+          </section>
+        )}
+
+        {/* ---- Feature rows (zigzag) ------------------------------------ */}
+        <section style={{ ...sectionStyle, display: 'flex', flexDirection: 'column', gap: 56 }}>
+          {FEATURES.map((feature, i) => (
+            <FeatureRow key={feature.title} feature={feature} flip={i % 2 === 1} />
+          ))}
+        </section>
+
+        {/* ---- One spec, three renderers -------------------------------- */}
+        <ThreeBackends />
+
+        {/* ---- Closing CTA ---------------------------------------------- */}
+        <section style={{ ...sectionStyle, paddingBottom: 72 }}>
+          <div style={closingCardStyle}>
+            <h2 style={{ fontSize: 26, margin: '0 0 8px', fontWeight: 700 }}>
+              Write less spec. Get clearer charts.
+            </h2>
+            <p style={{ margin: '0 0 22px', color: siteTheme.textMuted, fontSize: 16, lineHeight: 1.6 }}>
+              Explore dozens of chart types in the gallery, or open any example in
+              the live editor to see the Flint spec compile across three backends.
+            </p>
+            <div style={{ ...ctaRowStyle, marginTop: 0 }}>
+              <Link to="/wall" style={primaryBtn}>
+                Browse the gallery
+              </Link>
+              <Link to="/editor" style={secondaryBtn}>
+                Try online
+              </Link>
+            </div>
+          </div>
+        </section>
       </main>
 
       <MicrosoftDisclosures />
@@ -68,55 +119,339 @@ export function Landing() {
   );
 }
 
-function Card({ to, title, children }: { to: string; title: string; children: ReactNode }) {
+/* ------------------------------------------------------------------ */
+/* Feature data                                                        */
+/* ------------------------------------------------------------------ */
+
+interface Feature {
+  eyebrow: string;
+  title: string;
+  body: string;
+  generator: string;
+  index: number;
+  backend: PreviewBackend;
+}
+
+const FEATURES: Feature[] = [
+  {
+    eyebrow: 'Semantic data model',
+    title: 'Describe what your data means',
+    body:
+      'Flint makes data semantics first-class. A hierarchical type system captures ' +
+      'meaning — additive vs. non-additive measures, sequential vs. diverging values, ' +
+      'real dates vs. plain integers — so the compiler picks correct scales, baselines, ' +
+      'aggregations, and formatting instead of guessing from raw representations.',
+    generator: 'Waterfall Chart',
+    index: 3,
+    backend: 'vegalite',
+  },
+  {
+    eyebrow: 'Compiler-resolved defaults',
+    title: 'Concise specs, polished charts',
+    body:
+      'Specify a chart type and a few field-to-channel mappings; Flint resolves the rest. ' +
+      'Scales, axes, legends, color schemes, and layout are decided by deterministic ' +
+      'compiler passes that encode visualization best practices, so short specs stay robust ' +
+      'as you iterate on them.',
+    generator: 'Grouped Bar Chart',
+    index: 0,
+    backend: 'vegalite',
+  },
+  {
+    eyebrow: 'For people and AI agents',
+    title: 'A friendly target for LLMs',
+    body:
+      'Semantic types are easy to infer from field names, value patterns, and common sense, ' +
+      'so AI agents can emit compact Flint specs and get high-quality charts — far shorter ' +
+      'than hand-written library code, and resilient to the small edits that routinely break ' +
+      'a low-level specification.',
+    generator: 'ECharts: Sunburst',
+    index: 2,
+    backend: 'echarts',
+  },
+];
+
+/* ------------------------------------------------------------------ */
+/* Sub-components                                                       */
+/* ------------------------------------------------------------------ */
+
+function FeatureRow({ feature, flip }: { feature: Feature; flip: boolean }) {
+  const testCase = useTestCase(feature.generator, feature.index);
   return (
-    <Link
-      to={to}
+    <article
       style={{
-        display: 'block',
-        padding: '16px 20px',
-        border: `1px solid ${siteTheme.borderMuted}`,
-        borderRadius: siteTheme.radius,
-        textDecoration: 'none',
-        color: 'inherit',
-        background: siteTheme.surface,
+        display: 'flex',
+        flexDirection: flip ? 'row-reverse' : 'row',
+        gap: 40,
+        alignItems: 'center',
+        flexWrap: 'wrap',
       }}
     >
-      <strong style={{ color: siteTheme.accent, fontSize: 15 }}>{title}</strong>
-      <div style={{ marginTop: 4, fontSize: 14, color: siteTheme.textMuted, lineHeight: 1.5 }}>
-        {children}
+      <div style={{ flex: '1 1 320px', minWidth: 280 }}>
+        <div style={eyebrowStyle}>{feature.eyebrow}</div>
+        <h2 style={featureTitleStyle}>{feature.title}</h2>
+        <p style={featureBodyStyle}>{feature.body}</p>
       </div>
-    </Link>
+      <div style={{ flex: '1 1 360px', minWidth: 300 }}>
+        <div style={chartFrameStyle}>
+          {testCase ? (
+            <ScaleToFit height={280} padding={10}>
+              <WallChart testCase={testCase} backend={feature.backend} />
+            </ScaleToFit>
+          ) : (
+            <div style={{ height: 280 }} />
+          )}
+        </div>
+      </div>
+    </article>
   );
 }
+
+function ThreeBackends() {
+  const testCase = useTestCase('Bar Chart', 0);
+  const backends: { id: PreviewBackend; label: string }[] = [
+    { id: 'vegalite', label: 'Vega-Lite' },
+    { id: 'echarts', label: 'Apache ECharts' },
+    { id: 'chartjs', label: 'Chart.js' },
+  ];
+  return (
+    <section style={{ ...sectionStyle, textAlign: 'center' }}>
+      <div style={eyebrowStyle}>Library-agnostic backend</div>
+      <h2 style={{ ...featureTitleStyle, maxWidth: 640, margin: '0 auto 10px' }}>
+        One spec, three renderers
+      </h2>
+      <p style={{ ...featureBodyStyle, maxWidth: 640, margin: '0 auto 28px' }}>
+        Flint is an intermediate language, so the same specification compiles to
+        whichever library you choose. Switch rendering backends without rewriting
+        your chart.
+      </p>
+      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
+        {backends.map((b) => (
+          <div key={b.id} style={{ flex: '1 1 240px', minWidth: 220, maxWidth: 340 }}>
+            <div style={chartFrameStyle}>
+              {testCase ? (
+                <ScaleToFit height={200} padding={10}>
+                  <WallChart testCase={testCase} backend={b.id} />
+                </ScaleToFit>
+              ) : (
+                <div style={{ height: 200 }} />
+              )}
+            </div>
+            <div style={backendLabelStyle}>{b.label}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function FlintSpecCode({ testCase }: { testCase: TestCase }) {
+  const text = useMemo(() => JSON.stringify(testCaseToFlintSummary(testCase), null, 2), [testCase]);
+  return <pre style={specPreStyle}>{text}</pre>;
+}
+
+/* ------------------------------------------------------------------ */
+/* Helpers                                                             */
+/* ------------------------------------------------------------------ */
+
+function useTestCase(generator: string, index = 0): TestCase | null {
+  return useMemo(() => {
+    const gen = TEST_GENERATORS[generator];
+    if (!gen) return null;
+    try {
+      const all = gen();
+      return all[index] ?? all[0] ?? null;
+    } catch {
+      return null;
+    }
+  }, [generator, index]);
+}
+
+/* ------------------------------------------------------------------ */
+/* Styles                                                              */
+/* ------------------------------------------------------------------ */
+
+const pageStyle: CSSProperties = {
+  minHeight: '100vh',
+  display: 'flex',
+  flexDirection: 'column',
+  fontFamily: siteTheme.fontSans,
+  color: siteTheme.text,
+  background: siteTheme.bg,
+};
+
+const mainStyle: CSSProperties = {
+  flex: 1,
+  width: '100%',
+  // Subtle grid, data-formulator/about style.
+  backgroundImage: `
+    linear-gradient(90deg, rgba(87,96,106,0.045) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(87,96,106,0.045) 1px, transparent 1px)
+  `,
+  backgroundSize: '24px 24px',
+};
+
+const sectionStyle: CSSProperties = {
+  maxWidth: 1040,
+  margin: '0 auto',
+  padding: '40px 24px',
+  width: '100%',
+  boxSizing: 'border-box',
+};
+
+const eyebrowStyle: CSSProperties = {
+  fontSize: 12,
+  fontWeight: 700,
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
+  color: siteTheme.accent,
+  marginBottom: 10,
+};
+
+const heroTitleStyle: CSSProperties = {
+  fontSize: 76,
+  lineHeight: 1.02,
+  margin: '0 0 14px',
+  fontWeight: 800,
+  letterSpacing: '-0.03em',
+};
+
+const taglineStyle: CSSProperties = {
+  fontSize: 22,
+  color: siteTheme.text,
+  fontWeight: 500,
+  margin: '0 auto 16px',
+  maxWidth: 680,
+  lineHeight: 1.4,
+};
+
+const leadStyle: CSSProperties = {
+  fontSize: 17,
+  color: siteTheme.textMuted,
+  lineHeight: 1.65,
+  margin: '0 auto',
+  maxWidth: 680,
+};
+
+const ctaRowStyle: CSSProperties = {
+  display: 'flex',
+  gap: 12,
+  marginTop: 28,
+  flexWrap: 'wrap',
+  justifyContent: 'center',
+};
+
+const showcaseCardStyle: CSSProperties = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  border: `1px solid ${siteTheme.border}`,
+  borderRadius: siteTheme.radius,
+  background: siteTheme.surface,
+  overflow: 'hidden',
+  boxShadow: '0 1px 3px rgba(27,31,36,0.06)',
+};
+
+const showcasePaneStyle: CSSProperties = {
+  flex: '1 1 360px',
+  minWidth: 300,
+  display: 'flex',
+  flexDirection: 'column',
+};
+
+const paneHeaderStyle: CSSProperties = {
+  padding: '8px 14px',
+  fontSize: 11,
+  fontWeight: 700,
+  letterSpacing: '0.05em',
+  textTransform: 'uppercase',
+  color: siteTheme.textMuted,
+  borderBottom: `1px solid ${siteTheme.border}`,
+  background: siteTheme.bg,
+};
+
+const showcaseCaptionStyle: CSSProperties = {
+  marginTop: 12,
+  textAlign: 'center',
+  color: siteTheme.textMuted,
+  fontSize: 13.5,
+};
+
+const specPreStyle: CSSProperties = {
+  margin: 0,
+  padding: 16,
+  fontFamily: siteTheme.fontMono,
+  fontSize: 12.5,
+  lineHeight: 1.55,
+  color: siteTheme.text,
+  background: siteTheme.surface,
+  overflowX: 'auto',
+  flex: 1,
+};
+
+const featureTitleStyle: CSSProperties = {
+  fontSize: 27,
+  fontWeight: 600,
+  margin: '0 0 12px',
+  letterSpacing: '-0.01em',
+};
+
+const featureBodyStyle: CSSProperties = {
+  fontSize: 16,
+  color: siteTheme.textMuted,
+  lineHeight: 1.7,
+  margin: 0,
+};
+
+const chartFrameStyle: CSSProperties = {
+  border: `1px solid ${siteTheme.border}`,
+  borderRadius: siteTheme.radius,
+  background: siteTheme.surface,
+  padding: 8,
+  boxShadow: '0 1px 3px rgba(27,31,36,0.06)',
+};
+
+const backendLabelStyle: CSSProperties = {
+  marginTop: 10,
+  fontSize: 13,
+  fontWeight: 600,
+  color: siteTheme.text,
+};
+
+const closingCardStyle: CSSProperties = {
+  textAlign: 'center',
+  border: `1px solid ${siteTheme.border}`,
+  borderRadius: siteTheme.radius,
+  background: siteTheme.surface,
+  padding: '40px 28px',
+};
 
 const codeStyle: CSSProperties = {
   background: '#eef1f4',
   padding: '2px 6px',
   borderRadius: 4,
-  fontSize: '0.92em',
+  fontSize: '0.9em',
   fontFamily: siteTheme.fontMono,
 };
 
 const primaryBtn: CSSProperties = {
   display: 'inline-block',
-  padding: '10px 20px',
+  padding: '11px 22px',
   background: siteTheme.accent,
   color: '#fff',
   borderRadius: siteTheme.radius,
   textDecoration: 'none',
   fontWeight: 600,
-  fontSize: 14,
+  fontSize: 14.5,
 };
 
 const secondaryBtn: CSSProperties = {
   display: 'inline-block',
-  padding: '10px 20px',
+  padding: '11px 22px',
   background: siteTheme.surface,
   color: siteTheme.text,
   border: `1px solid ${siteTheme.borderMuted}`,
   borderRadius: siteTheme.radius,
   textDecoration: 'none',
   fontWeight: 500,
-  fontSize: 14,
+  fontSize: 14.5,
 };

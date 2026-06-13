@@ -5,19 +5,19 @@ import { SiteNavBar, MicrosoftDisclosures } from '../components/SiteShell';
 import { WallChart } from '../components/WallChart';
 import { ScaleToFit } from '../components/ScaleToFit';
 import { testCaseToFlintSummary } from '../shared/test-case-utils';
-import type { PreviewBackend } from '../shared/supported-backends';
 import { GITHUB_REPO, siteTheme } from '../shared/theme';
 
 /**
- * Front page — data-formulator/about-style hero + zigzag feature rows, with copy
- * learned from the Flint paper and the Vega-Lite homepage advertisement.
+ * Front page — data-formulator/about-style hero with copy learned from the Flint
+ * paper and the Vega-Lite homepage advertisement. Flush (borderless) header, no
+ * drop shadows, one illustrative example, and a clean text-only feature grid.
  */
 export function Landing() {
   const heroCase = useTestCase('Line Chart', 1);
 
   return (
     <div style={pageStyle}>
-      <SiteNavBar />
+      <SiteNavBar flush />
 
       <main style={mainStyle}>
         {/* ---- Hero ------------------------------------------------------ */}
@@ -58,17 +58,17 @@ export function Landing() {
           </p>
         </section>
 
-        {/* ---- Hero showcase: spec <-> live chart ----------------------- */}
+        {/* ---- Single illustrative example: spec -> chart --------------- */}
         {heroCase && (
           <section style={{ ...sectionStyle, paddingTop: 8 }}>
             <div style={showcaseCardStyle}>
               <div style={showcasePaneStyle}>
-                <div style={paneHeaderStyle}>Flint spec</div>
+                <div style={paneLabelStyle}>Flint spec</div>
                 <FlintSpecCode testCase={heroCase} />
               </div>
               <div style={{ ...showcasePaneStyle, borderLeft: `1px solid ${siteTheme.border}` }}>
-                <div style={paneHeaderStyle}>Compiled chart</div>
-                <div style={{ padding: 12 }}>
+                <div style={paneLabelStyle}>Compiled chart</div>
+                <div style={{ padding: '4px 12px 14px' }}>
                   <ScaleToFit height={300} padding={6}>
                     <WallChart testCase={heroCase} backend="vegalite" />
                   </ScaleToFit>
@@ -82,15 +82,18 @@ export function Landing() {
           </section>
         )}
 
-        {/* ---- Feature rows (zigzag) ------------------------------------ */}
-        <section style={{ ...sectionStyle, display: 'flex', flexDirection: 'column', gap: 56 }}>
-          {FEATURES.map((feature, i) => (
-            <FeatureRow key={feature.title} feature={feature} flip={i % 2 === 1} />
-          ))}
+        {/* ---- Feature grid (text only) -------------------------------- */}
+        <section style={sectionStyle}>
+          <div style={featureGridStyle}>
+            {FEATURES.map((feature) => (
+              <div key={feature.title}>
+                <div style={eyebrowStyle}>{feature.eyebrow}</div>
+                <h2 style={featureTitleStyle}>{feature.title}</h2>
+                <p style={featureBodyStyle}>{feature.body}</p>
+              </div>
+            ))}
+          </div>
         </section>
-
-        {/* ---- One spec, three renderers -------------------------------- */}
-        <ThreeBackends />
 
         {/* ---- Closing CTA ---------------------------------------------- */}
         <section style={{ ...sectionStyle, paddingBottom: 72 }}>
@@ -127,9 +130,6 @@ interface Feature {
   eyebrow: string;
   title: string;
   body: string;
-  generator: string;
-  index: number;
-  backend: PreviewBackend;
 }
 
 const FEATURES: Feature[] = [
@@ -141,9 +141,6 @@ const FEATURES: Feature[] = [
       'meaning — additive vs. non-additive measures, sequential vs. diverging values, ' +
       'real dates vs. plain integers — so the compiler picks correct scales, baselines, ' +
       'aggregations, and formatting instead of guessing from raw representations.',
-    generator: 'Waterfall Chart',
-    index: 3,
-    backend: 'vegalite',
   },
   {
     eyebrow: 'Compiler-resolved defaults',
@@ -153,9 +150,14 @@ const FEATURES: Feature[] = [
       'Scales, axes, legends, color schemes, and layout are decided by deterministic ' +
       'compiler passes that encode visualization best practices, so short specs stay robust ' +
       'as you iterate on them.',
-    generator: 'Grouped Bar Chart',
-    index: 0,
-    backend: 'vegalite',
+  },
+  {
+    eyebrow: 'Library-agnostic backend',
+    title: 'One spec, three renderers',
+    body:
+      'Flint is an intermediate language, so the same specification compiles to whichever ' +
+      'library you choose — Vega-Lite, Apache ECharts, or Chart.js. Switch rendering ' +
+      'backends without rewriting your chart.',
   },
   {
     eyebrow: 'For people and AI agents',
@@ -165,85 +167,12 @@ const FEATURES: Feature[] = [
       'so AI agents can emit compact Flint specs and get high-quality charts — far shorter ' +
       'than hand-written library code, and resilient to the small edits that routinely break ' +
       'a low-level specification.',
-    generator: 'ECharts: Sunburst',
-    index: 2,
-    backend: 'echarts',
   },
 ];
 
 /* ------------------------------------------------------------------ */
 /* Sub-components                                                       */
 /* ------------------------------------------------------------------ */
-
-function FeatureRow({ feature, flip }: { feature: Feature; flip: boolean }) {
-  const testCase = useTestCase(feature.generator, feature.index);
-  return (
-    <article
-      style={{
-        display: 'flex',
-        flexDirection: flip ? 'row-reverse' : 'row',
-        gap: 40,
-        alignItems: 'center',
-        flexWrap: 'wrap',
-      }}
-    >
-      <div style={{ flex: '1 1 320px', minWidth: 280 }}>
-        <div style={eyebrowStyle}>{feature.eyebrow}</div>
-        <h2 style={featureTitleStyle}>{feature.title}</h2>
-        <p style={featureBodyStyle}>{feature.body}</p>
-      </div>
-      <div style={{ flex: '1 1 360px', minWidth: 300 }}>
-        <div style={chartFrameStyle}>
-          {testCase ? (
-            <ScaleToFit height={280} padding={10}>
-              <WallChart testCase={testCase} backend={feature.backend} />
-            </ScaleToFit>
-          ) : (
-            <div style={{ height: 280 }} />
-          )}
-        </div>
-      </div>
-    </article>
-  );
-}
-
-function ThreeBackends() {
-  const testCase = useTestCase('Bar Chart', 0);
-  const backends: { id: PreviewBackend; label: string }[] = [
-    { id: 'vegalite', label: 'Vega-Lite' },
-    { id: 'echarts', label: 'Apache ECharts' },
-    { id: 'chartjs', label: 'Chart.js' },
-  ];
-  return (
-    <section style={{ ...sectionStyle, textAlign: 'center' }}>
-      <div style={eyebrowStyle}>Library-agnostic backend</div>
-      <h2 style={{ ...featureTitleStyle, maxWidth: 640, margin: '0 auto 10px' }}>
-        One spec, three renderers
-      </h2>
-      <p style={{ ...featureBodyStyle, maxWidth: 640, margin: '0 auto 28px' }}>
-        Flint is an intermediate language, so the same specification compiles to
-        whichever library you choose. Switch rendering backends without rewriting
-        your chart.
-      </p>
-      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
-        {backends.map((b) => (
-          <div key={b.id} style={{ flex: '1 1 240px', minWidth: 220, maxWidth: 340 }}>
-            <div style={chartFrameStyle}>
-              {testCase ? (
-                <ScaleToFit height={200} padding={10}>
-                  <WallChart testCase={testCase} backend={b.id} />
-                </ScaleToFit>
-              ) : (
-                <div style={{ height: 200 }} />
-              )}
-            </div>
-            <div style={backendLabelStyle}>{b.label}</div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
 
 function FlintSpecCode({ testCase }: { testCase: TestCase }) {
   const text = useMemo(() => JSON.stringify(testCaseToFlintSummary(testCase), null, 2), [testCase]);
@@ -348,7 +277,6 @@ const showcaseCardStyle: CSSProperties = {
   borderRadius: siteTheme.radius,
   background: siteTheme.surface,
   overflow: 'hidden',
-  boxShadow: '0 1px 3px rgba(27,31,36,0.06)',
 };
 
 const showcasePaneStyle: CSSProperties = {
@@ -358,15 +286,13 @@ const showcasePaneStyle: CSSProperties = {
   flexDirection: 'column',
 };
 
-const paneHeaderStyle: CSSProperties = {
-  padding: '8px 14px',
+const paneLabelStyle: CSSProperties = {
+  padding: '10px 14px 2px',
   fontSize: 11,
   fontWeight: 700,
   letterSpacing: '0.05em',
   textTransform: 'uppercase',
   color: siteTheme.textMuted,
-  borderBottom: `1px solid ${siteTheme.border}`,
-  background: siteTheme.bg,
 };
 
 const showcaseCaptionStyle: CSSProperties = {
@@ -378,7 +304,7 @@ const showcaseCaptionStyle: CSSProperties = {
 
 const specPreStyle: CSSProperties = {
   margin: 0,
-  padding: 16,
+  padding: '4px 16px 16px',
   fontFamily: siteTheme.fontMono,
   fontSize: 12.5,
   lineHeight: 1.55,
@@ -388,33 +314,24 @@ const specPreStyle: CSSProperties = {
   flex: 1,
 };
 
+const featureGridStyle: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+  gap: '36px 48px',
+};
+
 const featureTitleStyle: CSSProperties = {
-  fontSize: 27,
+  fontSize: 22,
   fontWeight: 600,
-  margin: '0 0 12px',
+  margin: '0 0 10px',
   letterSpacing: '-0.01em',
 };
 
 const featureBodyStyle: CSSProperties = {
-  fontSize: 16,
+  fontSize: 15.5,
   color: siteTheme.textMuted,
   lineHeight: 1.7,
   margin: 0,
-};
-
-const chartFrameStyle: CSSProperties = {
-  border: `1px solid ${siteTheme.border}`,
-  borderRadius: siteTheme.radius,
-  background: siteTheme.surface,
-  padding: 8,
-  boxShadow: '0 1px 3px rgba(27,31,36,0.06)',
-};
-
-const backendLabelStyle: CSSProperties = {
-  marginTop: 10,
-  fontSize: 13,
-  fontWeight: 600,
-  color: siteTheme.text,
 };
 
 const closingCardStyle: CSSProperties = {

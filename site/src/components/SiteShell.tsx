@@ -24,7 +24,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
   );
 }
 
-export function SiteNavBar() {
+export function SiteNavBar({ flush = false }: { flush?: boolean } = {}) {
   const { pathname } = useLocation();
 
   return (
@@ -36,7 +36,7 @@ export function SiteNavBar() {
         padding: '0 20px',
         height: 48,
         background: siteTheme.surface,
-        borderBottom: `1px solid ${siteTheme.border}`,
+        borderBottom: flush ? 'none' : `1px solid ${siteTheme.border}`,
         flexShrink: 0,
       }}
     >

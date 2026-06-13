@@ -251,7 +251,7 @@ export function ChartCodeModal({
               minWidth: 0,
               display: 'flex',
               flexDirection: 'column',
-              background: siteTheme.bg,
+              background: siteTheme.surface,
             }}
           >
             <div

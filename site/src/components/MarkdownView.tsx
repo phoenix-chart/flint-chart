@@ -98,7 +98,6 @@ const quoteStyle: CSSProperties = {
   padding: '8px 16px',
   borderLeft: `3px solid ${siteTheme.borderMuted}`,
   color: siteTheme.textMuted,
-  background: siteTheme.bg,
 };
 const hrStyle: CSSProperties = {
   border: 0,
@@ -114,7 +113,6 @@ const thStyle: CSSProperties = {
   textAlign: 'left',
   padding: '8px 10px',
   borderBottom: `1px solid ${siteTheme.borderMuted}`,
-  background: siteTheme.bg,
 };
 const tdStyle: CSSProperties = {
   padding: '8px 10px',

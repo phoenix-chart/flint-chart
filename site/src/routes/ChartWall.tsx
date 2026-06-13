@@ -328,8 +328,10 @@ function WallSidebar({
         width: SIDEBAR_WIDTH,
         flexShrink: 0,
         borderRight: `1px solid ${siteTheme.border}`,
-        background: siteTheme.bg,
+        background: siteTheme.surface,
         overflowY: 'auto',
+        overflowX: 'hidden',
+        overscrollBehavior: 'contain',
         padding: '18px 0 28px',
       }}
     >
@@ -615,7 +617,8 @@ const inlineCodeStyle: CSSProperties = {
 const snippetStyle: CSSProperties = {
   margin: '12px 0 0',
   padding: '12px 14px',
-  background: siteTheme.bg,
+  background: siteTheme.surface,
+  border: `1px solid ${siteTheme.border}`,
   borderRadius: siteTheme.radius,
   fontFamily: siteTheme.fontMono,
   fontSize: 12.5,

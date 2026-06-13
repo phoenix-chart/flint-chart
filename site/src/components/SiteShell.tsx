@@ -14,7 +14,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
         height: '100vh',
         fontFamily: siteTheme.fontSans,
         color: siteTheme.text,
-        background: siteTheme.bg,
+        background: siteTheme.surface,
       }}
     >
       <SiteNavBar />
@@ -24,7 +24,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
   );
 }
 
-export function SiteNavBar({ flush = false }: { flush?: boolean } = {}) {
+export function SiteNavBar(_props: { flush?: boolean } = {}) {
   const { pathname } = useLocation();
 
   return (
@@ -35,8 +35,7 @@ export function SiteNavBar({ flush = false }: { flush?: boolean } = {}) {
         gap: 20,
         padding: '0 20px',
         height: 48,
-        background: siteTheme.surface,
-        borderBottom: flush ? 'none' : `1px solid ${siteTheme.border}`,
+        background: 'transparent',
         flexShrink: 0,
       }}
     >
@@ -108,15 +107,16 @@ function NavLinkExternal({ href, label }: { href: string; label: string }) {
 const brandStyle: CSSProperties = {
   color: siteTheme.text,
   textDecoration: 'none',
-  fontWeight: 700,
-  fontSize: 15,
-  letterSpacing: '-0.01em',
+  fontWeight: 300,
+  fontSize: 17,
+  letterSpacing: '0.03em',
 };
 
 const navLinkStyle: CSSProperties = {
   color: siteTheme.textMuted,
   textDecoration: 'none',
   fontSize: 13,
+  letterSpacing: '0.01em',
 };
 
 /**

@@ -1,11 +1,13 @@
 /**
- * Shared design tokens — flat "paper" style (à la data-formulator): white
- * surfaces, neutral low-opacity hairlines, no shadows, depth via subtle fills.
+ * Shared design tokens — flat "paper" style ported from data-formulator's
+ * design language: white surfaces separated by a single neutral hairline
+ * (0.12) divider, no shadows, depth only from very subtle fills, and DF's
+ * Arial-led sans stack with a light, lightly-tracked wordmark.
  */
 export const siteTheme = {
   bg: '#f7f7f8',
   surface: '#ffffff',
-  border: 'rgba(0, 0, 0, 0.10)',
+  border: 'rgba(0, 0, 0, 0.12)',
   borderMuted: 'rgba(0, 0, 0, 0.16)',
   text: '#1f2328',
   textMuted: '#57606a',
@@ -15,7 +17,7 @@ export const siteTheme = {
   grid: 'rgba(0, 0, 0, 0.02)',
   error: '#cf222e',
   radius: 6,
-  fontSans: "'Segoe UI', -apple-system, sans-serif",
+  fontSans: 'Arial, Roboto, "Helvetica Neue", sans-serif',
   fontMono: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
 } as const;
 

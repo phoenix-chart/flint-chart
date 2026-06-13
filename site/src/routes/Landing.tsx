@@ -14,7 +14,7 @@ import {
 import { GITHUB_REPO, siteTheme } from '../shared/theme';
 
 /**
- * Front page — flat "paper" look inspired by Microsoft data-formulator: a
+ * Front page: flat "paper" look inspired by Microsoft data-formulator. A
  * paper-white canvas with a faint grid, hairline borders, and no drop shadows.
  * Copy is written to read plainly, with one interactive spec→chart example.
  */
@@ -31,14 +31,13 @@ export function Landing() {
             A Visualization Library for AI Agents and Humans
           </p>
           <p style={leadStyle}>
-            Describe a chart at a high level — what each field means and which field
-            maps to which channel — and Flint's compiler fills in the rest. It infers
-            and optimizes the low-level details (scales, axes, legends, colors, and
-            layout) to produce a polished chart that stays easy to tweak and adapt. As
-            a library-agnostic intermediate language, Flint turns one simple spec into
-            output for the engine you choose — <strong>Vega-Lite</strong>,{' '}
-            <strong>Apache ECharts</strong>, or <strong>Chart.js</strong> — and it is
-            as easy for an AI agent to generate as it is for a person to write.
+            Flint lets you specify high-level visualization intent through a simple
+            chart spec, while its compiler automatically infers and optimizes the
+            low-level chart parameters for you, producing good-looking charts that are
+            easily adaptable. As an intermediate language, Flint lets the user (both
+            humans and AI agents) use the same simple visualization spec to compile to
+            different rendering engines (currently <strong>Vega-Lite</strong>,{' '}
+            <strong>ECharts</strong>, and <strong>Chart.js</strong>).
           </p>
 
           <div style={ctaRowStyle}>
@@ -133,7 +132,7 @@ const SHOWCASE_EXAMPLES: ShowcaseExample[] = [
   {
     id: 'stretch',
     label: 'Dense categories',
-    caption: 'Lots of categories — Flint widens the layout so the bars and labels still breathe.',
+    caption: 'Lots of categories, so Flint widens the layout to keep the bars and labels readable.',
     generator: 'Bar Chart',
     index: 1,
   },
@@ -240,7 +239,7 @@ const FEATURES: Feature[] = [
   {
     title: 'Say what your data means',
     body:
-      'Most libraries guess what your numbers mean from how they look — and they often ' +
+      'Most libraries guess what your numbers mean from how they look, and they often ' +
       'guess wrong. Flint lets you say it outright: this measure adds up, this one does ' +
       'not; these are real dates, not plain integers. With that in hand, it can pick the ' +
       'right scale, baseline, and number format every time.',
@@ -248,7 +247,7 @@ const FEATURES: Feature[] = [
   {
     title: 'Short specs, finished charts',
     body:
-      'Name a chart type and map a few fields to channels — that is the whole spec. Flint ' +
+      'Name a chart type and map a few fields to channels, and that is the whole spec. Flint ' +
       'works out the scales, axes, legends, colors, and spacing for you, following ' +
       'well-worn visualization rules, so your charts come out looking right without fiddling.',
   },
@@ -256,14 +255,14 @@ const FEATURES: Feature[] = [
     title: 'Render anywhere',
     body:
       'Flint sits a level above any single charting library. Write a chart once, then render ' +
-      'it with Vega-Lite, Apache ECharts, or Chart.js — and switch between them whenever you ' +
+      'it with Vega-Lite, ECharts, or Chart.js, and switch between them whenever you ' +
       'like, without rewriting a thing.',
   },
   {
     title: 'Easy to write, easy to change',
     body:
       'A Flint spec is short and says what it means, so an AI agent can write one from a ' +
-      'question and a table and get a good chart back. Edits stay small, too — a quick tweak ' +
+      'question and a table and get a good chart back. Edits stay small, too: a quick tweak ' +
       'instead of untangling a wall of low-level options.',
   },
 ];
@@ -310,7 +309,7 @@ const pageStyle: CSSProperties = {
 const mainStyle: CSSProperties = {
   flex: 1,
   width: '100%',
-  // Faint, flat grid — texture without depth (data-formulator paper look).
+  // Faint, flat grid for texture without depth (data-formulator paper look).
   backgroundImage: `
     linear-gradient(90deg, ${GRID_LINE} 1px, transparent 1px),
     linear-gradient(0deg, ${GRID_LINE} 1px, transparent 1px)

@@ -28,13 +28,14 @@ export function Landing() {
         <section style={{ ...sectionStyle, textAlign: 'center', paddingTop: 72, paddingBottom: 24 }}>
           <h1 style={heroTitleStyle}>Flint</h1>
           <p style={taglineStyle}>
-            Describe what your data means, and Flint draws the chart for you.
+            A Visualization Library for AI Agents and Humans
           </p>
           <p style={leadStyle}>
-            Flint is a small, high-level language for charts. You write a few
-            lines — what each field means, and which field goes on which channel —
-            and Flint takes care of the rest: scales, axes, legends, colors, and
-            layout. The same description renders with <strong>Vega-Lite</strong>,{' '}
+            Describe what your data means, and Flint draws the chart for you. Flint
+            is a small, high-level language for charts: you write a few lines — what
+            each field means, and which field goes on which channel — and Flint takes
+            care of the rest: scales, axes, legends, colors, and layout. The same
+            description renders with <strong>Vega-Lite</strong>,{' '}
             <strong>Apache ECharts</strong>, or <strong>Chart.js</strong>, so you
             never have to touch their low-level settings.
           </p>

@@ -206,6 +206,7 @@ export function ChartWall() {
           groups={groups}
           activeId={activeId}
           onNavigate={scrollToChart}
+          onSelectBackend={(id) => navigate(`/wall/${id}`)}
         />
 
         <main
@@ -233,8 +234,6 @@ export function ChartWall() {
                 through its variations and copy the Flint spec or compiled output.
               </p>
             </header>
-
-            <BackendTabs activeId={category.id} onSelect={(id) => navigate(`/wall/${id}`)} />
 
             <BackendIntro category={category} totalTiles={totalTiles} />
 
@@ -315,11 +314,13 @@ function WallSidebar({
   groups,
   activeId,
   onNavigate,
+  onSelectBackend,
 }: {
   category: ChartCategory;
   groups: FamilyGroup[];
   activeId: string;
   onNavigate: (id: string) => void;
+  onSelectBackend: (id: PreviewBackend) => void;
 }) {
   return (
     <aside
@@ -332,18 +333,26 @@ function WallSidebar({
         padding: '18px 0 28px',
       }}
     >
+      <div style={sidebarEyebrowStyle}>Galleries</div>
+      <div style={{ padding: '0 10px' }}>
+        {CHART_CATEGORIES.map((c) => (
+          <BackendNavItem
+            key={c.id}
+            label={c.label}
+            active={c.id === category.id}
+            onClick={() => onSelectBackend(c.id)}
+          />
+        ))}
+      </div>
+
       <div
         style={{
-          padding: '0 16px 10px',
-          fontSize: 11,
-          fontWeight: 700,
-          letterSpacing: '0.05em',
-          textTransform: 'uppercase',
-          color: siteTheme.textMuted,
+          margin: '16px 16px 0',
+          borderTop: `1px solid ${siteTheme.border}`,
         }}
-      >
-        {category.label} charts
-      </div>
+      />
+
+      <div style={{ ...sidebarEyebrowStyle, paddingTop: 14 }}>Chart types</div>
 
       {groups.map((group) => (
         <div key={group.id} style={{ marginTop: 10 }}>
@@ -403,6 +412,42 @@ function SidebarItem({
       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {chart.label.replace(/\s*\*$/, '')}
       </span>
+    </button>
+  );
+}
+
+function BackendNavItem({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'block',
+        width: '100%',
+        padding: '7px 12px',
+        marginBottom: 2,
+        border: `1px solid ${active ? siteTheme.accent : 'transparent'}`,
+        borderRadius: siteTheme.radius,
+        textAlign: 'left',
+        background: active ? siteTheme.accentBg : hovered ? '#eef1f4' : 'transparent',
+        color: active ? siteTheme.accent : siteTheme.text,
+        cursor: 'pointer',
+        fontSize: 13.5,
+        fontWeight: active ? 600 : 500,
+      }}
+    >
+      {label}
     </button>
   );
 }
@@ -550,47 +595,14 @@ function VariantCard({ tile, onOpen }: { tile: Tile; onOpen: () => void }) {
   );
 }
 
-function BackendTabs({
-  activeId,
-  onSelect,
-}: {
-  activeId: PreviewBackend;
-  onSelect: (id: PreviewBackend) => void;
-}) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        gap: 6,
-        borderBottom: `1px solid ${siteTheme.border}`,
-      }}
-    >
-      {CHART_CATEGORIES.map((category) => {
-        const isActive = category.id === activeId;
-        return (
-          <button
-            key={category.id}
-            type="button"
-            onClick={() => onSelect(category.id)}
-            style={{
-              padding: '10px 18px',
-              border: 0,
-              background: 'transparent',
-              cursor: 'pointer',
-              fontSize: 14.5,
-              fontWeight: isActive ? 600 : 400,
-              color: isActive ? siteTheme.accent : siteTheme.textMuted,
-              borderBottom: isActive ? `2px solid ${siteTheme.accent}` : '2px solid transparent',
-              marginBottom: -1,
-            }}
-          >
-            {category.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
+const sidebarEyebrowStyle: CSSProperties = {
+  padding: '0 16px 8px',
+  fontSize: 11,
+  fontWeight: 700,
+  letterSpacing: '0.05em',
+  textTransform: 'uppercase',
+  color: siteTheme.textMuted,
+};
 
 const inlineCodeStyle: CSSProperties = {
   fontFamily: siteTheme.fontMono,

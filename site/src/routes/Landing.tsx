@@ -31,13 +31,14 @@ export function Landing() {
             A Visualization Library for AI Agents and Humans
           </p>
           <p style={leadStyle}>
-            Describe what your data means, and Flint draws the chart for you. Flint
-            is a small, high-level language for charts: you write a few lines — what
-            each field means, and which field goes on which channel — and Flint takes
-            care of the rest: scales, axes, legends, colors, and layout. The same
-            description renders with <strong>Vega-Lite</strong>,{' '}
-            <strong>Apache ECharts</strong>, or <strong>Chart.js</strong>, so you
-            never have to touch their low-level settings.
+            Describe a chart at a high level — what each field means and which field
+            maps to which channel — and Flint's compiler fills in the rest. It infers
+            and optimizes the low-level details (scales, axes, legends, colors, and
+            layout) to produce a polished chart that stays easy to tweak and adapt. As
+            a library-agnostic intermediate language, Flint turns one simple spec into
+            output for the engine you choose — <strong>Vega-Lite</strong>,{' '}
+            <strong>Apache ECharts</strong>, or <strong>Chart.js</strong> — and it is
+            as easy for an AI agent to generate as it is for a person to write.
           </p>
 
           <div style={ctaRowStyle}>

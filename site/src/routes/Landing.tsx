@@ -14,10 +14,9 @@ import {
 import { GITHUB_REPO, siteTheme } from '../shared/theme';
 
 /**
- * Front page — data-formulator/about-style hero with copy learned from the Flint
- * paper and the Vega-Lite homepage advertisement. Flush (borderless) header, no
- * drop shadows, an interactive spec→chart example (switch backend, page through
- * examples), and a clean text-only feature grid.
+ * Front page — flat "paper" look inspired by Microsoft data-formulator: a
+ * paper-white canvas with a faint grid, hairline borders, and no drop shadows.
+ * Copy is written to read plainly, with one interactive spec→chart example.
  */
 export function Landing() {
   return (
@@ -27,20 +26,18 @@ export function Landing() {
       <main style={mainStyle}>
         {/* ---- Hero ------------------------------------------------------ */}
         <section style={{ ...sectionStyle, textAlign: 'center', paddingTop: 72, paddingBottom: 24 }}>
-          <div style={eyebrowStyle}>Semantic-driven data visualization</div>
+          <div style={eyebrowStyle}>Semantic-driven visualization</div>
           <h1 style={heroTitleStyle}>Flint</h1>
           <p style={taglineStyle}>
-            An intermediate language that turns concise, semantic specifications
-            into high-quality charts.
+            Describe what your data means, and Flint draws the chart for you.
           </p>
           <p style={leadStyle}>
-            Flint is a high-level grammar for data visualization. You describe{' '}
-            <em>what your data means</em> and a short{' '}
-            <code style={codeStyle}>chart_spec</code>; the Flint compiler derives
-            the scales, axes, legends, color, and layout from those semantics and
-            renders the result with <strong>Vega-Lite</strong>,{' '}
-            <strong>Apache ECharts</strong>, or <strong>Chart.js</strong> — no
-            hand-tuning of low-level parameters.
+            Flint is a small, high-level language for charts. You write a few
+            lines — what each field means, and which field goes on which channel —
+            and Flint takes care of the rest: scales, axes, legends, colors, and
+            layout. The same description renders with <strong>Vega-Lite</strong>,{' '}
+            <strong>Apache ECharts</strong>, or <strong>Chart.js</strong>, so you
+            never have to touch their low-level settings.
           </p>
 
           <div style={ctaRowStyle}>
@@ -83,11 +80,11 @@ export function Landing() {
         <section style={{ ...sectionStyle, paddingBottom: 72 }}>
           <div style={closingCardStyle}>
             <h2 style={{ fontSize: 26, margin: '0 0 8px', fontWeight: 700 }}>
-              Write less spec. Get clearer charts.
+              Less spec, clearer charts.
             </h2>
             <p style={{ margin: '0 0 22px', color: siteTheme.textMuted, fontSize: 16, lineHeight: 1.6 }}>
-              Explore dozens of chart types in the gallery, or open any example in
-              the live editor to see the Flint spec compile across three backends.
+              Browse the gallery for dozens of chart types, or open any example in
+              the editor and watch the Flint spec compile across all three backends.
             </p>
             <div style={{ ...ctaRowStyle, marginTop: 0 }}>
               <Link to="/wall" style={primaryBtn}>
@@ -122,28 +119,28 @@ const SHOWCASE_EXAMPLES: ShowcaseExample[] = [
   {
     id: 'line',
     label: 'Line chart',
-    caption: 'A multi-series line chart — time on x, a measure on y, a category as color.',
+    caption: 'A line per category: time across the bottom, a value up the side.',
     generator: 'Line Chart',
     index: 1,
   },
   {
     id: 'heatmap',
     label: 'Heatmap',
-    caption: 'A heatmap — Flint reads the value semantics to pick a fitting color scale.',
+    caption: 'A heatmap. Flint reads the values and picks a color scale that fits.',
     generator: 'Heatmap',
     index: 0,
   },
   {
     id: 'stretch',
     label: 'Dense categories',
-    caption: 'Many categories — Flint stretches the layout so bars and labels stay legible.',
+    caption: 'Lots of categories — Flint widens the layout so the bars and labels still breathe.',
     generator: 'Bar Chart',
     index: 1,
   },
   {
     id: 'advanced',
     label: 'Sunburst',
-    caption: 'An advanced, hierarchical chart compiled from the very same compact spec.',
+    caption: 'A sunburst: a richer, nested chart from the very same short spec.',
     generator: 'ECharts: Sunburst',
     index: 2,
   },
@@ -159,8 +156,8 @@ function HeroShowcase() {
     () => (testCase ? getSupportedBackends(testCase.chartType) : []),
     [testCase],
   );
-  // Keep the user's backend choice when the new example supports it; otherwise
-  // fall back to that example's first available backend.
+  // Keep the chosen backend when the new example supports it; otherwise fall
+  // back to that example's first available backend.
   const backend = supported.includes(selectedBackend) ? selectedBackend : supported[0] ?? 'vegalite';
 
   if (!testCase) return null;
@@ -173,7 +170,7 @@ function HeroShowcase() {
           <FlintSpecCode testCase={testCase} />
         </div>
 
-        <div style={{ ...showcasePaneStyle, borderLeft: `1px solid ${siteTheme.border}` }}>
+        <div style={{ ...showcasePaneStyle, borderLeft: `1px solid ${HAIRLINE}` }}>
           <div style={paneHeaderRowStyle}>
             <span style={paneLabelStyle}>Compiled chart</span>
             <div style={backendToggleStyle} role="tablist" aria-label="Rendering backend">
@@ -243,38 +240,36 @@ interface Feature {
 const FEATURES: Feature[] = [
   {
     eyebrow: 'Semantic data model',
-    title: 'Describe what your data means',
+    title: 'Say what your data means',
     body:
-      'Flint makes data semantics first-class. A hierarchical type system captures ' +
-      'meaning — additive vs. non-additive measures, sequential vs. diverging values, ' +
-      'real dates vs. plain integers — so the compiler picks correct scales, baselines, ' +
-      'aggregations, and formatting instead of guessing from raw representations.',
+      'Most libraries guess what your numbers mean from how they look — and they often ' +
+      'guess wrong. Flint lets you say it outright: this measure adds up, this one does ' +
+      'not; these are real dates, not plain integers. With that in hand, it can pick the ' +
+      'right scale, baseline, and number format every time.',
   },
   {
-    eyebrow: 'Compiler-resolved defaults',
-    title: 'Concise specs, polished charts',
+    eyebrow: 'Sensible defaults',
+    title: 'Short specs, finished charts',
     body:
-      'Specify a chart type and a few field-to-channel mappings; Flint resolves the rest. ' +
-      'Scales, axes, legends, color schemes, and layout are decided by deterministic ' +
-      'compiler passes that encode visualization best practices, so short specs stay robust ' +
-      'as you iterate on them.',
+      'Name a chart type and map a few fields to channels — that is the whole spec. Flint ' +
+      'works out the scales, axes, legends, colors, and spacing for you, following ' +
+      'well-worn visualization rules, so your charts come out looking right without fiddling.',
   },
   {
-    eyebrow: 'Library-agnostic backend',
-    title: 'One spec, three renderers',
+    eyebrow: 'One language, three renderers',
+    title: 'Render anywhere',
     body:
-      'Flint is an intermediate language, so the same specification compiles to whichever ' +
-      'library you choose — Vega-Lite, Apache ECharts, or Chart.js. Switch rendering ' +
-      'backends without rewriting your chart.',
+      'Flint sits a level above any single charting library. Write a chart once, then render ' +
+      'it with Vega-Lite, Apache ECharts, or Chart.js — and switch between them whenever you ' +
+      'like, without rewriting a thing.',
   },
   {
-    eyebrow: 'For people and AI agents',
-    title: 'A friendly target for LLMs',
+    eyebrow: 'Friendly to people and AI',
+    title: 'Easy to write, easy to change',
     body:
-      'Semantic types are easy to infer from field names, value patterns, and common sense, ' +
-      'so AI agents can emit compact Flint specs and get high-quality charts — far shorter ' +
-      'than hand-written library code, and resilient to the small edits that routinely break ' +
-      'a low-level specification.',
+      'A Flint spec is short and says what it means, so an AI agent can write one from a ' +
+      'question and a table and get a good chart back. Edits stay small, too — a quick tweak ' +
+      'instead of untangling a wall of low-level options.',
   },
 ];
 
@@ -296,6 +291,15 @@ function useTestCase(generator: string, index = 0): TestCase | null {
 }
 
 /* ------------------------------------------------------------------ */
+/* Flat "paper" tokens (front page)                                    */
+/* ------------------------------------------------------------------ */
+
+const PAPER = '#ffffff';
+const HAIRLINE = 'rgba(0, 0, 0, 0.12)';
+const NEUTRAL_FILL = 'rgba(0, 0, 0, 0.045)';
+const GRID_LINE = 'rgba(0, 0, 0, 0.035)';
+
+/* ------------------------------------------------------------------ */
 /* Styles                                                              */
 /* ------------------------------------------------------------------ */
 
@@ -305,16 +309,16 @@ const pageStyle: CSSProperties = {
   flexDirection: 'column',
   fontFamily: siteTheme.fontSans,
   color: siteTheme.text,
-  background: siteTheme.bg,
+  background: PAPER,
 };
 
 const mainStyle: CSSProperties = {
   flex: 1,
   width: '100%',
-  // Subtle grid, data-formulator/about style.
+  // Faint, flat grid — texture without depth (data-formulator paper look).
   backgroundImage: `
-    linear-gradient(90deg, rgba(87,96,106,0.045) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(87,96,106,0.045) 1px, transparent 1px)
+    linear-gradient(90deg, ${GRID_LINE} 1px, transparent 1px),
+    linear-gradient(0deg, ${GRID_LINE} 1px, transparent 1px)
   `,
   backgroundSize: '24px 24px',
 };
@@ -372,9 +376,9 @@ const ctaRowStyle: CSSProperties = {
 const showcaseCardStyle: CSSProperties = {
   display: 'flex',
   flexWrap: 'wrap',
-  border: `1px solid ${siteTheme.border}`,
+  border: `1px solid ${HAIRLINE}`,
   borderRadius: siteTheme.radius,
-  background: siteTheme.surface,
+  background: PAPER,
   overflow: 'hidden',
 };
 
@@ -407,9 +411,9 @@ const backendToggleStyle: CSSProperties = {
   gap: 2,
   padding: 2,
   marginTop: 6,
-  border: `1px solid ${siteTheme.border}`,
+  border: `1px solid ${HAIRLINE}`,
   borderRadius: siteTheme.radius,
-  background: siteTheme.bg,
+  background: PAPER,
 };
 
 function backendBtnStyle(active: boolean, supported: boolean): CSSProperties {
@@ -418,7 +422,7 @@ function backendBtnStyle(active: boolean, supported: boolean): CSSProperties {
     border: 0,
     borderRadius: 4,
     background: active ? siteTheme.accent : 'transparent',
-    color: active ? '#fff' : supported ? siteTheme.text : '#b0b6bd',
+    color: active ? '#fff' : supported ? siteTheme.text : 'rgba(0,0,0,0.32)',
     fontSize: 12,
     fontWeight: active ? 600 : 500,
     cursor: supported ? 'pointer' : 'not-allowed',
@@ -440,7 +444,7 @@ function dotStyle(active: boolean): CSSProperties {
     padding: 0,
     border: 0,
     borderRadius: 999,
-    background: active ? siteTheme.accent : siteTheme.borderMuted,
+    background: active ? siteTheme.accent : 'rgba(0,0,0,0.18)',
     cursor: 'pointer',
     transition: 'width 0.15s ease, background 0.15s ease',
   };
@@ -460,7 +464,7 @@ const specPreStyle: CSSProperties = {
   fontSize: 12.5,
   lineHeight: 1.55,
   color: siteTheme.text,
-  background: siteTheme.surface,
+  background: PAPER,
   overflowX: 'auto',
   flex: 1,
 };
@@ -487,14 +491,14 @@ const featureBodyStyle: CSSProperties = {
 
 const closingCardStyle: CSSProperties = {
   textAlign: 'center',
-  border: `1px solid ${siteTheme.border}`,
+  border: `1px solid ${HAIRLINE}`,
   borderRadius: siteTheme.radius,
-  background: siteTheme.surface,
+  background: PAPER,
   padding: '40px 28px',
 };
 
 const codeStyle: CSSProperties = {
-  background: '#eef1f4',
+  background: NEUTRAL_FILL,
   padding: '2px 6px',
   borderRadius: 4,
   fontSize: '0.9em',
@@ -515,9 +519,9 @@ const primaryBtn: CSSProperties = {
 const secondaryBtn: CSSProperties = {
   display: 'inline-block',
   padding: '11px 22px',
-  background: siteTheme.surface,
+  background: PAPER,
   color: siteTheme.text,
-  border: `1px solid ${siteTheme.borderMuted}`,
+  border: `1px solid ${HAIRLINE}`,
   borderRadius: siteTheme.radius,
   textDecoration: 'none',
   fontWeight: 500,

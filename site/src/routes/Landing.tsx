@@ -12,6 +12,7 @@ import {
   type PreviewBackend,
 } from '../shared/supported-backends';
 import { GITHUB_REPO, siteTheme } from '../shared/theme';
+import overviewImg from '../assets/flint-overview.png';
 
 /**
  * Front page: flat "paper" look inspired by Microsoft data-formulator. A
@@ -26,10 +27,7 @@ export function Landing() {
       <main style={mainStyle}>
         {/* ---- Hero ------------------------------------------------------ */}
         <section style={{ ...sectionStyle, textAlign: 'center', paddingTop: 72, paddingBottom: 24 }}>
-          <h1 style={heroTitleStyle}>Flint</h1>
-          <p style={taglineStyle}>
-            A Visualization Library for AI Agents and Humans
-          </p>
+          <h1 style={heroTitleStyle}>Flint: A Visualization Library for AI Agents and Humans</h1>
           <p style={leadStyle}>
             Flint lets you specify high-level visualization intent through a simple
             chart spec, while its compiler automatically infers and optimizes the
@@ -58,6 +56,25 @@ export function Landing() {
           <p style={{ marginTop: 18, color: siteTheme.textMuted, fontSize: 13 }}>
             <code style={codeStyle}>npm install flint-chart</code> · MIT licensed
           </p>
+        </section>
+
+        {/* ---- Overview figure (paper teaser) -------------------------- */}
+        <section style={overviewSectionStyle}>
+          <figure style={overviewFigureStyle}>
+            <img
+              src={overviewImg}
+              alt="Flint workflow: an agent infers a dataSpec from a raw table, a short chartSpec is written, and Flint compiles it into a faceted line chart, then a grouped bar, waterfall, heatmap, and sunburst as the spec is edited."
+              style={overviewImgStyle}
+            />
+            <figcaption style={overviewCaptionStyle}>
+              One workflow, end to end. An agent infers a dataSpec from the raw table
+              (what each field means and how it behaves), you write a short chartSpec,
+              and Flint compiles it into a polished chart. Change a line of the spec to
+              move between a faceted line chart, grouped bar, waterfall, heatmap, or
+              sunburst, or switch the rendering engine, all without touching the
+              low-level details.
+            </figcaption>
+          </figure>
         </section>
 
         {/* ---- Interactive example: spec -> chart ---------------------- */}
@@ -117,31 +134,39 @@ interface ShowcaseExample {
 const SHOWCASE_EXAMPLES: ShowcaseExample[] = [
   {
     id: 'line',
-    label: 'Line chart',
-    caption: 'A line per category: time across the bottom, a value up the side.',
-    generator: 'Line Chart',
-    index: 1,
-  },
-  {
-    id: 'heatmap',
-    label: 'Heatmap',
-    caption: 'A heatmap. Flint reads the values and picks a color scale that fits.',
-    generator: 'Heatmap',
+    label: 'Faceted line chart',
+    caption:
+      'One small multiple per region. From a four-line spec, Flint reads the month field as a ' +
+      'date, lays out the panels, and keeps the axes, scales, and colors in sync across them.',
+    generator: 'Omni: Line',
     index: 0,
   },
   {
-    id: 'stretch',
-    label: 'Dense categories',
-    caption: 'Lots of categories, so Flint widens the layout to keep the bars and labels readable.',
-    generator: 'Bar Chart',
-    index: 1,
+    id: 'heatmap',
+    label: 'Diverging heatmap',
+    caption:
+      'Net new users can be positive or negative, so Flint picks a diverging color scale ' +
+      'centered at zero instead of a plain gradient. Same data, read correctly.',
+    generator: 'Omni: Heatmap',
+    index: 0,
   },
   {
-    id: 'advanced',
+    id: 'waterfall',
+    label: 'Waterfall',
+    caption:
+      'A running total that separates gains from losses. Flint works out the baselines and the ' +
+      'up and down coloring from the spec, so the monthly steps add up on their own.',
+    generator: 'Omni: Waterfall',
+    index: 0,
+  },
+  {
+    id: 'sunburst',
     label: 'Sunburst',
-    caption: 'A sunburst: a richer, nested chart from the very same short spec.',
-    generator: 'ECharts: Sunburst',
-    index: 2,
+    caption:
+      'The same short spec composes a three-level hierarchy (region, gameType, game). Vega-Lite ' +
+      'has no native sunburst, so switch the engine to ECharts and the chart still renders.',
+    generator: 'Omni: Sunburst',
+    index: 0,
   },
 ];
 
@@ -326,20 +351,12 @@ const sectionStyle: CSSProperties = {
 };
 
 const heroTitleStyle: CSSProperties = {
-  fontSize: 80,
-  lineHeight: 1.05,
-  margin: '0 0 14px',
+  fontSize: 44,
+  lineHeight: 1.18,
+  margin: '0 auto 18px',
+  maxWidth: 860,
   fontWeight: 300,
-  letterSpacing: '0.04em',
-};
-
-const taglineStyle: CSSProperties = {
-  fontSize: 24,
-  color: siteTheme.textMuted,
-  fontWeight: 400,
-  margin: '0 auto 16px',
-  maxWidth: 680,
-  lineHeight: 1.4,
+  letterSpacing: '0.01em',
 };
 
 const leadStyle: CSSProperties = {
@@ -356,6 +373,37 @@ const ctaRowStyle: CSSProperties = {
   marginTop: 28,
   flexWrap: 'wrap',
   justifyContent: 'center',
+};
+
+const overviewSectionStyle: CSSProperties = {
+  maxWidth: 1160,
+  margin: '0 auto',
+  padding: '16px 24px 8px',
+  width: '100%',
+  boxSizing: 'border-box',
+};
+
+const overviewFigureStyle: CSSProperties = {
+  margin: 0,
+  border: `1px solid ${HAIRLINE}`,
+  borderRadius: siteTheme.radius,
+  background: PAPER,
+  padding: 16,
+};
+
+const overviewImgStyle: CSSProperties = {
+  display: 'block',
+  width: '100%',
+  height: 'auto',
+};
+
+const overviewCaptionStyle: CSSProperties = {
+  margin: '14px auto 0',
+  maxWidth: 760,
+  textAlign: 'center',
+  color: siteTheme.textMuted,
+  fontSize: 13.5,
+  lineHeight: 1.6,
 };
 
 const showcaseCardStyle: CSSProperties = {

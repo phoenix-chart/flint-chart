@@ -4,12 +4,14 @@ import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
  * Vega-Lite-gallery-style thumbnail wrapper for the photo-wall.
  *
  * Charts render at their *designed* pixel size (which varies widely — wide
- * legends, tall calendars, square pies…). Rather than shrink every chart to
- * fit (which leaves ragged letterbox gaps and tiny charts), this wrapper
- * *fills* the tile and crops the overflow — exactly like the Vega-Lite example
- * gallery. At rest the top-left of the chart is shown; on hover it slowly pans
- * to reveal the cropped edge (the x-axis at the bottom, or the legend on the
- * right), so every tile reads as a clean, uniform thumbnail.
+ * legends, tall calendars, square pies…). Following the Vega-Lite gallery, the
+ * wrapper uses **height-based gating**: every chart is scaled to fit the tile's
+ * fixed height, so its full vertical extent (title, plot, x-axis) is always
+ * visible and nothing is cropped from the bottom. The width then falls out
+ * naturally — a few discrete categories sit centred with side margin, while a
+ * long/high-cardinality chart overflows the tile horizontally and is cropped.
+ * At rest the left edge of an overflowing chart is shown; on hover it slowly
+ * pans right to reveal the cropped tail (more bars, the legend…).
  *
  * The fit (scale + rest offset) applies instantly so entering the page never
  * animates; only the hover pan is transitioned.
@@ -40,20 +42,19 @@ export function ChartThumb({
       if (!natW || !natH) return;
       const boxW = outer.clientWidth;
       const boxH = height;
-      const sw = boxW / natW;
-      const sh = boxH / natH;
-      // Cover-fit: fill the tile, cropping the overflowing dimension. Never
-      // upscale past the designed size (so charts smaller than the tile just
-      // sit centred rather than blowing up blurry).
-      const scale = Math.min(Math.max(sw, sh), 1);
+      // Height-based gating: scale the chart to fit the tile height exactly so
+      // the whole chart stays visible. Never upscale past the designed size
+      // (so a chart shorter than the tile sits centred rather than blowing up
+      // blurry). The width then overflows horizontally when the chart is long.
+      const scale = Math.min(boxH / natH, 1);
       if (!Number.isFinite(scale) || scale <= 0) return;
 
       const contentW = natW * scale;
       const contentH = natH * scale;
       const overflowX = Math.max(contentW - boxW, 0);
       const overflowY = Math.max(contentH - boxH, 0);
-      // Overflowing axis: rest at the start, pan to the end on hover. Other
-      // axis: centre it (no pan).
+      // Overflowing width: rest at the left, pan to the right edge on hover.
+      // Narrower than the tile: centre it. Height fits, so it's centred too.
       const restX = overflowX > 0 ? 0 : (boxW - contentW) / 2;
       const restY = overflowY > 0 ? 0 : (boxH - contentH) / 2;
       const panX = overflowX > 0 ? -overflowX / scale : 0;

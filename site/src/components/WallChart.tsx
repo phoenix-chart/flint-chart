@@ -4,7 +4,7 @@ import { assembleVegaLite, assembleECharts, assembleChartjs } from 'flint-chart'
 import { VegaLiteView } from './VegaLiteView';
 import { EChartsView } from './EChartsView';
 import { ChartjsView } from './ChartjsView';
-import { testCaseToAssemblyInput } from '../shared/test-case-utils';
+import { testCaseToAssemblyInput, thumbnailCanvasSize } from '../shared/test-case-utils';
 import type { PreviewBackend } from '../shared/supported-backends';
 import { siteTheme } from '../shared/theme';
 
@@ -21,7 +21,7 @@ export function WallChart({
   testCase: TestCase;
   backend: PreviewBackend;
 }) {
-  const input = useMemo(() => testCaseToAssemblyInput(testCase), [testCase]);
+  const input = useMemo(() => testCaseToAssemblyInput(testCase, thumbnailCanvasSize(testCase)), [testCase]);
 
   const compiled = useMemo(() => {
     try {

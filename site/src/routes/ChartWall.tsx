@@ -1,8 +1,16 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { TEST_GENERATORS, type TestCase } from 'flint-chart/test-data';
 import { SiteShell } from '../components/SiteShell';
-import { ChartThumb } from '../components/ChartThumb';import { WallChart } from '../components/WallChart';
+import { ChartThumb } from '../components/ChartThumb';
+import { WallChart } from '../components/WallChart';
 import { ChartCodeModal } from '../components/ChartCodeModal';
 import {
   CHART_CATEGORIES,
@@ -17,6 +25,8 @@ import { siteTheme } from '../shared/theme';
 
 const MAX_VARIANTS = 4;
 const TILE_CHART_HEIGHT = 190;
+const SIDEBAR_WIDTH = 232;
+const SCROLL_SPY_ROOT_MARGIN = '-12% 0px -75% 0px';
 
 function loadTests(generator: string): TestCase[] {
   const gen = TEST_GENERATORS[generator];
@@ -43,15 +53,26 @@ interface Tile {
   indices: number[];
 }
 
-interface FamilySection {
-  id: string;
-  label: string;
+/** One section = one chart type and its curated example tiles. */
+interface ChartSection {
+  chart: ChartEntry;
   tiles: Tile[];
 }
 
-/** Bucket every curated example into a coarse, gallery-style family. */
-function buildFamilies(charts: ChartEntry[]): FamilySection[] {
-  const byFamily = new Map<string, Tile[]>();
+/** A family groups several related chart-type sections under one heading. */
+interface FamilyGroup {
+  id: string;
+  label: string;
+  sections: ChartSection[];
+}
+
+/**
+ * Build one section per chart type (fine-grained), then cluster those sections
+ * under their gallery family so related chart types stay together while each
+ * type keeps its own heading and sidebar entry.
+ */
+function buildGroups(charts: ChartEntry[]): FamilyGroup[] {
+  const sectionsByFamily = new Map<string, ChartSection[]>();
 
   for (const chart of charts) {
     const full = loadTests(chart.generator);
@@ -59,19 +80,25 @@ function buildFamilies(charts: ChartEntry[]): FamilySection[] {
     if (variants.length === 0) continue;
     const indices = variants.map((v) => full.indexOf(v));
     const titles = humanizeVariants(variants);
+    const tiles = variants.map((testCase, pos) => ({
+      chart,
+      testCase,
+      title: titles[pos],
+      pos,
+      variants,
+      indices,
+    }));
     const familyId = familyForChart(chart);
-    const bucket = byFamily.get(familyId) ?? [];
-    variants.forEach((testCase, pos) => {
-      bucket.push({ chart, testCase, title: titles[pos], pos, variants, indices });
-    });
-    byFamily.set(familyId, bucket);
+    const bucket = sectionsByFamily.get(familyId) ?? [];
+    bucket.push({ chart, tiles });
+    sectionsByFamily.set(familyId, bucket);
   }
 
   return CHART_FAMILIES.map((family) => ({
     id: family.id,
     label: family.label,
-    tiles: byFamily.get(family.id) ?? [],
-  })).filter((section) => section.tiles.length > 0);
+    sections: sectionsByFamily.get(family.id) ?? [],
+  })).filter((group) => group.sections.length > 0);
 }
 
 function resolveCategory(backendParam?: string): ChartCategory {
@@ -90,6 +117,9 @@ export function ChartWall() {
   const navigate = useNavigate();
   const category = resolveCategory(backendParam);
 
+  const mainRef = useRef<HTMLElement>(null);
+  const navScrollingRef = useRef(false);
+  const [activeId, setActiveId] = useState('');
   const [active, setActive] = useState<ActiveModal | null>(null);
 
   // Keep the URL canonical (e.g. /wall -> /wall/vegalite) without adding history.
@@ -99,80 +129,189 @@ export function ChartWall() {
     }
   }, [backendParam, category.id, navigate]);
 
-  const families = useMemo(() => buildFamilies(category.charts), [category]);
-  const totalTiles = families.reduce((sum, section) => sum + section.tiles.length, 0);
+  const groups = useMemo(() => buildGroups(category.charts), [category]);
+  const sectionIds = useMemo(
+    () => groups.flatMap((g) => g.sections.map((s) => s.chart.id)),
+    [groups],
+  );
+  const totalTiles = groups.reduce(
+    (sum, g) => sum + g.sections.reduce((n, s) => n + s.tiles.length, 0),
+    0,
+  );
+
+  // Reset the highlight + scroll position when the backend changes.
+  useEffect(() => {
+    setActiveId(sectionIds[0] ?? '');
+    mainRef.current?.scrollTo({ top: 0 });
+  }, [category.id, sectionIds]);
+
+  // Scroll-spy: highlight the topmost visible chart-type section.
+  useEffect(() => {
+    const root = mainRef.current;
+    if (!root) return;
+
+    const els = sectionIds
+      .map((id) => root.querySelector<HTMLElement>(`#${CSS.escape(id)}`))
+      .filter((el): el is HTMLElement => el !== null);
+    if (els.length === 0) return;
+
+    const intersecting = new Set<HTMLElement>();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const el = entry.target as HTMLElement;
+          if (entry.isIntersecting) intersecting.add(el);
+          else intersecting.delete(el);
+        }
+        if (navScrollingRef.current) return;
+
+        let topEl: HTMLElement | null = null;
+        let topValue = Infinity;
+        for (const el of intersecting) {
+          const top = el.getBoundingClientRect().top;
+          if (top < topValue) {
+            topValue = top;
+            topEl = el;
+          }
+        }
+        if (topEl) setActiveId(topEl.id);
+      },
+      { root, rootMargin: SCROLL_SPY_ROOT_MARGIN, threshold: 0 },
+    );
+
+    els.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [sectionIds]);
+
+  const scrollToChart = useCallback((id: string) => {
+    const root = mainRef.current;
+    const target = root?.querySelector<HTMLElement>(`#${CSS.escape(id)}`);
+    if (!root || !target) return;
+
+    setActiveId(id);
+    navScrollingRef.current = true;
+    const rootTop = root.getBoundingClientRect().top;
+    const targetTop = target.getBoundingClientRect().top;
+    root.scrollTo({ top: root.scrollTop + targetTop - rootTop - 8, behavior: 'smooth' });
+    window.setTimeout(() => {
+      navScrollingRef.current = false;
+    }, 700);
+  }, []);
 
   return (
     <SiteShell>
-      <main style={{ flex: 1, minHeight: 0, overflowY: 'auto', background: siteTheme.surface }}>
-        <div style={{ maxWidth: 1240, margin: '0 auto', padding: '40px 32px 96px' }}>
-          <header style={{ textAlign: 'center', marginBottom: 28 }}>
-            <h1 style={{ margin: 0, fontSize: 30, fontWeight: 600, letterSpacing: -0.4 }}>
-              Example Gallery
-            </h1>
-            <p
-              style={{
-                margin: '12px auto 0',
-                maxWidth: 680,
-                color: siteTheme.textMuted,
-                fontSize: 15,
-                lineHeight: 1.65,
-              }}
-            >
-              Flint Chart turns table data, field semantic types, and a short chart spec into a
-              fully styled chart — no hand-written scales, axes, or legends. Browse the
-              {' '}
-              {totalTiles} {category.label} examples below, grouped by chart family. Click any
-              example to step through its variations and copy the Flint spec or compiled output.
-            </p>
-          </header>
+      <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
+        <WallSidebar
+          category={category}
+          groups={groups}
+          activeId={activeId}
+          onNavigate={scrollToChart}
+        />
 
-          <BackendTabs activeId={category.id} onSelect={(id) => navigate(`/wall/${id}`)} />
-
-          {families.map((section) => (
-            <section key={section.id} style={{ marginTop: 48 }}>
-              <h2
+        <main
+          ref={mainRef}
+          style={{ flex: 1, minHeight: 0, overflowY: 'auto', background: siteTheme.surface }}
+        >
+          <div style={{ maxWidth: 1100, margin: '0 auto', padding: '36px 40px 96px' }}>
+            <header style={{ marginBottom: 18 }}>
+              <p style={{ margin: '0 0 6px', fontSize: 12, color: siteTheme.textMuted }}>Gallery</p>
+              <h1 style={{ margin: 0, fontSize: 28, fontWeight: 600, letterSpacing: -0.4 }}>
+                Example Gallery
+              </h1>
+              <p
                 style={{
-                  margin: '0 0 18px',
-                  fontSize: 17,
-                  fontWeight: 600,
-                  letterSpacing: -0.2,
-                  color: siteTheme.text,
+                  margin: '10px 0 0',
+                  maxWidth: 720,
+                  color: siteTheme.textMuted,
+                  fontSize: 14.5,
+                  lineHeight: 1.65,
                 }}
               >
-                {section.label}
-                <span style={{ marginLeft: 10, fontSize: 13, fontWeight: 400, color: siteTheme.textMuted }}>
-                  {section.tiles.length}
-                </span>
-              </h2>
+                Flint Chart turns table data, field semantic types, and a short chart spec into a
+                fully styled chart — no hand-written scales, axes, or legends. Pick a rendering
+                backend, then jump to a chart type from the sidebar. Click any example to step
+                through its variations and copy the Flint spec or compiled output.
+              </p>
+            </header>
 
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-                  gap: '32px 36px',
-                  alignItems: 'start',
-                }}
-              >
-                {section.tiles.map((tile) => (
-                  <VariantCard
-                    key={`${tile.chart.id}-${tile.pos}`}
-                    tile={tile}
-                    onOpen={() =>
-                      setActive({
-                        chart: tile.chart,
-                        tests: tile.variants,
-                        editorIndices: tile.indices,
-                        index: tile.pos,
-                      })
-                    }
-                  />
+            <BackendTabs activeId={category.id} onSelect={(id) => navigate(`/wall/${id}`)} />
+
+            <BackendIntro category={category} totalTiles={totalTiles} />
+
+            {groups.map((group) => (
+              <div key={group.id} style={{ marginTop: 44 }}>
+                <p
+                  style={{
+                    margin: '0 0 4px',
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                    color: siteTheme.textMuted,
+                  }}
+                >
+                  {group.label}
+                </p>
+
+                {group.sections.map((section) => (
+                  <section
+                    key={section.chart.id}
+                    id={section.chart.id}
+                    style={{ marginTop: 22, scrollMarginTop: 12 }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 14 }}>
+                      <img
+                        src={section.chart.icon}
+                        alt=""
+                        aria-hidden="true"
+                        style={{ width: 19, height: 19, flexShrink: 0 }}
+                      />
+                      <h2
+                        style={{
+                          margin: 0,
+                          fontSize: 16,
+                          fontWeight: 600,
+                          letterSpacing: -0.2,
+                          color: siteTheme.text,
+                        }}
+                      >
+                        {section.chart.label}
+                      </h2>
+                      <span style={{ fontSize: 13, fontWeight: 400, color: siteTheme.textMuted }}>
+                        {section.tiles.length}
+                      </span>
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+                        gap: '30px 34px',
+                        alignItems: 'start',
+                      }}
+                    >
+                      {section.tiles.map((tile) => (
+                        <VariantCard
+                          key={`${tile.chart.id}-${tile.pos}`}
+                          tile={tile}
+                          onOpen={() =>
+                            setActive({
+                              chart: tile.chart,
+                              tests: tile.variants,
+                              editorIndices: tile.indices,
+                              index: tile.pos,
+                            })
+                          }
+                        />
+                      ))}
+                    </div>
+                  </section>
                 ))}
               </div>
-            </section>
-          ))}
-        </div>
-      </main>
+            ))}
+          </div>
+        </main>
+      </div>
 
       {active && (
         <ChartCodeModal
@@ -184,6 +323,169 @@ export function ChartWall() {
         />
       )}
     </SiteShell>
+  );
+}
+
+function WallSidebar({
+  category,
+  groups,
+  activeId,
+  onNavigate,
+}: {
+  category: ChartCategory;
+  groups: FamilyGroup[];
+  activeId: string;
+  onNavigate: (id: string) => void;
+}) {
+  return (
+    <aside
+      style={{
+        width: SIDEBAR_WIDTH,
+        flexShrink: 0,
+        borderRight: `1px solid ${siteTheme.border}`,
+        background: siteTheme.bg,
+        overflowY: 'auto',
+        padding: '18px 0 28px',
+      }}
+    >
+      <div
+        style={{
+          padding: '0 16px 10px',
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: '0.05em',
+          textTransform: 'uppercase',
+          color: siteTheme.textMuted,
+        }}
+      >
+        {category.label} charts
+      </div>
+
+      {groups.map((group) => (
+        <div key={group.id} style={{ marginTop: 6 }}>
+          <div
+            style={{
+              padding: '6px 16px 3px',
+              fontSize: 10.5,
+              fontWeight: 700,
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase',
+              color: siteTheme.textMuted,
+              opacity: 0.8,
+            }}
+          >
+            {group.label}
+          </div>
+          {group.sections.map((section) => (
+            <SidebarItem
+              key={section.chart.id}
+              chart={section.chart}
+              active={activeId === section.chart.id}
+              onClick={() => onNavigate(section.chart.id)}
+            />
+          ))}
+        </div>
+      ))}
+    </aside>
+  );
+}
+
+function SidebarItem({
+  chart,
+  active,
+  onClick,
+}: {
+  chart: ChartEntry;
+  active: boolean;
+  onClick: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      type="button"
+      data-chart-nav={chart.id}
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 9,
+        width: '100%',
+        padding: '5px 16px 5px 18px',
+        border: 0,
+        textAlign: 'left',
+        background: active ? siteTheme.accentBg : hovered ? '#eef1f4' : 'transparent',
+        boxShadow: active ? `inset 3px 0 0 ${siteTheme.accent}` : undefined,
+        color: active ? siteTheme.accent : siteTheme.text,
+        cursor: 'pointer',
+        fontSize: 13,
+        fontWeight: active ? 600 : 400,
+      }}
+    >
+      <img
+        src={chart.icon}
+        alt=""
+        aria-hidden="true"
+        style={{ width: 17, height: 17, flexShrink: 0 }}
+      />
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {chart.label.replace(/\s*\*$/, '')}
+      </span>
+    </button>
+  );
+}
+
+function BackendIntro({ category, totalTiles }: { category: ChartCategory; totalTiles: number }) {
+  const typeNames = useMemo(() => {
+    const seen = new Set<string>();
+    const names: string[] = [];
+    for (const chart of category.charts) {
+      const name = chart.label.replace(/\s*\*$/, '');
+      if (seen.has(name)) continue;
+      seen.add(name);
+      names.push(name);
+    }
+    return names;
+  }, [category]);
+
+  const snippet = `import { ${category.fn} } from 'flint-chart';\n\nconst spec = ${category.fn}(input);`;
+
+  return (
+    <div style={{ marginTop: 22 }}>
+      <p
+        style={{
+          margin: 0,
+          maxWidth: 720,
+          color: siteTheme.textMuted,
+          fontSize: 14,
+          lineHeight: 1.65,
+        }}
+      >
+        {category.description} Pass a Flint <code style={inlineCodeStyle}>input</code> (data,
+        semantic types, and a chart spec) to <code style={inlineCodeStyle}>{category.fn}()</code>{' '}
+        and render the result directly:
+      </p>
+
+      <pre style={snippetStyle}>
+        <code>{snippet}</code>
+      </pre>
+
+      <p
+        style={{
+          margin: '12px 0 0',
+          maxWidth: 760,
+          fontSize: 13,
+          color: siteTheme.textMuted,
+          lineHeight: 1.6,
+        }}
+      >
+        <strong style={{ color: siteTheme.text, fontWeight: 600 }}>
+          {typeNames.length} chart types
+        </strong>{' '}
+        ({totalTiles} curated examples): {typeNames.join(', ')}.
+      </p>
+    </div>
   );
 }
 
@@ -289,7 +591,6 @@ function BackendTabs({
       style={{
         display: 'flex',
         gap: 6,
-        justifyContent: 'center',
         borderBottom: `1px solid ${siteTheme.border}`,
       }}
     >
@@ -319,3 +620,26 @@ function BackendTabs({
     </div>
   );
 }
+
+const inlineCodeStyle: CSSProperties = {
+  fontFamily: siteTheme.fontMono,
+  fontSize: 12.5,
+  background: siteTheme.bg,
+  border: `1px solid ${siteTheme.border}`,
+  borderRadius: 4,
+  padding: '1px 5px',
+};
+
+const snippetStyle: CSSProperties = {
+  margin: '12px 0 0',
+  padding: '12px 14px',
+  background: siteTheme.bg,
+  border: `1px solid ${siteTheme.border}`,
+  borderRadius: siteTheme.radius,
+  fontFamily: siteTheme.fontMono,
+  fontSize: 12.5,
+  lineHeight: 1.55,
+  color: siteTheme.text,
+  overflowX: 'auto',
+  maxWidth: 520,
+};

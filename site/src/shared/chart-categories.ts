@@ -48,6 +48,8 @@ export interface ChartCategory {
   id: PreviewBackend;
   label: string;
   description: string;
+  /** Name of the assembler entry point for this backend (used in intro snippets). */
+  fn: string;
   charts: ChartEntry[];
 }
 
@@ -72,7 +74,10 @@ export const CHART_CATEGORIES: ChartCategory[] = [
   {
     id: 'vegalite',
     label: BACKEND_LABELS.vegalite,
-    description: 'Semantic chart specs compiled to clean Vega-Lite examples.',
+    description:
+      'Compiles a Flint spec into a clean Vega-Lite specification — ideal for ' +
+      'crisp, publication-quality statistical graphics rendered with Vega.',
+    fn: 'assembleVegaLite',
     charts: [
       createChart('vegalite', 'scatter-plot', 'Scatter Plot', 'Scatter Plot', scatterIcon),
       createChart('vegalite', 'regression', 'Regression', 'Regression', regressionIcon),
@@ -101,7 +106,11 @@ export const CHART_CATEGORIES: ChartCategory[] = [
   {
     id: 'echarts',
     label: BACKEND_LABELS.echarts,
-    description: 'Interactive ECharts examples grouped into a focused gallery.',
+    description:
+      'Compiles a Flint spec into an Apache ECharts option — ideal for ' +
+      'interactive dashboards and richer chart types such as gauges, sunbursts, ' +
+      'sankeys and network graphs.',
+    fn: 'assembleECharts',
     charts: [
       createChart('echarts', 'echarts-scatter', 'Scatter Plot', 'ECharts: Scatter', scatterIcon),
       createChart('echarts', 'echarts-line', 'Line Chart', 'ECharts: Line', lineIcon),
@@ -131,7 +140,10 @@ export const CHART_CATEGORIES: ChartCategory[] = [
   {
     id: 'chartjs',
     label: BACKEND_LABELS.chartjs,
-    description: 'Practical Chart.js examples for familiar dashboard-style visuals.',
+    description:
+      'Compiles a Flint spec into a Chart.js config — ideal for familiar, ' +
+      'lightweight dashboard visuals that drop straight into a canvas element.',
+    fn: 'assembleChartjs',
     charts: [
       createChart('chartjs', 'chartjs-scatter', 'Scatter Plot', 'Chart.js: Scatter', scatterIcon),
       createChart('chartjs', 'chartjs-bubble', 'Bubble Chart *', 'Chart.js: Bubble *', bubbleIcon),

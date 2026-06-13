@@ -26,7 +26,6 @@ export function Landing() {
       <main style={mainStyle}>
         {/* ---- Hero ------------------------------------------------------ */}
         <section style={{ ...sectionStyle, textAlign: 'center', paddingTop: 72, paddingBottom: 24 }}>
-          <div style={eyebrowStyle}>Semantic-driven visualization</div>
           <h1 style={heroTitleStyle}>Flint</h1>
           <p style={taglineStyle}>
             Describe what your data means, and Flint draws the chart for you.
@@ -68,7 +67,6 @@ export function Landing() {
           <div style={featureGridStyle}>
             {FEATURES.map((feature) => (
               <div key={feature.title}>
-                <div style={eyebrowStyle}>{feature.eyebrow}</div>
                 <h2 style={featureTitleStyle}>{feature.title}</h2>
                 <p style={featureBodyStyle}>{feature.body}</p>
               </div>
@@ -79,7 +77,7 @@ export function Landing() {
         {/* ---- Closing CTA ---------------------------------------------- */}
         <section style={{ ...sectionStyle, paddingBottom: 72 }}>
           <div style={closingCardStyle}>
-            <h2 style={{ fontSize: 26, margin: '0 0 8px', fontWeight: 700 }}>
+            <h2 style={{ fontSize: 26, margin: '0 0 8px', fontWeight: 500 }}>
               Less spec, clearer charts.
             </h2>
             <p style={{ margin: '0 0 22px', color: siteTheme.textMuted, fontSize: 16, lineHeight: 1.6 }}>
@@ -232,14 +230,12 @@ function FlintSpecCode({ testCase }: { testCase: TestCase }) {
 /* ------------------------------------------------------------------ */
 
 interface Feature {
-  eyebrow: string;
   title: string;
   body: string;
 }
 
 const FEATURES: Feature[] = [
   {
-    eyebrow: 'Semantic data model',
     title: 'Say what your data means',
     body:
       'Most libraries guess what your numbers mean from how they look — and they often ' +
@@ -248,7 +244,6 @@ const FEATURES: Feature[] = [
       'right scale, baseline, and number format every time.',
   },
   {
-    eyebrow: 'Sensible defaults',
     title: 'Short specs, finished charts',
     body:
       'Name a chart type and map a few fields to channels — that is the whole spec. Flint ' +
@@ -256,7 +251,6 @@ const FEATURES: Feature[] = [
       'well-worn visualization rules, so your charts come out looking right without fiddling.',
   },
   {
-    eyebrow: 'One language, three renderers',
     title: 'Render anywhere',
     body:
       'Flint sits a level above any single charting library. Write a chart once, then render ' +
@@ -264,7 +258,6 @@ const FEATURES: Feature[] = [
       'like, without rewriting a thing.',
   },
   {
-    eyebrow: 'Friendly to people and AI',
     title: 'Easy to write, easy to change',
     body:
       'A Flint spec is short and says what it means, so an AI agent can write one from a ' +
@@ -331,27 +324,18 @@ const sectionStyle: CSSProperties = {
   boxSizing: 'border-box',
 };
 
-const eyebrowStyle: CSSProperties = {
-  fontSize: 12,
-  fontWeight: 700,
-  letterSpacing: '0.08em',
-  textTransform: 'uppercase',
-  color: siteTheme.accent,
-  marginBottom: 10,
-};
-
 const heroTitleStyle: CSSProperties = {
-  fontSize: 76,
-  lineHeight: 1.02,
+  fontSize: 80,
+  lineHeight: 1.05,
   margin: '0 0 14px',
-  fontWeight: 800,
-  letterSpacing: '-0.03em',
+  fontWeight: 300,
+  letterSpacing: '0.04em',
 };
 
 const taglineStyle: CSSProperties = {
-  fontSize: 22,
-  color: siteTheme.text,
-  fontWeight: 500,
+  fontSize: 24,
+  color: siteTheme.textMuted,
+  fontWeight: 400,
   margin: '0 auto 16px',
   maxWidth: 680,
   lineHeight: 1.4,
@@ -400,7 +384,7 @@ const paneHeaderRowStyle: CSSProperties = {
 const paneLabelStyle: CSSProperties = {
   padding: '10px 14px 2px',
   fontSize: 11,
-  fontWeight: 700,
+  fontWeight: 600,
   letterSpacing: '0.05em',
   textTransform: 'uppercase',
   color: siteTheme.textMuted,
@@ -477,13 +461,12 @@ const featureGridStyle: CSSProperties = {
 
 const featureTitleStyle: CSSProperties = {
   fontSize: 22,
-  fontWeight: 600,
+  fontWeight: 500,
   margin: '0 0 10px',
-  letterSpacing: '-0.01em',
 };
 
 const featureBodyStyle: CSSProperties = {
-  fontSize: 15.5,
+  fontSize: 16,
   color: siteTheme.textMuted,
   lineHeight: 1.7,
   margin: 0,
@@ -512,7 +495,7 @@ const primaryBtn: CSSProperties = {
   color: '#fff',
   borderRadius: siteTheme.radius,
   textDecoration: 'none',
-  fontWeight: 600,
+  fontWeight: 500,
   fontSize: 14.5,
 };
 

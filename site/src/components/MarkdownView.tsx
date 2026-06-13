@@ -113,7 +113,7 @@ const tableStyle: CSSProperties = {
 const thStyle: CSSProperties = {
   textAlign: 'left',
   padding: '8px 10px',
-  borderBottom: `2px solid ${siteTheme.border}`,
+  borderBottom: `1px solid ${siteTheme.borderMuted}`,
   background: siteTheme.bg,
 };
 const tdStyle: CSSProperties = {
@@ -138,7 +138,7 @@ const codeBlockStyle: CSSProperties = {
 const inlineCodeStyle: CSSProperties = {
   fontFamily: siteTheme.fontMono,
   fontSize: '0.9em',
-  background: '#eef1f4',
+  background: siteTheme.hover,
   padding: '2px 5px',
   borderRadius: 4,
 };

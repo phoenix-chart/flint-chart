@@ -42,7 +42,6 @@ export function FlintInputSummary({ testCase }: { testCase: TestCase }) {
           fontFamily: siteTheme.fontMono,
           color: siteTheme.text,
           background: siteTheme.bg,
-          border: `1px solid ${siteTheme.border}`,
           borderRadius: siteTheme.radius,
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',

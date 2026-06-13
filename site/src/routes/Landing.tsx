@@ -295,9 +295,9 @@ function useTestCase(generator: string, index = 0): TestCase | null {
 /* ------------------------------------------------------------------ */
 
 const PAPER = '#ffffff';
-const HAIRLINE = 'rgba(0, 0, 0, 0.12)';
-const NEUTRAL_FILL = 'rgba(0, 0, 0, 0.045)';
-const GRID_LINE = 'rgba(0, 0, 0, 0.035)';
+const HAIRLINE = 'rgba(0, 0, 0, 0.10)';
+const NEUTRAL_FILL = 'rgba(0, 0, 0, 0.04)';
+const GRID_LINE = 'rgba(0, 0, 0, 0.02)';
 
 /* ------------------------------------------------------------------ */
 /* Styles                                                              */

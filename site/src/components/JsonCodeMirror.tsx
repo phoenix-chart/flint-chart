@@ -7,7 +7,7 @@ import { scheduleFoldJsonProperties } from '../shared/json-data-fold';
 import { siteTheme } from '../shared/theme';
 
 const readOnlyTheme = EditorView.theme({
-  '&': { backgroundColor: '#f6f8fa' },
+  '&': { backgroundColor: siteTheme.bg },
   '.cm-content': { caretColor: 'transparent' },
   '&.cm-focused .cm-cursor': { display: 'none' },
 });

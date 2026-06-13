@@ -240,19 +240,6 @@ export function ChartWall() {
 
             {groups.map((group) => (
               <div key={group.id} style={{ marginTop: 44 }}>
-                <p
-                  style={{
-                    margin: '0 0 4px',
-                    fontSize: 11.5,
-                    fontWeight: 700,
-                    letterSpacing: '0.06em',
-                    textTransform: 'uppercase',
-                    color: siteTheme.textMuted,
-                  }}
-                >
-                  {group.label}
-                </p>
-
                 {group.sections.map((section) => (
                   <section
                     key={section.chart.id}
@@ -277,9 +264,6 @@ export function ChartWall() {
                       >
                         {section.chart.label}
                       </h2>
-                      <span style={{ fontSize: 13, fontWeight: 400, color: siteTheme.textMuted }}>
-                        {section.tiles.length}
-                      </span>
                     </div>
 
                     <div
@@ -362,20 +346,7 @@ function WallSidebar({
       </div>
 
       {groups.map((group) => (
-        <div key={group.id} style={{ marginTop: 6 }}>
-          <div
-            style={{
-              padding: '6px 16px 3px',
-              fontSize: 10.5,
-              fontWeight: 700,
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
-              color: siteTheme.textMuted,
-              opacity: 0.8,
-            }}
-          >
-            {group.label}
-          </div>
+        <div key={group.id} style={{ marginTop: 10 }}>
           {group.sections.map((section) => (
             <SidebarItem
               key={section.chart.id}

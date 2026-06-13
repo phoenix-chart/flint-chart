@@ -1,27 +1,32 @@
-import { useMemo, type CSSProperties } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { TEST_GENERATORS, type TestCase } from 'flint-chart/test-data';
 import { SiteNavBar, MicrosoftDisclosures } from '../components/SiteShell';
 import { WallChart } from '../components/WallChart';
 import { ScaleToFit } from '../components/ScaleToFit';
 import { testCaseToFlintSummary } from '../shared/test-case-utils';
+import {
+  ALL_BACKENDS,
+  BACKEND_LABELS,
+  getSupportedBackends,
+  type PreviewBackend,
+} from '../shared/supported-backends';
 import { GITHUB_REPO, siteTheme } from '../shared/theme';
 
 /**
  * Front page — data-formulator/about-style hero with copy learned from the Flint
  * paper and the Vega-Lite homepage advertisement. Flush (borderless) header, no
- * drop shadows, one illustrative example, and a clean text-only feature grid.
+ * drop shadows, an interactive spec→chart example (switch backend, page through
+ * examples), and a clean text-only feature grid.
  */
 export function Landing() {
-  const heroCase = useTestCase('Line Chart', 1);
-
   return (
     <div style={pageStyle}>
       <SiteNavBar flush />
 
       <main style={mainStyle}>
         {/* ---- Hero ------------------------------------------------------ */}
-        <section style={{ ...sectionStyle, textAlign: 'center', paddingTop: 72 }}>
+        <section style={{ ...sectionStyle, textAlign: 'center', paddingTop: 72, paddingBottom: 24 }}>
           <div style={eyebrowStyle}>Semantic-driven data visualization</div>
           <h1 style={heroTitleStyle}>Flint</h1>
           <p style={taglineStyle}>
@@ -58,29 +63,8 @@ export function Landing() {
           </p>
         </section>
 
-        {/* ---- Single illustrative example: spec -> chart --------------- */}
-        {heroCase && (
-          <section style={{ ...sectionStyle, paddingTop: 8 }}>
-            <div style={showcaseCardStyle}>
-              <div style={showcasePaneStyle}>
-                <div style={paneLabelStyle}>Flint spec</div>
-                <FlintSpecCode testCase={heroCase} />
-              </div>
-              <div style={{ ...showcasePaneStyle, borderLeft: `1px solid ${siteTheme.border}` }}>
-                <div style={paneLabelStyle}>Compiled chart</div>
-                <div style={{ padding: '4px 12px 14px' }}>
-                  <ScaleToFit height={300} padding={6}>
-                    <WallChart testCase={heroCase} backend="vegalite" />
-                  </ScaleToFit>
-                </div>
-              </div>
-            </div>
-            <p style={showcaseCaptionStyle}>
-              The same spec recompiles automatically as you change chart types,
-              encodings, or rendering backend — no full rewrite required.
-            </p>
-          </section>
-        )}
+        {/* ---- Interactive example: spec -> chart ---------------------- */}
+        <HeroShowcase />
 
         {/* ---- Feature grid (text only) -------------------------------- */}
         <section style={sectionStyle}>
@@ -120,6 +104,130 @@ export function Landing() {
       <MicrosoftDisclosures />
     </div>
   );
+}
+
+/* ------------------------------------------------------------------ */
+/* Interactive showcase                                                */
+/* ------------------------------------------------------------------ */
+
+interface ShowcaseExample {
+  id: string;
+  label: string;
+  caption: string;
+  generator: string;
+  index: number;
+}
+
+const SHOWCASE_EXAMPLES: ShowcaseExample[] = [
+  {
+    id: 'line',
+    label: 'Line chart',
+    caption: 'A multi-series line chart — time on x, a measure on y, a category as color.',
+    generator: 'Line Chart',
+    index: 1,
+  },
+  {
+    id: 'heatmap',
+    label: 'Heatmap',
+    caption: 'A heatmap — Flint reads the value semantics to pick a fitting color scale.',
+    generator: 'Heatmap',
+    index: 0,
+  },
+  {
+    id: 'stretch',
+    label: 'Dense categories',
+    caption: 'Many categories — Flint stretches the layout so bars and labels stay legible.',
+    generator: 'Bar Chart',
+    index: 1,
+  },
+  {
+    id: 'advanced',
+    label: 'Sunburst',
+    caption: 'An advanced, hierarchical chart compiled from the very same compact spec.',
+    generator: 'ECharts: Sunburst',
+    index: 2,
+  },
+];
+
+function HeroShowcase() {
+  const [exampleIdx, setExampleIdx] = useState(0);
+  const [selectedBackend, setSelectedBackend] = useState<PreviewBackend>('vegalite');
+
+  const example = SHOWCASE_EXAMPLES[exampleIdx];
+  const testCase = useTestCase(example.generator, example.index);
+  const supported = useMemo(
+    () => (testCase ? getSupportedBackends(testCase.chartType) : []),
+    [testCase],
+  );
+  // Keep the user's backend choice when the new example supports it; otherwise
+  // fall back to that example's first available backend.
+  const backend = supported.includes(selectedBackend) ? selectedBackend : supported[0] ?? 'vegalite';
+
+  if (!testCase) return null;
+
+  return (
+    <section style={{ ...sectionStyle, paddingTop: 8 }}>
+      <div style={showcaseCardStyle}>
+        <div style={showcasePaneStyle}>
+          <div style={paneLabelStyle}>Flint spec</div>
+          <FlintSpecCode testCase={testCase} />
+        </div>
+
+        <div style={{ ...showcasePaneStyle, borderLeft: `1px solid ${siteTheme.border}` }}>
+          <div style={paneHeaderRowStyle}>
+            <span style={paneLabelStyle}>Compiled chart</span>
+            <div style={backendToggleStyle} role="tablist" aria-label="Rendering backend">
+              {ALL_BACKENDS.map((b) => {
+                const isSupported = supported.includes(b);
+                const active = b === backend;
+                return (
+                  <button
+                    key={b}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    disabled={!isSupported}
+                    onClick={() => setSelectedBackend(b)}
+                    title={isSupported ? `Render with ${BACKEND_LABELS[b]}` : `${BACKEND_LABELS[b]} doesn’t support this chart`}
+                    style={backendBtnStyle(active, isSupported)}
+                  >
+                    {BACKEND_LABELS[b]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div style={{ padding: '4px 12px 14px' }}>
+            <ScaleToFit height={300} padding={6}>
+              <WallChart testCase={testCase} backend={backend} />
+            </ScaleToFit>
+          </div>
+        </div>
+      </div>
+
+      {/* Example pager */}
+      <div style={dotsRowStyle} role="tablist" aria-label="Example">
+        {SHOWCASE_EXAMPLES.map((ex, i) => (
+          <button
+            key={ex.id}
+            type="button"
+            role="tab"
+            aria-selected={i === exampleIdx}
+            aria-label={ex.label}
+            title={ex.label}
+            onClick={() => setExampleIdx(i)}
+            style={dotStyle(i === exampleIdx)}
+          />
+        ))}
+      </div>
+      <p style={showcaseCaptionStyle}>{example.caption}</p>
+    </section>
+  );
+}
+
+function FlintSpecCode({ testCase }: { testCase: TestCase }) {
+  const text = useMemo(() => JSON.stringify(testCaseToFlintSummary(testCase), null, 2), [testCase]);
+  return <pre style={specPreStyle}>{text}</pre>;
 }
 
 /* ------------------------------------------------------------------ */
@@ -169,15 +277,6 @@ const FEATURES: Feature[] = [
       'a low-level specification.',
   },
 ];
-
-/* ------------------------------------------------------------------ */
-/* Sub-components                                                       */
-/* ------------------------------------------------------------------ */
-
-function FlintSpecCode({ testCase }: { testCase: TestCase }) {
-  const text = useMemo(() => JSON.stringify(testCaseToFlintSummary(testCase), null, 2), [testCase]);
-  return <pre style={specPreStyle}>{text}</pre>;
-}
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
@@ -286,6 +385,14 @@ const showcasePaneStyle: CSSProperties = {
   flexDirection: 'column',
 };
 
+const paneHeaderRowStyle: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: 8,
+  paddingRight: 10,
+};
+
 const paneLabelStyle: CSSProperties = {
   padding: '10px 14px 2px',
   fontSize: 11,
@@ -295,8 +402,52 @@ const paneLabelStyle: CSSProperties = {
   color: siteTheme.textMuted,
 };
 
+const backendToggleStyle: CSSProperties = {
+  display: 'inline-flex',
+  gap: 2,
+  padding: 2,
+  marginTop: 6,
+  border: `1px solid ${siteTheme.border}`,
+  borderRadius: siteTheme.radius,
+  background: siteTheme.bg,
+};
+
+function backendBtnStyle(active: boolean, supported: boolean): CSSProperties {
+  return {
+    padding: '4px 10px',
+    border: 0,
+    borderRadius: 4,
+    background: active ? siteTheme.accent : 'transparent',
+    color: active ? '#fff' : supported ? siteTheme.text : '#b0b6bd',
+    fontSize: 12,
+    fontWeight: active ? 600 : 500,
+    cursor: supported ? 'pointer' : 'not-allowed',
+    fontFamily: 'inherit',
+  };
+}
+
+const dotsRowStyle: CSSProperties = {
+  display: 'flex',
+  justifyContent: 'center',
+  gap: 10,
+  marginTop: 16,
+};
+
+function dotStyle(active: boolean): CSSProperties {
+  return {
+    width: active ? 22 : 9,
+    height: 9,
+    padding: 0,
+    border: 0,
+    borderRadius: 999,
+    background: active ? siteTheme.accent : siteTheme.borderMuted,
+    cursor: 'pointer',
+    transition: 'width 0.15s ease, background 0.15s ease',
+  };
+}
+
 const showcaseCaptionStyle: CSSProperties = {
-  marginTop: 12,
+  marginTop: 10,
   textAlign: 'center',
   color: siteTheme.textMuted,
   fontSize: 13.5,

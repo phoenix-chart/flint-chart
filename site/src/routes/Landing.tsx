@@ -93,13 +93,7 @@ export function Landing() {
 
         {/* ---- Feature grid (text only) -------------------------------- */}
         <section style={sectionStyle}>
-          <p style={featureIntroStyle}>
-            Each of these rests on the same idea: you never set the low-level chart
-            parameters yourself. Flint hands that job to the compiler, which decides them
-            from your visual encodings and the characteristics of your data. The result is
-            a simple contract for both AI agents and humans, a short spec that still
-            produces a good-looking chart.
-          </p>
+          <p style={featureIntroStyle}>{FEATURE_INTRO}</p>
           <div style={featureGridStyle}>
             {FEATURES.map((feature) => (
               <div key={feature.title}>
@@ -322,12 +316,25 @@ function FlintSpecCode({ testCase }: { testCase: TestCase }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Feature data                                                        */
+/* Feature section copy                                                */
+/*                                                                     */
+/* Edit the plain-text strings below to rewrite the landing copy. The  */
+/* intro paragraph and each feature's title/body are kept here as      */
+/* simple strings so they can be reworded without touching any JSX.    */
 /* ------------------------------------------------------------------ */
+
+// Paragraph shown above the four features.
+const FEATURE_INTRO =
+  'Each of these rests on the same idea: you never set the low-level chart ' +
+  'parameters yourself. Flint hands that job to the compiler, which decides them ' +
+  'from your visual encodings and the characteristics of your data. The result is ' +
+  'a simple contract for both AI agents and humans, a short spec that still ' +
+  'produces a good-looking chart.';
 
 interface Feature {
   title: string;
   body: string;
+  // When true, the per-backend chart-type list is rendered under this feature.
   showBackends?: boolean;
 }
 

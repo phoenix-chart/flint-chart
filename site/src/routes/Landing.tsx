@@ -1,6 +1,12 @@
 import { useMemo, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
-import { TEST_GENERATORS, type TestCase } from 'flint-chart/test-data';
+import {
+  TEST_GENERATORS,
+  makeField,
+  makeEncodingItem,
+  buildMetadata,
+  type TestCase,
+} from 'flint-chart/test-data';
 import { SiteNavBar, MicrosoftDisclosures } from '../components/SiteShell';
 import { WallChart } from '../components/WallChart';
 import { ScaleToFit } from '../components/ScaleToFit';
@@ -109,12 +115,9 @@ export function Landing() {
                     </p>
                   )}
                 </div>
-                {feature.visual && (
+                {feature.demo && (
                   <div style={featureVisualColStyle}>
-                    <FeatureChart
-                      generator={feature.visual.generator}
-                      backend={feature.visual.backend}
-                    />
+                    <FeatureDemoView build={feature.demo} />
                   </div>
                 )}
               </article>
@@ -344,8 +347,8 @@ interface Feature {
   body: string;
   // Optional concrete example rendered as a callout beneath the body.
   example?: string;
-  // Live chart shown alongside the text, illustrating the feature.
-  visual?: { generator: string; backend: PreviewBackend };
+  // Before/after demo shown alongside the text, illustrating the feature.
+  demo?: () => FeatureDemoConfig;
 }
 
 const FEATURES: Feature[] = [
@@ -357,7 +360,7 @@ const FEATURES: Feature[] = [
       'Flint automatically derives the right parsing, scale, axes, formatting (e.g., temporal granularity), and color (e.g., diverging vs. sequential schemes) to produce a well-formed chart.',
     example:
       'Flint automatically configures the x-axis axes temporal granularity as Year-Month with temporal axis and diverging color scheme centered at 0 to optimize the visualization ofa heatmap representing month x week x profit based on data sematnic types',
-    visual: { generator: 'Omni: Heatmap', backend: 'vegalite' },
+    demo: demoSemanticTypes,
   },
   {
     title: 'Automatic layout optimization',
@@ -366,7 +369,7 @@ const FEATURES: Feature[] = [
       'Given the desired chart dimensions and allowed canvas sizes, the compiler dynamically manages sizing, spacing, and arrangement so the chart nicely fits into the canvas with principled layout decisions.',
     example:
       'A desnse bar chart with 80 items trades stretches the canvas size and reduces it\'s band width so it fits the canvas nicely, similar to how springs fit into expandable containers.',
-    visual: { generator: 'Omni: Grouped Bar', backend: 'vegalite' },
+    demo: demoLayout,
   },
   {
     title: 'Easy to generate and adapt',
@@ -377,7 +380,7 @@ const FEATURES: Feature[] = [
       'encoding choices to the low-level settings.',
     example:
       'When switching from a faceted line chart to a waterfall chart, the user only needs to update the visual encodings and the compiler automatically derives the new low-level paramters, despite the compiled chart spec are radically different.',
-    visual: { generator: 'Omni: Waterfall', backend: 'echarts' },
+    demo: demoAdapt,
   },
   {
     title: 'Render with different backends',
@@ -387,7 +390,7 @@ const FEATURES: Feature[] = [
       'backend and leverage its unique features.',
     example:
       'Vega-Lite has no native sunburst support, but it\'s easy to turn a grouped bar chart into sunburst using Flint and render it with ECharts.',
-    visual: { generator: 'Omni: Sunburst', backend: 'echarts' },
+    demo: demoBackends,
   },
 ];
 
@@ -408,17 +411,185 @@ function useTestCase(generator: string, index = 0): TestCase | null {
   }, [generator, index]);
 }
 
-/** A single compiled chart used as the visual illustration in a feature card. */
-function FeatureChart({ generator, backend }: { generator: string; backend: PreviewBackend }) {
-  const testCase = useTestCase(generator, 0);
-  if (!testCase) return null;
-  const supported = getSupportedBackends(testCase.chartType);
-  const useBackend = supported.includes(backend) ? backend : supported[0] ?? 'vegalite';
+/* ------------------------------------------------------------------ */
+/* Feature before/after demos                                          */
+/* ------------------------------------------------------------------ */
+
+type DemoStage =
+  | { kind: 'spec'; label: string; testCase: TestCase }
+  | { kind: 'chart'; label: string; testCase: TestCase; backend: PreviewBackend };
+
+interface FeatureDemoConfig {
+  before: DemoStage;
+  after: DemoStage;
+}
+
+/** First test case for an Omni generator key. */
+function omni(key: string): TestCase {
+  return TEST_GENERATORS[key]!()[0];
+}
+
+/** Clone a test case, changing only its chart type (encodings preserved). */
+function asChartType(base: TestCase, chartType: string): TestCase {
+  return { ...base, chartType };
+}
+
+/** A synthetic single-series bar chart with `n` categories (for layout demos). */
+function synthBar(n: number, title: string): TestCase {
+  const data = Array.from({ length: n }, (_, i) => ({
+    item: 'G' + String(i + 1).padStart(2, '0'),
+    value: Math.round(24 + 56 * Math.abs(Math.sin(i * 1.35 + 0.6))),
+  }));
+  return {
+    title,
+    description: '',
+    tags: [],
+    chartType: 'Bar Chart',
+    data,
+    fields: [makeField('item'), makeField('value')],
+    metadata: buildMetadata(data),
+    encodingMap: { x: makeEncodingItem('item'), y: makeEncodingItem('value') },
+  };
+}
+
+// Card 1: the same spec compiles to a chart (data spec / semantic types highlighted).
+function demoSemanticTypes(): FeatureDemoConfig {
+  const tc = omni('Omni: Heatmap');
+  return {
+    before: { kind: 'spec', label: 'Flint spec', testCase: tc },
+    after: { kind: 'chart', label: 'Compiled chart', testCase: tc, backend: 'vegalite' },
+  };
+}
+
+// Card 2: same spec, more categories — the layout adapts from sparse to dense.
+function demoLayout(): FeatureDemoConfig {
+  return {
+    before: { kind: 'chart', label: 'Sparse · 6 bars', testCase: synthBar(6, 'Sparse bar'), backend: 'vegalite' },
+    after: { kind: 'chart', label: 'Dense · 60 bars', testCase: synthBar(60, 'Dense bar'), backend: 'vegalite' },
+  };
+}
+
+// Card 3: same encoding, different chart type — a bar chart becomes a waterfall.
+function demoAdapt(): FeatureDemoConfig {
+  const wf = omni('Omni: Waterfall');
+  return {
+    before: { kind: 'chart', label: 'Bar chart', testCase: asChartType(wf, 'Bar Chart'), backend: 'echarts' },
+    after: { kind: 'chart', label: 'Waterfall', testCase: wf, backend: 'echarts' },
+  };
+}
+
+// Card 4: a Vega-Lite faceted bar and an ECharts sunburst of the same story.
+function demoBackends(): FeatureDemoConfig {
+  const line = omni('Omni: Line');
+  const sun = omni('Omni: Sunburst');
+  return {
+    before: { kind: 'chart', label: 'Vega-Lite faceted bar', testCase: asChartType(line, 'Bar Chart'), backend: 'vegalite' },
+    after: { kind: 'chart', label: 'ECharts sunburst', testCase: sun, backend: 'echarts' },
+  };
+}
+
+/** Pick the requested backend, or the first one that supports the chart type. */
+function pickBackend(t: TestCase, want: PreviewBackend): PreviewBackend {
+  const supported = getSupportedBackends(t.chartType);
+  return supported.includes(want) ? want : supported[0] ?? 'vegalite';
+}
+
+/** A simplified Flint spec, e.g. `Heatmap [x → period, y → game, color → newUsers]`. */
+function simplifiedSpec(t: TestCase): string {
+  const idToName = new Map(t.fields.map((f) => [f.id, f.name]));
+  const parts: string[] = [];
+  for (const [channel, e] of Object.entries(t.encodingMap)) {
+    if (!e?.fieldID) continue;
+    parts.push(`${channel} → ${idToName.get(e.fieldID) ?? e.fieldID}`);
+  }
+  return `${t.chartType} [${parts.join(', ')}]`;
+}
+
+/** A Flint spec with the data spec (semantic types) block color-highlighted. */
+function HighlightedFlintSpec({ testCase }: { testCase: TestCase }) {
+  const lines = useMemo(() => {
+    const json = JSON.stringify(testCaseToFlintSummary(testCase), null, 2);
+    const all = json.split('\n');
+    // Mark the lines that make up the "semantic_types" (data spec) block.
+    let start = -1;
+    let end = all.length - 1;
+    let depth = 0;
+    let opened = false;
+    for (let i = 0; i < all.length; i++) {
+      if (start === -1 && all[i].includes('"semantic_types"')) start = i;
+      if (start !== -1 && i >= start) {
+        for (const ch of all[i]) {
+          if (ch === '{') {
+            depth++;
+            opened = true;
+          } else if (ch === '}') depth--;
+        }
+        if (opened && depth === 0) {
+          end = i;
+          break;
+        }
+      }
+    }
+    return all.map((text, i) => ({ text, hot: start !== -1 && i >= start && i <= end }));
+  }, [testCase]);
+
   return (
-    <div style={featureChartFrameStyle}>
-      <ScaleToFit height={300} minHeight={210} padding={6} adaptiveHeight>
-        <WallChart testCase={testCase} backend={useBackend} />
-      </ScaleToFit>
+    <pre style={demoSpecPreStyle}>
+      {lines.map((ln, i) => (
+        <div key={i} style={ln.hot ? demoSpecHotLineStyle : undefined}>
+          {ln.text || ' '}
+        </div>
+      ))}
+    </pre>
+  );
+}
+
+/** Before/after switcher: the card visual flips between two states. */
+function FeatureDemoView({ build }: { build: () => FeatureDemoConfig }) {
+  const demo = useMemo(() => build(), [build]);
+  const [idx, setIdx] = useState(0);
+  const stages = [demo.before, demo.after];
+  const stage = stages[idx];
+
+  return (
+    <div>
+      <div style={featureChartFrameStyle}>
+        {stage.kind === 'spec' ? (
+          <HighlightedFlintSpec testCase={stage.testCase} />
+        ) : (
+          <ScaleToFit height={300} minHeight={210} padding={6} adaptiveHeight>
+            <WallChart testCase={stage.testCase} backend={pickBackend(stage.testCase, stage.backend)} />
+          </ScaleToFit>
+        )}
+      </div>
+
+      <div style={demoToggleRowStyle} role="tablist" aria-label="Before and after">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={idx === 0}
+          onClick={() => setIdx(0)}
+          style={demoToggleBtnStyle(idx === 0)}
+        >
+          {demo.before.label}
+        </button>
+        <span style={demoToggleArrowStyle} aria-hidden="true">
+          <ChevronIcon dir="right" />
+        </span>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={idx === 1}
+          onClick={() => setIdx(1)}
+          style={demoToggleBtnStyle(idx === 1)}
+        >
+          {demo.after.label}
+        </button>
+      </div>
+
+      <p style={demoSpecCaptionStyle}>
+        <code style={demoSpecCaptionCodeStyle}>{simplifiedSpec(stage.testCase)}</code>
+      </p>
     </div>
   );
 }
@@ -753,6 +924,70 @@ const featureChartFrameStyle: CSSProperties = {
   background: PAPER,
   padding: '12px 14px',
   overflow: 'hidden',
+};
+
+// Flint spec shown in a demo viewport, with the data spec block highlighted.
+const demoSpecPreStyle: CSSProperties = {
+  margin: 0,
+  padding: '2px 4px',
+  fontFamily: siteTheme.fontMono,
+  fontSize: 12,
+  lineHeight: 1.5,
+  color: siteTheme.text,
+  background: PAPER,
+  maxHeight: 300,
+  overflow: 'auto',
+};
+
+const demoSpecHotLineStyle: CSSProperties = {
+  background: siteTheme.accentBg,
+  boxShadow: `inset 2px 0 0 ${siteTheme.accent}`,
+  color: siteTheme.text,
+};
+
+const demoToggleRowStyle: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 8,
+  marginTop: 14,
+};
+
+function demoToggleBtnStyle(active: boolean): CSSProperties {
+  return {
+    padding: '5px 12px',
+    border: `1px solid ${active ? siteTheme.accent : HAIRLINE}`,
+    borderRadius: 999,
+    background: active ? siteTheme.accentBg : PAPER,
+    color: active ? siteTheme.accent : siteTheme.textMuted,
+    fontSize: 12.5,
+    fontWeight: active ? 600 : 500,
+    fontFamily: 'inherit',
+    cursor: 'pointer',
+  };
+}
+
+const demoToggleArrowStyle: CSSProperties = {
+  display: 'inline-flex',
+  color: siteTheme.textMuted,
+};
+
+const demoSpecCaptionStyle: CSSProperties = {
+  margin: '12px 0 0',
+  textAlign: 'center',
+};
+
+const demoSpecCaptionCodeStyle: CSSProperties = {
+  fontFamily: siteTheme.fontMono,
+  fontSize: 12.5,
+  color: siteTheme.textMuted,
+  background: NEUTRAL_FILL,
+  padding: '4px 10px',
+  borderRadius: 4,
+  display: 'inline-block',
+  maxWidth: '100%',
+  boxSizing: 'border-box',
+  wordBreak: 'break-word',
 };
 
 const featureTitleStyle: CSSProperties = {

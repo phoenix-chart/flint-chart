@@ -194,6 +194,16 @@ function HeroShowcase() {
 
   return (
     <section style={{ ...sectionStyle, paddingTop: 8 }}>
+      <div style={showcaseIntroStyle}>
+        <h2 style={showcaseHeadingStyle}>The example from our paper</h2>
+        <p style={showcaseIntroTextStyle}>
+          These charts come from the walkthrough in the Flint paper. They all use
+          one synthetic gaming-market dataset and the same short spec, with a few
+          encodings changed between them. Use the arrows to move through the charts;
+          the caption under each one explains what Flint inferred on its own.
+        </p>
+      </div>
+
       <div style={carouselRowStyle}>
         <button
           type="button"
@@ -517,6 +527,26 @@ const carouselRowStyle: CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   gap: 12,
+};
+
+const showcaseIntroStyle: CSSProperties = {
+  maxWidth: 680,
+  margin: '0 auto 20px',
+  textAlign: 'center',
+};
+
+const showcaseHeadingStyle: CSSProperties = {
+  fontSize: 24,
+  fontWeight: 500,
+  margin: '0 0 10px',
+  letterSpacing: '0.01em',
+};
+
+const showcaseIntroTextStyle: CSSProperties = {
+  fontSize: 15.5,
+  color: siteTheme.textMuted,
+  lineHeight: 1.65,
+  margin: 0,
 };
 
 const pagerArrowStyle: CSSProperties = {

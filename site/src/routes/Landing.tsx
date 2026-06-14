@@ -194,46 +194,7 @@ function HeroShowcase() {
 
   return (
     <section style={{ ...sectionStyle, paddingTop: 8 }}>
-      <div style={showcaseCardStyle}>
-        <div style={showcasePaneStyle}>
-          <div style={paneLabelStyle}>Flint spec</div>
-          <FlintSpecCode testCase={testCase} />
-        </div>
-
-        <div style={{ ...showcasePaneStyle, ...chartPaneStyle, borderLeft: `1px solid ${HAIRLINE}` }}>
-          <div style={paneHeaderRowStyle}>
-            <span style={paneLabelStyle}>Compiled chart</span>
-            <div style={backendToggleStyle} role="tablist" aria-label="Rendering backend">
-              {ALL_BACKENDS.map((b) => {
-                const isSupported = supported.includes(b);
-                const active = b === backend;
-                return (
-                  <button
-                    key={b}
-                    type="button"
-                    role="tab"
-                    aria-selected={active}
-                    disabled={!isSupported}
-                    onClick={() => setSelectedBackend(b)}
-                    title={isSupported ? `Render with ${BACKEND_LABELS[b]}` : `${BACKEND_LABELS[b]} doesn’t support this chart`}
-                    style={backendBtnStyle(active, isSupported)}
-                  >
-                    {BACKEND_LABELS[b]}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          <div style={{ padding: '4px 12px 14px' }}>
-            <ScaleToFit height={360} minHeight={236} padding={6} adaptiveHeight>
-              <WallChart testCase={testCase} backend={backend} />
-            </ScaleToFit>
-          </div>
-        </div>
-      </div>
-
-      {/* Example pager */}
-      <div style={pagerRowStyle}>
+      <div style={carouselRowStyle}>
         <button
           type="button"
           onClick={goPrev}
@@ -244,19 +205,42 @@ function HeroShowcase() {
           <ChevronIcon dir="left" />
         </button>
 
-        <div style={dotsRowStyle} role="tablist" aria-label="Example">
-          {SHOWCASE_EXAMPLES.map((ex, i) => (
-            <button
-              key={ex.id}
-              type="button"
-              role="tab"
-              aria-selected={i === exampleIdx}
-              aria-label={ex.label}
-              title={ex.label}
-              onClick={() => setExampleIdx(i)}
-              style={dotStyle(i === exampleIdx)}
-            />
-          ))}
+        <div style={{ ...showcaseCardStyle, flex: 1, minWidth: 0 }}>
+          <div style={showcasePaneStyle}>
+            <div style={paneLabelStyle}>Flint spec</div>
+            <FlintSpecCode testCase={testCase} />
+          </div>
+
+          <div style={{ ...showcasePaneStyle, ...chartPaneStyle, borderLeft: `1px solid ${HAIRLINE}` }}>
+            <div style={paneHeaderRowStyle}>
+              <span style={paneLabelStyle}>Compiled chart</span>
+              <div style={backendToggleStyle} role="tablist" aria-label="Rendering backend">
+                {ALL_BACKENDS.map((b) => {
+                  const isSupported = supported.includes(b);
+                  const active = b === backend;
+                  return (
+                    <button
+                      key={b}
+                      type="button"
+                      role="tab"
+                      aria-selected={active}
+                      disabled={!isSupported}
+                      onClick={() => setSelectedBackend(b)}
+                      title={isSupported ? `Render with ${BACKEND_LABELS[b]}` : `${BACKEND_LABELS[b]} doesn’t support this chart`}
+                      style={backendBtnStyle(active, isSupported)}
+                    >
+                      {BACKEND_LABELS[b]}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div style={{ padding: '4px 12px 14px' }}>
+              <ScaleToFit height={360} minHeight={236} padding={6} adaptiveHeight>
+                <WallChart testCase={testCase} backend={backend} />
+              </ScaleToFit>
+            </div>
+          </div>
         </div>
 
         <button
@@ -268,6 +252,22 @@ function HeroShowcase() {
         >
           <ChevronIcon dir="right" />
         </button>
+      </div>
+
+      {/* Example pager dots */}
+      <div style={{ ...dotsRowStyle, marginTop: 16 }} role="tablist" aria-label="Example">
+        {SHOWCASE_EXAMPLES.map((ex, i) => (
+          <button
+            key={ex.id}
+            type="button"
+            role="tab"
+            aria-selected={i === exampleIdx}
+            aria-label={ex.label}
+            title={ex.label}
+            onClick={() => setExampleIdx(i)}
+            style={dotStyle(i === exampleIdx)}
+          />
+        ))}
       </div>
       <p style={showcaseCaptionStyle}>
         <strong style={{ color: siteTheme.text, fontWeight: 600 }}>{example.label}.</strong>{' '}
@@ -513,20 +513,19 @@ function backendBtnStyle(active: boolean, supported: boolean): CSSProperties {
   };
 }
 
-const pagerRowStyle: CSSProperties = {
+const carouselRowStyle: CSSProperties = {
   display: 'flex',
-  justifyContent: 'center',
   alignItems: 'center',
-  gap: 14,
-  marginTop: 16,
+  gap: 12,
 };
 
 const pagerArrowStyle: CSSProperties = {
+  flexShrink: 0,
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  width: 30,
-  height: 30,
+  width: 36,
+  height: 36,
   padding: 0,
   border: `1px solid ${HAIRLINE}`,
   borderRadius: 999,

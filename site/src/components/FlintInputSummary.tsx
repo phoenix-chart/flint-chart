@@ -41,7 +41,7 @@ export function FlintInputSummary({ testCase }: { testCase: TestCase }) {
           lineHeight: 1.45,
           fontFamily: siteTheme.fontMono,
           color: siteTheme.text,
-          background: siteTheme.bg,
+          background: siteTheme.surface,
           border: `1px solid ${siteTheme.border}`,
           borderRadius: siteTheme.radius,
           whiteSpace: 'pre-wrap',

@@ -51,6 +51,8 @@ export function DocSectionPage({ section }: { section: DocSection }) {
           style={{
             borderRight: `1px solid ${siteTheme.border}`,
             overflowY: 'auto',
+            overflowX: 'hidden',
+            overscrollBehavior: 'contain',
             background: siteTheme.surface,
             padding: '12px 0 16px',
           }}

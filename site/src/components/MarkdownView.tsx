@@ -211,7 +211,6 @@ const quoteStyle: CSSProperties = {
   padding: '8px 16px',
   borderLeft: `3px solid ${siteTheme.borderMuted}`,
   color: siteTheme.textMuted,
-  background: siteTheme.bg,
 };
 const hrStyle: CSSProperties = {
   border: 0,
@@ -226,8 +225,7 @@ const tableStyle: CSSProperties = {
 const thStyle: CSSProperties = {
   textAlign: 'left',
   padding: '8px 10px',
-  borderBottom: `2px solid ${siteTheme.border}`,
-  background: siteTheme.bg,
+  borderBottom: `1px solid ${siteTheme.borderMuted}`,
 };
 const tdStyle: CSSProperties = {
   padding: '8px 10px',
@@ -237,7 +235,7 @@ const tdStyle: CSSProperties = {
 const inlineCodeStyle: CSSProperties = {
   fontFamily: siteTheme.fontMono,
   fontSize: '0.9em',
-  background: '#eef1f4',
+  background: siteTheme.hover,
   padding: '2px 5px',
   borderRadius: 4,
 };

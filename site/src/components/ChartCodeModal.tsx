@@ -105,7 +105,7 @@ export function ChartCodeModal({
         position: 'fixed',
         inset: 0,
         zIndex: 1000,
-        background: 'rgba(15, 23, 32, 0.55)',
+        background: 'rgba(0, 0, 0, 0.4)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -118,7 +118,6 @@ export function ChartCodeModal({
           background: siteTheme.surface,
           borderRadius: 10,
           border: `1px solid ${siteTheme.border}`,
-          boxShadow: '0 16px 48px rgba(0,0,0,0.25)',
           width: 'min(1120px, 94vw)',
           height: 'min(740px, 88vh)',
           display: 'flex',
@@ -252,7 +251,7 @@ export function ChartCodeModal({
               minWidth: 0,
               display: 'flex',
               flexDirection: 'column',
-              background: '#f6f8fa',
+              background: siteTheme.surface,
             }}
           >
             <div
@@ -357,5 +356,4 @@ const arrowBtnStyle = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
 };

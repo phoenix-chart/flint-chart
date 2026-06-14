@@ -47,7 +47,7 @@ export function LazyTripleChart({
             fontSize: 13,
             border: `1px dashed ${siteTheme.border}`,
             borderRadius: siteTheme.radius,
-            background: siteTheme.bg,
+            background: siteTheme.surface,
           }}
         >
           Loading chart…

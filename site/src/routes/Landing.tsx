@@ -12,6 +12,7 @@ import {
   type PreviewBackend,
 } from '../shared/supported-backends';
 import { GITHUB_REPO, siteTheme } from '../shared/theme';
+import { CHART_CATEGORIES } from '../shared/chart-categories';
 import overviewImg from '../assets/flint-overview.png';
 
 /**
@@ -40,24 +41,38 @@ export function Landing() {
                 different rendering engines (currently <strong>Vega-Lite</strong>,{' '}
                 <strong>ECharts</strong>, and <strong>Chart.js</strong>).
               </p>
+
+              <p style={supportListIntroStyle}>Chart types you can compile today:</p>
+              <ul style={supportListStyle}>
+                {CHART_CATEGORIES.map((cat) => (
+                  <li key={cat.id} style={supportItemStyle}>
+                    <span style={supportLibStyle}>{cat.label}</span>
+                    <span style={supportCountStyle}>{cat.charts.length} chart types</span>
+                  </li>
+                ))}
+              </ul>
+
               <p style={installLineStyle}>
                 <code style={codeStyle}>npm install flint-chart</code> · MIT licensed
               </p>
             </div>
 
             <div style={leadButtonsColStyle}>
-              <Link to="/wall" style={heroPrimaryBtn}>
-                Browse the gallery
-              </Link>
-              <Link to="/editor" style={heroSecondaryBtn}>
-                Try online
-              </Link>
-              <Link to="/documentation/overview" style={heroSecondaryBtn}>
-                Documentation
-              </Link>
-              <a href={GITHUB_REPO} style={heroSecondaryBtn} target="_blank" rel="noreferrer">
-                GitHub
-              </a>
+              <div style={actionBoxStyle}>
+                <span style={actionBoxLabelStyle}>Get started</span>
+                <Link to="/wall" style={heroPrimaryBtn}>
+                  Browse the gallery
+                </Link>
+                <Link to="/editor" style={heroSecondaryBtn}>
+                  Try online
+                </Link>
+                <Link to="/documentation/overview" style={heroSecondaryBtn}>
+                  Documentation
+                </Link>
+                <a href={GITHUB_REPO} style={heroSecondaryBtn} target="_blank" rel="noreferrer">
+                  GitHub
+                </a>
+              </div>
             </div>
           </div>
         </section>
@@ -423,10 +438,67 @@ const leadTextColStyle: CSSProperties = {
 
 const leadButtonsColStyle: CSSProperties = {
   flex: '0 0 auto',
-  width: 220,
+  width: 240,
   display: 'flex',
   flexDirection: 'column',
+};
+
+// A clear, bordered "action box" grouping the four CTAs (Vega-Lite-style
+// sidebar feel). The buttons inside are intentionally muted so the box, not any
+// single button, reads as the action area.
+const actionBoxStyle: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 8,
+  padding: 14,
+  border: `1px solid ${HAIRLINE}`,
+  borderRadius: siteTheme.radius,
+  background: NEUTRAL_FILL,
+};
+
+const actionBoxLabelStyle: CSSProperties = {
+  fontSize: 11,
+  fontWeight: 600,
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
+  color: siteTheme.textMuted,
+  margin: '0 0 2px 2px',
+};
+
+const supportListIntroStyle: CSSProperties = {
+  margin: '20px 0 8px',
+  fontSize: 13,
+  fontWeight: 600,
+  color: siteTheme.text,
+};
+
+const supportListStyle: CSSProperties = {
+  listStyle: 'none',
+  padding: 0,
+  margin: 0,
+  maxWidth: 340,
+  display: 'flex',
+  flexDirection: 'column',
+};
+
+const supportItemStyle: CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'baseline',
   gap: 12,
+  padding: '6px 0',
+  borderBottom: `1px solid ${HAIRLINE}`,
+  fontSize: 14.5,
+};
+
+const supportLibStyle: CSSProperties = {
+  fontWeight: 600,
+  color: siteTheme.text,
+};
+
+const supportCountStyle: CSSProperties = {
+  color: siteTheme.textMuted,
+  fontVariantNumeric: 'tabular-nums',
 };
 
 const leadStyle: CSSProperties = {
@@ -681,15 +753,33 @@ const secondaryBtn: CSSProperties = {
   fontSize: 14.5,
 };
 
-// Hero CTA buttons stack in the right-hand column (Vega-Lite style): block,
-// full-width within the column, centred label.
+// Hero CTA buttons stack inside the action box (Vega-Lite-style sidebar): block,
+// full-width, centred label, and intentionally muted so the box reads as one
+// clear action area rather than a row of loud buttons.
 const heroBtnBlock: CSSProperties = {
   display: 'block',
   width: '100%',
   margin: 0,
   textAlign: 'center',
   boxSizing: 'border-box',
+  padding: '9px 16px',
+  borderRadius: siteTheme.radius,
+  textDecoration: 'none',
+  fontSize: 14,
+  fontWeight: 500,
 };
 
-const heroPrimaryBtn: CSSProperties = { ...primaryBtn, ...heroBtnBlock };
-const heroSecondaryBtn: CSSProperties = { ...secondaryBtn, ...heroBtnBlock };
+const heroPrimaryBtn: CSSProperties = {
+  ...heroBtnBlock,
+  background: siteTheme.accentBg,
+  color: siteTheme.accent,
+  border: `1px solid rgba(0, 120, 212, 0.4)`,
+  fontWeight: 600,
+};
+
+const heroSecondaryBtn: CSSProperties = {
+  ...heroBtnBlock,
+  background: PAPER,
+  color: siteTheme.textMuted,
+  border: `1px solid ${HAIRLINE}`,
+};

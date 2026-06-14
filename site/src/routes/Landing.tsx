@@ -26,36 +26,40 @@ export function Landing() {
 
       <main style={mainStyle}>
         {/* ---- Hero ------------------------------------------------------ */}
-        <section style={{ ...sectionStyle, textAlign: 'center', paddingTop: 72, paddingBottom: 24 }}>
+        <section style={{ ...sectionStyle, paddingTop: 72, paddingBottom: 24 }}>
           <h1 style={heroTitleStyle}>Flint: A Visualization Library for AI Agents and Humans</h1>
-          <p style={leadStyle}>
-            Flint lets you specify high-level visualization intent through a simple
-            chart spec, while its compiler automatically infers and optimizes the
-            low-level chart parameters for you, producing good-looking charts that are
-            easily adaptable. As an intermediate language, Flint lets the user (both
-            humans and AI agents) use the same simple visualization spec to compile to
-            different rendering engines (currently <strong>Vega-Lite</strong>,{' '}
-            <strong>ECharts</strong>, and <strong>Chart.js</strong>).
-          </p>
 
-          <div style={ctaRowStyle}>
-            <Link to="/wall" style={primaryBtn}>
-              Browse the gallery
-            </Link>
-            <Link to="/editor" style={secondaryBtn}>
-              Try online
-            </Link>
-            <Link to="/documentation/overview" style={secondaryBtn}>
-              Documentation
-            </Link>
-            <a href={GITHUB_REPO} style={secondaryBtn} target="_blank" rel="noreferrer">
-              GitHub
-            </a>
+          <div style={leadColumnsStyle}>
+            <div style={leadTextColStyle}>
+              <p style={leadStyle}>
+                Flint lets you specify high-level visualization intent through a simple
+                chart spec, while its compiler automatically infers and optimizes the
+                low-level chart parameters for you, producing good-looking charts that are
+                easily adaptable. As an intermediate language, Flint lets the user (both
+                humans and AI agents) use the same simple visualization spec to compile to
+                different rendering engines (currently <strong>Vega-Lite</strong>,{' '}
+                <strong>ECharts</strong>, and <strong>Chart.js</strong>).
+              </p>
+              <p style={installLineStyle}>
+                <code style={codeStyle}>npm install flint-chart</code> · MIT licensed
+              </p>
+            </div>
+
+            <div style={leadButtonsColStyle}>
+              <Link to="/wall" style={heroPrimaryBtn}>
+                Browse the gallery
+              </Link>
+              <Link to="/editor" style={heroSecondaryBtn}>
+                Try online
+              </Link>
+              <Link to="/documentation/overview" style={heroSecondaryBtn}>
+                Documentation
+              </Link>
+              <a href={GITHUB_REPO} style={heroSecondaryBtn} target="_blank" rel="noreferrer">
+                GitHub
+              </a>
+            </div>
           </div>
-
-          <p style={{ marginTop: 18, color: siteTheme.textMuted, fontSize: 13 }}>
-            <code style={codeStyle}>npm install flint-chart</code> · MIT licensed
-          </p>
         </section>
 
         {/* ---- Overview figure (paper teaser) -------------------------- */}
@@ -194,16 +198,6 @@ function HeroShowcase() {
 
   return (
     <section style={{ ...sectionStyle, paddingTop: 8 }}>
-      <div style={showcaseIntroStyle}>
-        <h2 style={showcaseHeadingStyle}>The example from our paper</h2>
-        <p style={showcaseIntroTextStyle}>
-          These charts come from the walkthrough in the Flint paper. They all use
-          one synthetic gaming-market dataset and the same short spec, with a few
-          encodings changed between them. Use the arrows to move through the charts;
-          the caption under each one explains what Flint inferred on its own.
-        </p>
-      </div>
-
       <div style={carouselRowStyle}>
         <button
           type="button"
@@ -408,18 +402,45 @@ const sectionStyle: CSSProperties = {
 const heroTitleStyle: CSSProperties = {
   fontSize: 38,
   lineHeight: 1.18,
-  margin: '0 auto 18px',
-  maxWidth: 800,
+  margin: '0 0 22px',
+  maxWidth: 760,
   fontWeight: 300,
   letterSpacing: '0.01em',
 };
 
+const leadColumnsStyle: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'row',
+  alignItems: 'flex-start',
+  gap: 56,
+  flexWrap: 'wrap',
+};
+
+const leadTextColStyle: CSSProperties = {
+  flex: '1 1 420px',
+  minWidth: 0,
+};
+
+const leadButtonsColStyle: CSSProperties = {
+  flex: '0 0 auto',
+  width: 220,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 12,
+};
+
 const leadStyle: CSSProperties = {
-  fontSize: 16,
+  fontSize: 17,
   color: siteTheme.textMuted,
   lineHeight: 1.65,
-  margin: '0 auto',
-  maxWidth: 800,
+  margin: 0,
+  fontWeight: 300,
+};
+
+const installLineStyle: CSSProperties = {
+  margin: '18px 0 0',
+  color: siteTheme.textMuted,
+  fontSize: 13,
 };
 
 const ctaRowStyle: CSSProperties = {
@@ -530,9 +551,8 @@ const carouselRowStyle: CSSProperties = {
 };
 
 const showcaseIntroStyle: CSSProperties = {
-  maxWidth: 680,
-  margin: '0 auto 20px',
-  textAlign: 'center',
+  maxWidth: 720,
+  margin: '0 0 20px',
 };
 
 const showcaseHeadingStyle: CSSProperties = {
@@ -660,3 +680,16 @@ const secondaryBtn: CSSProperties = {
   fontWeight: 500,
   fontSize: 14.5,
 };
+
+// Hero CTA buttons stack in the right-hand column (Vega-Lite style): block,
+// full-width within the column, centred label.
+const heroBtnBlock: CSSProperties = {
+  display: 'block',
+  width: '100%',
+  margin: 0,
+  textAlign: 'center',
+  boxSizing: 'border-box',
+};
+
+const heroPrimaryBtn: CSSProperties = { ...primaryBtn, ...heroBtnBlock };
+const heroSecondaryBtn: CSSProperties = { ...secondaryBtn, ...heroBtnBlock };

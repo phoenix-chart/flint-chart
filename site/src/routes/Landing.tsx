@@ -59,6 +59,7 @@ export function Landing() {
         </section>
 
         {/* ---- Overview figure (paper teaser) -------------------------- */}
+        {/* Hidden for now
         <section style={overviewSectionStyle}>
           <figure style={overviewFigureStyle}>
             <img
@@ -76,6 +77,7 @@ export function Landing() {
             </figcaption>
           </figure>
         </section>
+        */}
 
         {/* ---- Interactive example: spec -> chart ---------------------- */}
         <HeroShowcase />
@@ -351,20 +353,20 @@ const sectionStyle: CSSProperties = {
 };
 
 const heroTitleStyle: CSSProperties = {
-  fontSize: 44,
+  fontSize: 38,
   lineHeight: 1.18,
   margin: '0 auto 18px',
-  maxWidth: 860,
+  maxWidth: 800,
   fontWeight: 300,
   letterSpacing: '0.01em',
 };
 
 const leadStyle: CSSProperties = {
-  fontSize: 17,
+  fontSize: 16,
   color: siteTheme.textMuted,
   lineHeight: 1.65,
   margin: '0 auto',
-  maxWidth: 680,
+  maxWidth: 800,
 };
 
 const ctaRowStyle: CSSProperties = {
@@ -376,7 +378,7 @@ const ctaRowStyle: CSSProperties = {
 };
 
 const overviewSectionStyle: CSSProperties = {
-  maxWidth: 1160,
+  maxWidth: 960,
   margin: '0 auto',
   padding: '16px 24px 8px',
   width: '100%',

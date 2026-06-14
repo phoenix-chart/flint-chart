@@ -100,18 +100,23 @@ export const ecWaterfallChartDef: ChartTemplateDef = {
             },
             yAxis: { type: 'value', name: yField, axisTick: { show: true } },
             series: [
-                { type: 'bar', name: '_base', data: baseData, stack: 'wf', itemStyle: { color: 'transparent' }, silent: true, emphasis: { disabled: true } },
+                { type: 'bar', name: '_base', data: baseData, stack: 'wf', barWidth: '58%', itemStyle: { color: 'transparent' }, silent: true, emphasis: { disabled: true } },
                 {
                     type: 'bar',
                     name: 'Delta',
                     data: deltaData,
                     stack: 'wf',
+                    barWidth: '58%',
                 },
-                // Legend-only series: no data, only for the legend colour swatches.
+                // Legend-only series: no data, only for the legend colour swatches. They
+                // share the 'wf' stack so ECharts does NOT reserve extra side-by-side bar
+                // slots for them (which would shrink the real bars and push them off-centre).
                 ...legendItems.map((name, i) => ({
                     type: 'bar' as const,
                     name,
                     data: [] as number[],
+                    stack: 'wf',
+                    barWidth: '58%',
                     itemStyle: { color: legendColors[i] },
                 })),
             ],

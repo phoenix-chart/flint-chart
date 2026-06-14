@@ -1,6 +1,8 @@
 # API reference
 
-JavaScript / TypeScript package: **`flint-chart`** (`packages/flint-js`). Python package: **`flint`** — Vega-Lite assembly today; input shape mirrors the JS API.
+JavaScript / TypeScript package: **`flint-chart`** (`packages/flint-js`). 
+
+Python package: **`flint`** — Vega-Lite assembly today; input shape mirrors the JS API.
 
 Conceptual background: [Overview](/documentation/overview) · Pipeline: [Architecture](/documentation/architecture)
 

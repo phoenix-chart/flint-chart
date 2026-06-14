@@ -42,16 +42,6 @@ export function Landing() {
                 <strong>ECharts</strong>, and <strong>Chart.js</strong>).
               </p>
 
-              <p style={supportListIntroStyle}>Chart types you can compile today:</p>
-              <ul style={supportListStyle}>
-                {CHART_CATEGORIES.map((cat) => (
-                  <li key={cat.id} style={supportItemStyle}>
-                    <span style={supportLibStyle}>{cat.label}</span>
-                    <span style={supportCountStyle}>{cat.charts.length} chart types</span>
-                  </li>
-                ))}
-              </ul>
-
               <p style={installLineStyle}>
                 <code style={codeStyle}>npm install flint-chart</code> · MIT licensed
               </p>
@@ -103,11 +93,27 @@ export function Landing() {
 
         {/* ---- Feature grid (text only) -------------------------------- */}
         <section style={sectionStyle}>
+          <p style={featureIntroStyle}>
+            Each of these rests on the same idea: you never set the low-level chart
+            parameters yourself. Flint hands that job to the compiler, which decides them
+            from your visual encodings and the characteristics of your data. The result is
+            a simple contract for both AI agents and humans, a short spec that still
+            produces a good-looking chart.
+          </p>
           <div style={featureGridStyle}>
             {FEATURES.map((feature) => (
               <div key={feature.title}>
                 <h2 style={featureTitleStyle}>{feature.title}</h2>
                 <p style={featureBodyStyle}>{feature.body}</p>
+                {feature.showBackends && (
+                  <ul style={backendListStyle}>
+                    {CHART_CATEGORIES.map((cat) => (
+                      <li key={cat.id} style={backendItemStyle}>
+                        <strong>{cat.label}</strong> ({cat.charts.length} chart types)
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             ))}
           </div>
@@ -322,37 +328,37 @@ function FlintSpecCode({ testCase }: { testCase: TestCase }) {
 interface Feature {
   title: string;
   body: string;
+  showBackends?: boolean;
 }
 
 const FEATURES: Feature[] = [
   {
-    title: 'Say what your data means',
+    title: 'Specify with semantic types',
     body:
-      'Most libraries guess what your numbers mean from how they look, and they often ' +
-      'guess wrong. Flint lets you say it outright: this measure adds up, this one does ' +
-      'not; these are real dates, not plain integers. With that in hand, it can pick the ' +
-      'right scale, baseline, and number format every time.',
+      'You describe each data field by what it means, its semantic type, and the compiler ' +
+      'infers the chart parameters that best accommodate those semantics. An agent writing a ' +
+      'spec works at this level and never has to set low-level options by hand.',
   },
   {
-    title: 'Short specs, finished charts',
+    title: 'Automatic layout optimization',
     body:
-      'Name a chart type and map a few fields to channels, and that is the whole spec. Flint ' +
-      'works out the scales, axes, legends, colors, and spacing for you, following ' +
-      'well-worn visualization rules, so your charts come out looking right without fiddling.',
+      'Flint optimizes the layout from the chart type, the encodings, and the characteristics ' +
+      'of the data. The compiler manages sizing, spacing, and arrangement so the chart presents ' +
+      'well, with no explicit layout settings in the spec.',
   },
   {
-    title: 'Render anywhere',
+    title: 'Easy to adapt',
     body:
-      'Flint sits a level above any single charting library. Write a chart once, then render ' +
-      'it with Vega-Lite, ECharts, or Chart.js, and switch between them whenever you ' +
-      'like, without rewriting a thing.',
+      'Changing a chart design only takes respecifying the chart type and encodings. The ' +
+      'compiler adapts the low-level settings to match, so an edit stays small instead of ' +
+      'turning into a rewrite.',
   },
   {
-    title: 'Easy to write, easy to change',
+    title: 'Render with different backends',
     body:
-      'A Flint spec is short and says what it means, so an AI agent can write one from a ' +
-      'question and a table and get a good chart back. Edits stay small, too: a quick tweak ' +
-      'instead of untangling a wall of low-level options.',
+      'Write a chart once and render it with any supported backend, switching between them ' +
+      'whenever you like. Each backend covers a range of chart types:',
+    showBackends: true,
   },
 ];
 
@@ -465,39 +471,24 @@ const actionBoxLabelStyle: CSSProperties = {
   margin: '0 0 2px 2px',
 };
 
-const supportListIntroStyle: CSSProperties = {
-  margin: '20px 0 8px',
-  fontSize: 13,
-  fontWeight: 600,
+const featureIntroStyle: CSSProperties = {
+  maxWidth: 760,
+  margin: '0 0 28px',
+  fontSize: 17,
+  fontWeight: 300,
+  lineHeight: 1.65,
   color: siteTheme.text,
 };
 
-const supportListStyle: CSSProperties = {
-  listStyle: 'none',
-  padding: 0,
-  margin: 0,
-  maxWidth: 340,
-  display: 'flex',
-  flexDirection: 'column',
-};
-
-const supportItemStyle: CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'baseline',
-  gap: 12,
-  padding: '6px 0',
-  borderBottom: `1px solid ${HAIRLINE}`,
-  fontSize: 14.5,
-};
-
-const supportLibStyle: CSSProperties = {
-  fontWeight: 600,
-  color: siteTheme.text,
-};
-
-const supportCountStyle: CSSProperties = {
+const backendListStyle: CSSProperties = {
+  margin: '10px 0 0',
+  paddingLeft: 20,
   color: siteTheme.textMuted,
+  fontSize: 14.5,
+  lineHeight: 1.7,
+};
+
+const backendItemStyle: CSSProperties = {
   fontVariantNumeric: 'tabular-nums',
 };
 

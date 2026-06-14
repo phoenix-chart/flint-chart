@@ -196,7 +196,7 @@ function HeroShowcase() {
           <FlintSpecCode testCase={testCase} />
         </div>
 
-        <div style={{ ...showcasePaneStyle, borderLeft: `1px solid ${HAIRLINE}` }}>
+        <div style={{ ...showcasePaneStyle, ...chartPaneStyle, borderLeft: `1px solid ${HAIRLINE}` }}>
           <div style={paneHeaderRowStyle}>
             <span style={paneLabelStyle}>Compiled chart</span>
             <div style={backendToggleStyle} role="tablist" aria-label="Rendering backend">
@@ -221,7 +221,7 @@ function HeroShowcase() {
             </div>
           </div>
           <div style={{ padding: '4px 12px 14px' }}>
-            <ScaleToFit height={300} padding={6}>
+            <ScaleToFit height={360} minHeight={236} padding={6} adaptiveHeight>
               <WallChart testCase={testCase} backend={backend} />
             </ScaleToFit>
           </div>
@@ -422,6 +422,11 @@ const showcasePaneStyle: CSSProperties = {
   minWidth: 300,
   display: 'flex',
   flexDirection: 'column',
+};
+
+/** The compiled-chart pane gets extra width so wide charts render larger. */
+const chartPaneStyle: CSSProperties = {
+  flex: '1.35 1 440px',
 };
 
 const paneHeaderRowStyle: CSSProperties = {

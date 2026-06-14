@@ -188,6 +188,10 @@ function HeroShowcase() {
 
   if (!testCase) return null;
 
+  const count = SHOWCASE_EXAMPLES.length;
+  const goPrev = () => setExampleIdx((i) => (i - 1 + count) % count);
+  const goNext = () => setExampleIdx((i) => (i + 1) % count);
+
   return (
     <section style={{ ...sectionStyle, paddingTop: 8 }}>
       <div style={showcaseCardStyle}>
@@ -229,22 +233,61 @@ function HeroShowcase() {
       </div>
 
       {/* Example pager */}
-      <div style={dotsRowStyle} role="tablist" aria-label="Example">
-        {SHOWCASE_EXAMPLES.map((ex, i) => (
-          <button
-            key={ex.id}
-            type="button"
-            role="tab"
-            aria-selected={i === exampleIdx}
-            aria-label={ex.label}
-            title={ex.label}
-            onClick={() => setExampleIdx(i)}
-            style={dotStyle(i === exampleIdx)}
-          />
-        ))}
+      <div style={pagerRowStyle}>
+        <button
+          type="button"
+          onClick={goPrev}
+          aria-label="Previous example"
+          title="Previous example"
+          style={pagerArrowStyle}
+        >
+          <ChevronIcon dir="left" />
+        </button>
+
+        <div style={dotsRowStyle} role="tablist" aria-label="Example">
+          {SHOWCASE_EXAMPLES.map((ex, i) => (
+            <button
+              key={ex.id}
+              type="button"
+              role="tab"
+              aria-selected={i === exampleIdx}
+              aria-label={ex.label}
+              title={ex.label}
+              onClick={() => setExampleIdx(i)}
+              style={dotStyle(i === exampleIdx)}
+            />
+          ))}
+        </div>
+
+        <button
+          type="button"
+          onClick={goNext}
+          aria-label="Next example"
+          title="Next example"
+          style={pagerArrowStyle}
+        >
+          <ChevronIcon dir="right" />
+        </button>
       </div>
-      <p style={showcaseCaptionStyle}>{example.caption}</p>
+      <p style={showcaseCaptionStyle}>
+        <strong style={{ color: siteTheme.text, fontWeight: 600 }}>{example.label}.</strong>{' '}
+        {example.caption}
+      </p>
     </section>
+  );
+}
+
+function ChevronIcon({ dir }: { dir: 'left' | 'right' }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d={dir === 'left' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
@@ -470,11 +513,33 @@ function backendBtnStyle(active: boolean, supported: boolean): CSSProperties {
   };
 }
 
+const pagerRowStyle: CSSProperties = {
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  gap: 14,
+  marginTop: 16,
+};
+
+const pagerArrowStyle: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 30,
+  height: 30,
+  padding: 0,
+  border: `1px solid ${HAIRLINE}`,
+  borderRadius: 999,
+  background: PAPER,
+  color: siteTheme.text,
+  cursor: 'pointer',
+  fontFamily: 'inherit',
+};
+
 const dotsRowStyle: CSSProperties = {
   display: 'flex',
   justifyContent: 'center',
   gap: 10,
-  marginTop: 16,
 };
 
 function dotStyle(active: boolean): CSSProperties {

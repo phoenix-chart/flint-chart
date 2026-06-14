@@ -12,7 +12,6 @@ import {
   type PreviewBackend,
 } from '../shared/supported-backends';
 import { GITHUB_REPO, siteTheme } from '../shared/theme';
-import { CHART_CATEGORIES } from '../shared/chart-categories';
 import overviewImg from '../assets/flint-overview.png';
 
 /**
@@ -88,27 +87,37 @@ export function Landing() {
         </section>
         */}
 
-        {/* ---- Interactive example: spec -> chart ---------------------- */}
+        {/* ---- Feature introduction ----------------------------------- */}
+        <section style={{ ...sectionStyle, paddingBottom: 8 }}>
+          <p style={featureIntroStyle}>{FEATURE_INTRO}</p>
+        </section>
+
+        {/* ---- Interactive example: spec -> chart (below the intro) ---- */}
         <HeroShowcase />
 
-        {/* ---- Feature grid (text only) -------------------------------- */}
+        {/* ---- Feature cards (alternating text / visual) -------------- */}
         <section style={sectionStyle}>
-          <p style={featureIntroStyle}>{FEATURE_INTRO}</p>
-          <div style={featureGridStyle}>
-            {FEATURES.map((feature) => (
-              <div key={feature.title}>
-                <h2 style={featureTitleStyle}>{feature.title}</h2>
-                <p style={featureBodyStyle}>{feature.body}</p>
-                {feature.showBackends && (
-                  <ul style={backendListStyle}>
-                    {CHART_CATEGORIES.map((cat) => (
-                      <li key={cat.id} style={backendItemStyle}>
-                        <strong>{cat.label}</strong> ({cat.charts.length} chart types)
-                      </li>
-                    ))}
-                  </ul>
+          <div style={featureRowsStyle}>
+            {FEATURES.map((feature, i) => (
+              <article key={feature.title} style={featureRowStyle(i % 2 === 1)}>
+                <div style={featureTextColStyle}>
+                  <h2 style={featureTitleStyle}>{feature.title}</h2>
+                  <p style={featureBodyStyle}>{feature.body}</p>
+                  {feature.example && (
+                    <p style={featureExampleStyle}>
+                      <span style={featureExampleLabelStyle}>e.g.</span> {feature.example}
+                    </p>
+                  )}
+                </div>
+                {feature.visual && (
+                  <div style={featureVisualColStyle}>
+                    <FeatureChart
+                      generator={feature.visual.generator}
+                      backend={feature.visual.backend}
+                    />
+                  </div>
                 )}
-              </div>
+              </article>
             ))}
           </div>
         </section>
@@ -325,47 +334,60 @@ function FlintSpecCode({ testCase }: { testCase: TestCase }) {
 
 // Paragraph shown above the four features.
 const FEATURE_INTRO =
-  'Each of these rests on the same idea: you never set the low-level chart ' +
-  'parameters yourself. Flint hands that job to the compiler, which decides them ' +
-  'from your visual encodings and the characteristics of your data. The result is ' +
-  'a simple contract for both AI agents and humans, a short spec that still ' +
-  'produces a good-looking chart.';
+  'Flint is designed to enable AI agents and humans to create good-looking and adaptable visualizations with simple specifications.' +
+  'Instead of asking the uesr to provide verbose low-level visualization parameters (e.g., scale, axes, step, layout),' +
+  'Flint compiler automatically derives optimized low-level chart parameters from high-level semantic types and physical characteristics of the data based on the desired chart type and encodings.' +
+  'This way, users can create a visually appealing and informative chart with a simple specification.';
 
 interface Feature {
   title: string;
   body: string;
-  // When true, the per-backend chart-type list is rendered under this feature.
-  showBackends?: boolean;
+  // Optional concrete example rendered as a callout beneath the body.
+  example?: string;
+  // Live chart shown alongside the text, illustrating the feature.
+  visual?: { generator: string; backend: PreviewBackend };
 }
 
 const FEATURES: Feature[] = [
   {
     title: 'Specify with semantic types',
     body:
-      'You describe each data field by what it means, its semantic type, and the compiler ' +
-      'infers the chart parameters that best accommodate those semantics. An agent writing a ' +
-      'spec works at this level and never has to set low-level options by hand.',
+      'Flint employs semantic types to that capture what each data field means ' +
+      '(e.g., Revenue, Rank, YearMonth, Temperature) to guide the chart configuration. ' +
+      'Flint automatically derives the right parsing, scale, axes, formatting (e.g., temporal granularity), and color (e.g., diverging vs. sequential schemes) to produce a well-formed chart.',
+    example:
+      'Flint automatically configures the x-axis axes temporal granularity as Year-Month with temporal axis and diverging color scheme centered at 0 to optimize the visualization ofa heatmap representing month x week x profit based on data sematnic types',
+    visual: { generator: 'Omni: Heatmap', backend: 'vegalite' },
   },
   {
     title: 'Automatic layout optimization',
     body:
-      'Flint optimizes the layout from the chart type, the encodings, and the characteristics ' +
-      'of the data. The compiler manages sizing, spacing, and arrangement so the chart presents ' +
-      'well, with no explicit layout settings in the spec.',
+      'Flint optimizes the chart layout based on the chart speficiation and data characteristics based on an elastic layout model and banking principles.' + 
+      'Given the desired chart dimensions and allowed canvas sizes, the compiler dynamically manages sizing, spacing, and arrangement so the chart nicely fits into the canvas with principled layout decisions.',
+    example:
+      'A desnse bar chart with 80 items trades stretches the canvas size and reduces it\'s band width so it fits the canvas nicely, similar to how springs fit into expandable containers.',
+    visual: { generator: 'Omni: Grouped Bar', backend: 'vegalite' },
   },
   {
-    title: 'Easy to adapt',
+    title: 'Easy to generate and adapt',
     body:
-      'Changing a chart design only takes respecifying the chart type and encodings. The ' +
-      'compiler adapts the low-level settings to match, so an edit stays small instead of ' +
-      'turning into a rewrite.',
+      'Without fragile low-level parameters in the chart specification, Flint specs can be easily ' +
+      'generated by AI agents and adapted by users. Changing a chart design requires only switching ' +
+      'the chart type and rebinding visual encodings, and the compiler automatically cascades the new ' +
+      'encoding choices to the low-level settings.',
+    example:
+      'When switching from a faceted line chart to a waterfall chart, the user only needs to update the visual encodings and the compiler automatically derives the new low-level paramters, despite the compiled chart spec are radically different.',
+    visual: { generator: 'Omni: Waterfall', backend: 'echarts' },
   },
   {
     title: 'Render with different backends',
     body:
-      'Write a chart once and render it with any supported backend, switching between them ' +
-      'whenever you like. Each backend covers a range of chart types:',
-    showBackends: true,
+      'Write a chart once and render it with different backends. Flint currently supports 34 chart types across Vega-Lite, ECharts, and Chart.js. Despite their different APIs and ' +
+      'programming models, Flint hides them behind a unified interface. The user can easily choose the desirable ' +
+      'backend and leverage its unique features.',
+    example:
+      'Vega-Lite has no native sunburst support, but it\'s easy to turn a grouped bar chart into sunburst using Flint and render it with ECharts.',
+    visual: { generator: 'Omni: Sunburst', backend: 'echarts' },
   },
 ];
 
@@ -384,6 +406,21 @@ function useTestCase(generator: string, index = 0): TestCase | null {
       return null;
     }
   }, [generator, index]);
+}
+
+/** A single compiled chart used as the visual illustration in a feature card. */
+function FeatureChart({ generator, backend }: { generator: string; backend: PreviewBackend }) {
+  const testCase = useTestCase(generator, 0);
+  if (!testCase) return null;
+  const supported = getSupportedBackends(testCase.chartType);
+  const useBackend = supported.includes(backend) ? backend : supported[0] ?? 'vegalite';
+  return (
+    <div style={featureChartFrameStyle}>
+      <ScaleToFit height={300} minHeight={210} padding={6} adaptiveHeight>
+        <WallChart testCase={testCase} backend={useBackend} />
+      </ScaleToFit>
+    </div>
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -485,18 +522,6 @@ const featureIntroStyle: CSSProperties = {
   fontWeight: 300,
   lineHeight: 1.65,
   color: siteTheme.text,
-};
-
-const backendListStyle: CSSProperties = {
-  margin: '10px 0 0',
-  paddingLeft: 20,
-  color: siteTheme.textMuted,
-  fontSize: 14.5,
-  lineHeight: 1.7,
-};
-
-const backendItemStyle: CSSProperties = {
-  fontVariantNumeric: 'tabular-nums',
 };
 
 const leadStyle: CSSProperties = {
@@ -693,10 +718,41 @@ const specPreStyle: CSSProperties = {
   flex: 1,
 };
 
-const featureGridStyle: CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-  gap: '36px 48px',
+const featureRowsStyle: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 64,
+};
+
+// Alternating two-column rows (data-formulator style): text on one side, a live
+// chart on the other, flipping each row. Wraps to a single column on narrow
+// viewports.
+function featureRowStyle(reverse: boolean): CSSProperties {
+  return {
+    display: 'flex',
+    flexDirection: reverse ? 'row-reverse' : 'row',
+    alignItems: 'center',
+    gap: 48,
+    flexWrap: 'wrap',
+  };
+}
+
+const featureTextColStyle: CSSProperties = {
+  flex: '1 1 320px',
+  minWidth: 280,
+};
+
+const featureVisualColStyle: CSSProperties = {
+  flex: '1 1 380px',
+  minWidth: 300,
+};
+
+const featureChartFrameStyle: CSSProperties = {
+  border: `1px solid ${HAIRLINE}`,
+  borderRadius: siteTheme.radius,
+  background: PAPER,
+  padding: '12px 14px',
+  overflow: 'hidden',
 };
 
 const featureTitleStyle: CSSProperties = {
@@ -710,6 +766,21 @@ const featureBodyStyle: CSSProperties = {
   color: siteTheme.textMuted,
   lineHeight: 1.7,
   margin: 0,
+};
+
+const featureExampleStyle: CSSProperties = {
+  margin: '12px 0 0',
+  paddingLeft: 12,
+  borderLeft: `2px solid ${HAIRLINE}`,
+  fontSize: 14,
+  lineHeight: 1.6,
+  color: siteTheme.textMuted,
+};
+
+const featureExampleLabelStyle: CSSProperties = {
+  fontStyle: 'italic',
+  fontWeight: 600,
+  color: siteTheme.text,
 };
 
 const closingCardStyle: CSSProperties = {

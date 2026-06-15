@@ -1,8 +1,6 @@
 # Introduction to flint-chart
 
-This tutorial walks you through writing a visualization with **flint-chart** —
-the same step-by-step style as the [Vega-Lite getting started
-guide](https://vega.github.io/vega-lite/tutorials/getting_started.html), but
+This tutorial walks you through writing a visualization with **flint-chart**, 
 using Flint's semantic input instead of hand-written encodings.
 
 We will add one piece at a time: **data → semantic types → chart type &

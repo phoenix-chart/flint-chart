@@ -40,9 +40,9 @@ Experts fix this with long, coupled specs; those specs fail when you swap a fiel
 
 # §3 Flint specification
 
-A Flint program has two reusable parts (paper Fig. 6):
+A Flint program has two reusable parts:
 
-| Paper term | API field | Role |
+| Flint term | API field | Role |
 |------------|-----------|------|
 | **dataSpec** | `semantic_types` | Per-field meaning — type string or enriched annotation |
 | **chartSpec** | `chart_spec` | Chart type + channel → field bindings |

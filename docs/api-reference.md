@@ -25,7 +25,7 @@ Conceptual background: [Overview](/documentation/overview) · Pipeline: [Archite
 
 # §1 Flint spec mapping
 
-| Flint (paper) | API field | Contents |
+| Flint | API field | Contents |
 |---------------|-----------|----------|
 | **dataSpec** | `semantic_types` | `field → string` or `field → SemanticAnnotation` |
 | Raw table | `data` | `{ values: rows[] }` or `{ url: "..." }` |

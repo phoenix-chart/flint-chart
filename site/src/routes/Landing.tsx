@@ -557,9 +557,10 @@ function DemoStageContent({ stage }: { stage: DemoStage }) {
 }
 
 /**
- * Two overlapping cards. The "after" state sits in front; the "before" state
- * peeks from a corner behind it. Hovering (or focusing / tapping) fans the
- * stack so the "before" card comes forward and the "after" card recedes.
+ * Two overlapping cards in fixed positions. The "after" state sits at the
+ * top-left, the "before" state peeks from the bottom-right corner behind it.
+ * Hovering (or focusing / tapping) raises the back card in front of the other
+ * one without moving either card.
  */
 function FeatureDemoView({ build }: { build: () => FeatureDemoConfig }) {
   const demo = useMemo(() => build(), [build]);
@@ -582,11 +583,17 @@ function FeatureDemoView({ build }: { build: () => FeatureDemoConfig }) {
         onBlur={() => setRevealed(false)}
         onClick={() => setRevealed((v) => !v)}
       >
-        <div style={{ ...featureStackCardStyle, ...stackCardState(!revealed) }} aria-hidden={revealed}>
+        <div
+          style={{ ...featureStackCardStyle, ...stackCardPos('top'), ...stackCardEmphasis(!revealed) }}
+          aria-hidden={revealed}
+        >
           <span style={stackBadgeStyle}>{demo.after.label}</span>
           <DemoStageContent stage={demo.after} />
         </div>
-        <div style={{ ...featureStackCardStyle, ...stackCardState(revealed) }} aria-hidden={!revealed}>
+        <div
+          style={{ ...featureStackCardStyle, ...stackCardPos('bottom'), ...stackCardEmphasis(revealed) }}
+          aria-hidden={!revealed}
+        >
           <span style={stackBadgeStyle}>{demo.before.label}</span>
           <DemoStageContent stage={demo.before} />
         </div>
@@ -599,23 +606,18 @@ function FeatureDemoView({ build }: { build: () => FeatureDemoConfig }) {
   );
 }
 
-/** Forward (dominant) vs. receded (peeking corner) state for a stacked card. */
-function stackCardState(front: boolean): CSSProperties {
-  return front
-    ? {
-        transform: 'translate(0px, 0px) rotate(0deg) scale(1)',
-        opacity: 1,
-        filter: 'none',
-        zIndex: 3,
-        boxShadow: SOFT_SHADOW,
-      }
-    : {
-        transform: `translate(${PEEK}px, ${PEEK}px) rotate(2.2deg) scale(0.965)`,
-        opacity: 0.55,
-        filter: 'brightness(0.96) saturate(0.9)',
-        zIndex: 1,
-        boxShadow: FLAT_SHADOW,
-      };
+/** Fixed resting position for a stacked card. The position never changes on hover. */
+function stackCardPos(slot: 'top' | 'bottom'): CSSProperties {
+  return slot === 'top'
+    ? { transform: 'translate(0px, 0px) rotate(0deg)' }
+    : { transform: `translate(${PEEK}px, ${PEEK}px) rotate(1.4deg)` };
+}
+
+/** Emphasis for the active (front) vs. inactive (behind) card. Position is unchanged. */
+function stackCardEmphasis(active: boolean): CSSProperties {
+  return active
+    ? { opacity: 1, filter: 'none', zIndex: 3, boxShadow: SOFT_SHADOW }
+    : { opacity: 0.9, filter: 'brightness(0.97) saturate(0.95)', zIndex: 1, boxShadow: FLAT_SHADOW };
 }
 
 /* ------------------------------------------------------------------ */
@@ -943,11 +945,10 @@ const featureVisualColStyle: CSSProperties = {
 };
 
 // Overlapping before/after cards (Halden-style fan on hover).
-const PEEK = 18;
+const PEEK = 64;
 const SOFT_SHADOW = '0 10px 30px rgba(0, 0, 0, 0.13)';
 const FLAT_SHADOW = '0 1px 2px rgba(0, 0, 0, 0.05)';
-const cardTransition =
-  'transform 0.36s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.32s ease, box-shadow 0.36s ease, filter 0.32s ease';
+const cardTransition = 'opacity 0.28s ease, box-shadow 0.28s ease, filter 0.28s ease';
 
 const featureStackStyle: CSSProperties = {
   position: 'relative',
@@ -970,7 +971,7 @@ const featureStackCardStyle: CSSProperties = {
   padding: '12px 14px',
   overflow: 'hidden',
   transition: cardTransition,
-  willChange: 'transform, opacity',
+  willChange: 'opacity',
 };
 
 const stackBadgeStyle: CSSProperties = {

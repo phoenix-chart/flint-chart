@@ -25,9 +25,10 @@ export function DocSectionPage({ section }: { section: DocSection }) {
   const activeSlug = slug ?? docs[0]?.slug;
   const entry = activeSlug ? getDocEntry(section, activeSlug) : undefined;
   const markdown = entry ? getDocMarkdown(entry) : null;
+  const outlineMode = section === 'documentation' ? 'documentation' : 'tutorial';
   const pageHeadings = useMemo(
-    () => (markdown ? extractHeadingsFromMarkdown(markdown) : []),
-    [markdown],
+    () => (markdown ? extractHeadingsFromMarkdown(markdown, outlineMode) : []),
+    [markdown, outlineMode],
   );
   const headingIds = useMemo(() => pageHeadings.map((h) => h.id), [pageHeadings]);
   const [activeHeadingId, setActiveHeadingId] = useState<string | null>(null);
@@ -146,7 +147,7 @@ export function DocSectionPage({ section }: { section: DocSection }) {
 
                     {showOutline && (
                       <nav
-                        aria-label="On this page"
+                        aria-label={outlineMode === 'documentation' ? 'Sections' : 'On this page'}
                         style={{
                           padding: '4px 0 8px 22px',
                           borderLeft: active
@@ -165,7 +166,7 @@ export function DocSectionPage({ section }: { section: DocSection }) {
                             letterSpacing: '0.04em',
                           }}
                         >
-                          On this page
+                          {outlineMode === 'documentation' ? 'Sections' : 'On this page'}
                         </div>
                         {pageHeadings.map((heading) => {
                           const isActive = heading.id === activeHeadingId;

@@ -254,7 +254,7 @@ See [Layout model](/documentation/layout-model).
 
 ### Gallery workflow
 
-1. Open [gallery](/wall) → **Omni Game Metrics**.
+1. Open [gallery](/wall).
 2. Pick a chart → **Open in editor**.
 3. Change one semantic type or field — all backend tabs rebuild.
 

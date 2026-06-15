@@ -5,28 +5,39 @@ import { ChartTemplateDef } from '../../core/types';
 
 /**
  * Bullet chart — a compact KPI panel: one row per label, each showing a measure
- * bar compared against a target marker.
+ * bar compared against its own target, set against muted gray range bands.
  *
  * Channels:
  *   - y      label (the banded category axis — one row per KPI)
  *   - x      measured value (the bar, drawn from a zero baseline)
  *   - goal   target / comparative value (drawn as a tick across the bar)
- *   - color  optional grouping for the value bar
+ *   - color  optional explicit grouping for the value bar
  *
- * The measure bar reads as length-from-zero (markCognitiveChannel 'length'), so
- * the x scale keeps its zero baseline. The target tick is layered on top and
- * sized a little taller than the bar so it stands out as a reference marker.
- * Qualitative range bands (poor/ok/good) are intentionally left out of this
- * first version; the value-vs-target comparison is the core of the encoding.
+ * Following Stephen Few's design, each row carries graduated gray qualitative
+ * bands whose breakpoints are derived from that row's own goal (half and three
+ * quarters of target), so the comparison is per bar rather than one shared
+ * block. The bands are kept light/muted so the bar and target tick stay the
+ * focal elements. The value bar is colored by goal attainment using Vega-Lite's
+ * default categorical scheme (below target reads blue, meets target reads
+ * orange); a dark tick marks the exact target.
+ *
+ * Layout follows the candlestick pattern: the banded category channel (y) lives
+ * at the top level so every layer — bands, bar and tick — aligns to the same
+ * rows, while each layer supplies its own value on x.
  */
+
+// Muted grays for the qualitative zones, darkest nearest zero (poorest range).
+const ZONE_GRAYS = ['#e6e6e6', '#eeeeee', '#f6f6f6'];
+// Labels for the goal-attainment color split. Domain order drives which default
+// scheme color each gets: below target → first (blue), meets → second (orange).
+const STATUS_BELOW = 'Below target';
+const STATUS_MET = 'Meets target';
+
 export const bulletChartDef: ChartTemplateDef = {
     chart: "Bullet Chart",
     template: {
         encoding: {},
-        layer: [
-            { mark: { type: "bar", color: "#3a6ea5", height: { band: 0.5 } }, encoding: {} },
-            { mark: { type: "tick", color: "#1a1a1a", thickness: 3, opacity: 1 }, encoding: {} },
-        ],
+        layer: [],
     },
     channels: ["y", "x", "goal", "color", "column", "row"],
     markCognitiveChannel: 'length',
@@ -36,47 +47,102 @@ export const bulletChartDef: ChartTemplateDef = {
     instantiate: (spec, ctx) => {
         const { x, y, goal, color, column, row } = ctx.resolvedEncodings;
 
-        if (!spec.encoding) spec.encoding = {};
+        const valueTitle = x ? (x.title ?? x.field) : undefined;
+        const xAxis = valueTitle != null ? { title: valueTitle } : {};
 
-        if (y) {
-            spec.encoding.y = { ...y };
-            spec.encoding.y.axis = { ...(spec.encoding.y.axis ?? {}), title: null };
-        }
+        // Shared category axis at the top level so every layer aligns by row.
+        spec.encoding = {};
+        const yEnc = y
+            ? { ...y, axis: { ...(y.axis ?? {}), title: null } }
+            : undefined;
+        if (yEnc) spec.encoding.y = yEnc;
         if (column) spec.encoding.column = column;
         if (row) spec.encoding.row = row;
 
-        // Value bar — length from zero.
-        let valueTitle: any;
-        if (x) {
-            spec.layer[0].encoding.x = { ...x };
-            spec.layer[0].encoding.x.scale = { ...(x.scale ?? {}), zero: true };
-            valueTitle = x.title ?? x.field;
-            spec.layer[0].encoding.x.axis = { ...(x.axis ?? {}), title: valueTitle };
-        }
-        if (color) spec.layer[0].encoding.color = color;
+        const table = ctx.table ?? [];
+        const layers: any[] = [];
 
-        // Target marker — a tick at the goal value, sized a little taller than
-        // the bar so it reads as a reference line. It shares the value bar's x
-        // scale; give it the same axis title so the shared axis renders once and
-        // reads as the measure rather than "value, goal".
-        if (goal) {
-            spec.layer[1].encoding.x = {
-                field: goal.field,
-                type: 'quantitative',
-                ...(valueTitle != null ? { axis: { title: valueTitle } } : {}),
+        // --- Per-row gray qualitative bands (drawn first, behind everything) ---
+        // Breakpoints come from each row's own goal; all bands extend to the
+        // global max so the right edge stays clean across rows.
+        if (x?.field && y?.field && goal?.field && table.length > 0) {
+            let globalMax = 0;
+            for (const r of table) {
+                const v = Number(r[x.field]);
+                const g = Number(r[goal.field]);
+                if (Number.isFinite(v)) globalMax = Math.max(globalMax, v);
+                if (Number.isFinite(g)) globalMax = Math.max(globalMax, g);
+            }
+            if (globalMax > 0) {
+                const zoneData: Array<Array<Record<string, any>>> = [[], [], []];
+                for (const r of table) {
+                    const cat = r[y.field];
+                    const g = Number(r[goal.field]);
+                    if (cat == null || !Number.isFinite(g) || g <= 0) continue;
+                    zoneData[0].push({ [y.field]: cat, __lo: 0, __hi: 0.5 * g });
+                    zoneData[1].push({ [y.field]: cat, __lo: 0.5 * g, __hi: 0.75 * g });
+                    zoneData[2].push({ [y.field]: cat, __lo: 0.75 * g, __hi: globalMax });
+                }
+                zoneData.forEach((rows, i) => {
+                    if (rows.length === 0) return;
+                    layers.push({
+                        data: { values: rows },
+                        mark: { type: 'rect', color: ZONE_GRAYS[i], opacity: 1 },
+                        encoding: {
+                            x: { field: '__lo', type: 'quantitative', axis: xAxis },
+                            x2: { field: '__hi' },
+                        },
+                    });
+                });
+            }
+        }
+
+        // --- Value bar — length from zero, colored by goal attainment ---
+        const barLayer: any = {
+            mark: { type: 'bar', height: { band: 0.5 } },
+            encoding: {},
+        };
+        if (x) {
+            barLayer.encoding.x = {
+                ...x,
+                scale: { ...(x.scale ?? {}), zero: true },
+                axis: { ...(x.axis ?? {}), title: valueTitle },
             };
         }
-
-        // Size the target tick relative to the available band height so it spans
-        // a bit more than the value bar regardless of how many rows there are.
-        const table = ctx.table ?? [];
-        const yField = y?.field;
-        const plotHeight = ctx.canvasSize?.height || 300;
-        let tickSize = 24;
-        if (yField && table.length > 0) {
-            const rows = new Set(table.map((r: any) => r[yField])).size || 1;
-            tickSize = Math.max(12, Math.min(46, Math.round((plotHeight * 0.62) / rows)));
+        if (color) {
+            // Explicit grouping wins over goal-attainment coloring.
+            barLayer.encoding.color = color;
+        } else if (x?.field && goal?.field) {
+            barLayer.transform = [{
+                calculate: `datum[${JSON.stringify(x.field)}] >= datum[${JSON.stringify(goal.field)}] ? '${STATUS_MET}' : '${STATUS_BELOW}'`,
+                as: '__status',
+            }];
+            barLayer.encoding.color = {
+                field: '__status',
+                type: 'nominal',
+                scale: { domain: [STATUS_BELOW, STATUS_MET] },
+                legend: { title: null },
+                title: null,
+            };
         }
-        spec.layer[1].mark = { ...spec.layer[1].mark, size: tickSize };
+        layers.push(barLayer);
+
+        // --- Target marker — a dark tick at the goal, taller than the bar ---
+        if (goal) {
+            const plotHeight = ctx.canvasSize?.height || 300;
+            let tickSize = 24;
+            if (y?.field && table.length > 0) {
+                const rows = new Set(table.map((r: any) => r[y.field])).size || 1;
+                tickSize = Math.max(12, Math.min(46, Math.round((plotHeight * 0.62) / rows)));
+            }
+            layers.push({
+                mark: { type: 'tick', color: '#1a1a1a', thickness: 3, opacity: 1, size: tickSize },
+                encoding: {
+                    x: { field: goal.field, type: 'quantitative', axis: xAxis },
+                },
+            });
+        }
+
+        spec.layer = layers;
     },
 };

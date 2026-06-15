@@ -66,27 +66,76 @@ describe('Gantt chart', () => {
 
 describe('Bullet chart', () => {
   const spec = assembleVegaLite(toInput(genBulletTests()[0])) as any;
+  const markType = (l: any) => (typeof l.mark === 'string' ? l.mark : l.mark?.type);
+  const bands = spec.layer.filter((l: any) => markType(l) === 'rect');
+  const bar = spec.layer.find((l: any) => markType(l) === 'bar');
+  const tick = spec.layer.find((l: any) => markType(l) === 'tick');
 
-  it('layers a value bar under a target tick', () => {
+  it('layers gray percentile bands beneath a value bar and target tick', () => {
     expect(Array.isArray(spec.layer)).toBe(true);
-    expect(spec.layer).toHaveLength(2);
-    expect(spec.layer[0].mark?.type).toBe('bar');
-    expect(spec.layer[1].mark?.type).toBe('tick');
+    expect(bands.length).toBeGreaterThan(0);
+    expect(bar).toBeDefined();
+    expect(tick).toBeDefined();
+    // Bands paint first (behind), then the bar, then the target tick on top.
+    const firstBar = spec.layer.findIndex((l: any) => markType(l) === 'bar');
+    const lastBand = spec.layer.map(markType).lastIndexOf('rect');
+    const tickIdx = spec.layer.findIndex((l: any) => markType(l) === 'tick');
+    expect(lastBand).toBeLessThan(firstBar);
+    expect(firstBar).toBeLessThan(tickIdx);
+  });
+
+  it('shades each row with muted gray zones from a zero baseline', () => {
+    for (const b of bands) {
+      expect(b.mark?.color).toMatch(/^#[d-f]/i); // muted light grays
+      expect(b.encoding?.x?.field).toBe('__lo');
+      expect(b.encoding?.x2?.field).toBe('__hi');
+    }
+    // Bands are per row (one rect per category), not a single shared block.
+    const rows = genBulletTests()[0].data.length;
+    for (const b of bands) {
+      expect(b.data?.values?.length).toBe(rows);
+    }
+  });
+
+  it('derives each row band breakpoints from that row goal', () => {
+    // The darkest zone runs 0 → half the row goal; mid runs half → three
+    // quarters; so a row with goal 200 yields breakpoints 100 and 150.
+    const sample = bands[0].data.values[0];
+    const rowGoal = genBulletTests()[0].data.find(
+      (r: any) => r[spec.encoding.y.field] === sample[spec.encoding.y.field],
+    ).quota;
+    expect(sample.__hi).toBeCloseTo(0.5 * rowGoal);
+  });
+
+  it('shares one banded category axis across all layers', () => {
+    expect(spec.encoding?.y?.field).toBe('rep');
+    expect(bar.encoding?.y).toBeUndefined();
   });
 
   it('puts the value on the bar and the target on the tick', () => {
-    expect(spec.encoding?.y?.field).toBe('rep');
-    expect(spec.layer[0].encoding?.x?.field).toBe('sales');
-    expect(spec.layer[1].encoding?.x?.field).toBe('quota');
+    expect(bar.encoding?.x?.field).toBe('sales');
+    expect(tick.encoding?.x?.field).toBe('quota');
+  });
+
+  it('colors each bar by goal attainment via a status field', () => {
+    const calc = bar.transform?.[0]?.calculate ?? '';
+    expect(calc).toContain('sales');
+    expect(calc).toContain('quota');
+    const color = bar.encoding?.color;
+    expect(color?.field).toBe('__status');
+    expect(color?.type).toBe('nominal');
+    // Two distinct status values; default scheme assigns blue/orange by order.
+    expect(color?.scale?.domain).toHaveLength(2);
+    expect(color.scale.domain[0]).not.toBe(color.scale.domain[1]);
   });
 
   it('keeps the value bar anchored at zero', () => {
-    expect(spec.layer[0].encoding?.x?.scale?.zero).toBe(true);
+    expect(bar.encoding?.x?.scale?.zero).toBe(true);
   });
 
   it('sizes the target tick to a positive pixel height', () => {
-    expect(typeof spec.layer[1].mark?.size).toBe('number');
-    expect(spec.layer[1].mark.size).toBeGreaterThan(0);
+    expect(typeof tick.mark?.size).toBe('number');
+    expect(tick.mark.size).toBeGreaterThan(0);
   });
 });
 

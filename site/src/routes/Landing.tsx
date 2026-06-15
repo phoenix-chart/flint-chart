@@ -557,42 +557,46 @@ function DemoStageContent({ stage }: { stage: DemoStage }) {
 }
 
 /**
- * Two overlapping cards in fixed positions. The "after" state sits at the
- * top-left, the "before" state peeks from the bottom-right corner behind it.
- * Hovering (or focusing / tapping) raises the back card in front of the other
- * one without moving either card.
+ * Two overlapping cards in fixed positions. The "before" state sits at the
+ * top-left, the "after" state sits at the bottom-right and is shown in front
+ * by default. Hovering (or focusing / tapping) a card raises that card in
+ * front of the other one, without moving either card; with nothing hovered
+ * the "after" card stays in front.
  */
 function FeatureDemoView({ build }: { build: () => FeatureDemoConfig }) {
   const demo = useMemo(() => build(), [build]);
-  const [revealed, setRevealed] = useState(false);
+  const [hovered, setHovered] = useState<'top' | 'bottom' | null>(null);
 
-  // The card currently in front drives the caption.
-  const front = revealed ? demo.before : demo.after;
+  // Slot in front: the hovered card, or the "after" (bottom) card by default.
+  const frontSlot: 'top' | 'bottom' = hovered ?? 'bottom';
+  const frontStage = frontSlot === 'top' ? demo.before : demo.after;
+
+  const cardHandlers = (slot: 'top' | 'bottom') => ({
+    tabIndex: 0,
+    onMouseEnter: () => setHovered(slot),
+    onMouseLeave: () => setHovered((h) => (h === slot ? null : h)),
+    onFocus: () => setHovered(slot),
+    onBlur: () => setHovered((h) => (h === slot ? null : h)),
+    onClick: () => setHovered(slot),
+  });
 
   return (
     <div>
-      <div
-        style={featureStackStyle}
-        role="group"
-        aria-label={`Compare ${demo.after.label} with ${demo.before.label}`}
-        title="Hover to bring the earlier version forward"
-        tabIndex={0}
-        onMouseEnter={() => setRevealed(true)}
-        onMouseLeave={() => setRevealed(false)}
-        onFocus={() => setRevealed(true)}
-        onBlur={() => setRevealed(false)}
-        onClick={() => setRevealed((v) => !v)}
-      >
+      <div style={featureStackStyle} role="group" aria-label={`Compare ${demo.after.label} with ${demo.before.label}`}>
         <div
-          style={{ ...featureStackCardStyle, ...stackCardPos('top'), ...stackCardEmphasis(!revealed) }}
-          aria-hidden={revealed}
+          style={{ ...featureStackCardStyle, ...stackCardPos('bottom'), ...stackCardEmphasis(frontSlot === 'bottom') }}
+          aria-hidden={frontSlot !== 'bottom'}
+          title={demo.after.label}
+          {...cardHandlers('bottom')}
         >
           <span style={stackBadgeStyle}>{demo.after.label}</span>
           <DemoStageContent stage={demo.after} />
         </div>
         <div
-          style={{ ...featureStackCardStyle, ...stackCardPos('bottom'), ...stackCardEmphasis(revealed) }}
-          aria-hidden={!revealed}
+          style={{ ...featureStackCardStyle, ...stackCardPos('top'), ...stackCardEmphasis(frontSlot === 'top') }}
+          aria-hidden={frontSlot !== 'top'}
+          title={demo.before.label}
+          {...cardHandlers('top')}
         >
           <span style={stackBadgeStyle}>{demo.before.label}</span>
           <DemoStageContent stage={demo.before} />
@@ -600,7 +604,7 @@ function FeatureDemoView({ build }: { build: () => FeatureDemoConfig }) {
       </div>
 
       <p style={demoSpecCaptionStyle}>
-        <code style={demoSpecCaptionCodeStyle}>{simplifiedSpec(front.testCase)}</code>
+        <code style={demoSpecCaptionCodeStyle}>{simplifiedSpec(frontStage.testCase)}</code>
       </p>
     </div>
   );

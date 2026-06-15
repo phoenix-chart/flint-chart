@@ -1,304 +1,312 @@
-# Introduction to flint-chart
+# Getting started
 
-This tutorial walks you through writing a visualization with **flint-chart**, 
-using Flint's semantic input instead of hand-written encodings.
+This tutorial walks through **Omni Game Metrics** — a synthetic game-operations dataset used in the published paper. You will build five charts in three phases and learn how Flint turns **data + semantic types + chart intent** into render-ready specs.
 
-We will add one piece at a time: **data → semantic types → chart type &
-encodings → aggregation → compilation**. Follow along in the
-[online editor](/editor): paste each JSON block into the Flint input pane and
-watch the preview update.
+| What you need | Where |
+|---------------|-------|
+| Paste JSON and preview | [Editor](/editor) |
+| See every step side by side | This page |
+| API details | [API reference](/documentation/api-reference) |
 
-## Tutorial overview
-
-1. [The data](#the-data)
-2. [Semantic types](#semantic-types)
-3. [Chart type and encodings](#chart-type-and-encodings)
-4. [Aggregation](#aggregation)
-5. [Compile your chart](#compile-your-chart)
-6. [Next steps](#next-steps)
+Each chart step below shows a **live preview** (Vega-Lite, ECharts, Chart.js tabs).
 
 ---
 
-## The data
+## What you will learn
 
-Suppose you have a small table with a categorical column `a` and a numeric
-column `b`:
+1. Load **data** — rows only; preview stays empty (expected).
+2. Add **semantic types** — tell Flint what each column *means*.
+3. Add **chart_spec** — pick a chart type and map fields to channels.
+4. **Iterate** — change types or chart type; the compiler updates axes, color, and layout.
+5. **Compile** — call `assembleVegaLite()` (or ECharts / Chart.js) in your own app.
 
-| a | b |
-|---|---|
-| C | 2 |
-| C | 7 |
-| C | 4 |
-| D | 1 |
-| D | 2 |
-| D | 6 |
-| E | 8 |
-| E | 4 |
-| E | 7 |
+**Story arc:**
 
-In flint-chart, inline data is a JSON array of row objects under `data.values`:
+```text
+Phase 1 — Overview     Line + Grouped bar   (MAU trends)
+Phase 2 — Change       Waterfall + Heatmap  (net adds)
+Phase 3 — Composition  Sunburst             (year-end mix)
+```
+
+---
+
+## Step 1 — The data
+
+Each row is one **game × region × month** snapshot (1,152 rows total: 24 games × 4 regions × 12 months).
+
+| period | game | gameType | newUsers | totalUsers | region |
+|--------|------|----------|----------|------------|--------|
+| 2025-01 | Starforge Tactics | PC / Client | 5997 | 10173 | N |
+| 2025-01 | Starforge Tactics | PC / Client | 682 | 4475 | E |
+| 2025-01 | Starforge Tactics | PC / Client | -886 | 1917 | S |
+
+Minimal input — data only:
 
 ```json
 {
   "data": {
     "values": [
-      { "a": "C", "b": 2 },
-      { "a": "C", "b": 7 },
-      { "a": "C", "b": 4 },
-      { "a": "D", "b": 1 },
-      { "a": "D", "b": 2 },
-      { "a": "D", "b": 6 },
-      { "a": "E", "b": 8 },
-      { "a": "E", "b": 4 },
-      { "a": "E", "b": 7 }
+      {
+        "period": "2025-01",
+        "game": "Starforge Tactics",
+        "gameType": "PC / Client",
+        "newUsers": 5997,
+        "totalUsers": 10173,
+        "region": "N"
+      }
     ]
   }
 }
 ```
 
-This is the **data** layer of a `ChartAssemblyInput`. Flint also accepts
-`{ "url": "..." }` for remote JSON/CSV, but inline values are easiest while
-learning.
-
-> **Try it:** paste the block above into the [editor](/editor). The preview
-> pane stays empty until you add a `chart_spec` — that is expected.
+> **Try it:** paste into the [editor](/editor). No chart appears yet — you still need semantic types and `chart_spec`.
 
 ---
 
-## Semantic types
+## Step 2 — Semantic types
 
-Vega-Lite asks you to set each channel's `type` (`nominal`, `quantitative`, …)
-and many axis details by hand. Flint instead asks: **what does each column
-mean?**
-
-Add a `semantic_types` map — one semantic label per field:
+Flint cares about **meaning**, not storage type. Add `semantic_types` once per dataset; reuse it across every chart.
 
 ```json
 {
-  "data": {
-    "values": [
-      { "a": "C", "b": 2 },
-      { "a": "C", "b": 7 },
-      { "a": "C", "b": 4 },
-      { "a": "D", "b": 1 },
-      { "a": "D", "b": 2 },
-      { "a": "D", "b": 6 },
-      { "a": "E", "b": 8 },
-      { "a": "E", "b": 4 },
-      { "a": "E", "b": 7 }
-    ]
-  },
+  "data": { "values": [ "... 1,152 rows ..." ] },
   "semantic_types": {
-    "a": "Category",
-    "b": "Quantity"
+    "period": "YearMonth",
+    "game": "Category",
+    "gameType": "Category",
+    "newUsers": "Quantity",
+    "totalUsers": "Quantity",
+    "region": "Category"
   }
 }
 ```
 
-| Field | Semantic type | What the compiler derives |
-|-------|-----------------|---------------------------|
-| `a`   | `Category`      | Discrete axis, categorical color defaults |
-| `b`   | `Quantity`      | Continuous axis, zero baseline for bar-length marks |
+| Field | Type | Compiler uses it for |
+|-------|------|----------------------|
+| `period` | `YearMonth` | Temporal parsing and axis ticks |
+| `game`, `gameType`, `region` | `Category` | Discrete axes, categorical color |
+| `newUsers`, `totalUsers` | `Quantity` | Continuous axes, aggregation defaults |
 
-You do **not** set `type`, `axis.title`, `format`, or `scale.zero` here — the
-compiler reads the semantic type registry and fills those in when it builds the
-backend spec. See [Semantic types](/documentation/semantic-types) for the full
-T0 → T1 → T2 system.
+Gallery charts use **aggregated** tables (288, 72, 14, or 96 rows). You only name fields and types — axes, formats, and scales are derived. Deep dive: [Semantic types](/documentation/semantic-types).
 
 ---
 
-## Chart type and encodings
+## Step 3 — Phase 1: Overview
 
-A Vega-Lite spec uses `mark` plus `encoding`. Flint uses **`chart_spec`**:
+### Line chart — MAU trend by region
 
-- `chartType` — template name (e.g. `"Scatter Plot"`, `"Bar Chart"`)
-- `encodings` — map visual channels (`x`, `y`, `color`, …) to fields
-- `canvasSize` — optional pixel budget (default 400×320)
+**Question:** How does MAU move month to month, split by region and game type?
 
-### Scatter plot — position encodings
+| Channel | Field | Role |
+|---------|-------|------|
+| `column` | `region` | Facet panels (N / E / S / W) |
+| `x` | `period` | Time |
+| `y` | `totalUsers` | MAU (aggregated) |
+| `color` | `gameType` | Series color |
 
-Map `a` to the x-channel and `b` to the y-channel:
+```flint-step
+Omni: Line
+0
+```
+
+You did not set `"type": "temporal"` or facet spacing — semantics + the Line Chart template handled that. Toggle preview tabs to compare backends.
+
+### Grouped bar — same story, bar lens
+
+**Question:** Total MAU per month, bars grouped by game type (all regions combined).
+
+| Channel | Field |
+|---------|-------|
+| `x` | `period` |
+| `y` | `totalUsers` |
+| `color` / `group` | `gameType` |
+
+```flint-step
+Omni: Grouped Bar
+0
+```
+
+---
+
+## Step 4 — Phase 2: Change
+
+### Waterfall — month-over-month net adds
+
+**Question:** How did portfolio MAU move step by step through the year?
+
+14 steps: opening MAU → each month's `sum(newUsers)` → closing MAU.
+
+| Channel | Field |
+|---------|-------|
+| `x` | `Step` |
+| `y` | `Amount` |
+| `color` | `Type` (`start` / `delta` / `end`) |
+
+```flint-step
+Omni: Waterfall
+0
+```
+
+Green = growth months; red = net-negative months.
+
+### Heatmap — which games gained or lost users?
+
+**Question:** Net adds by **game × month** (summed over regions).
+
+| Channel | Field |
+|---------|-------|
+| `x` | `period` |
+| `y` | `game` |
+| `color` | `newUsers` |
+
+`newUsers` can be **negative**. Use the `Profit` semantic type so color is **diverging and centered at zero**:
+
+```json
+"semantic_types": {
+  "newUsers": { "semanticType": "Profit" },
+  "period": "YearMonth",
+  "game": "Category"
+},
+"chart_spec": {
+  "chartProperties": { "colorScheme": "redblue" }
+}
+```
+
+Change `Profit` back to `Quantity` in the editor — the palette becomes sequential and hides the sign of change.
+
+```flint-step
+Omni: Heatmap
+0
+```
+
+---
+
+## Step 5 — Phase 3: Composition
+
+### Sunburst — year-end MAU mix
+
+**Question:** How is December MAU split across region → game type → game?
+
+| Channel | Field |
+|---------|-------|
+| `color` | `region` |
+| `group` | `gameType` |
+| `detail` | `game` |
+| `size` | `totalUsers` |
+
+```flint-step
+Omni: Sunburst
+0
+```
+
+Vega-Lite has no native sunburst — open the **ECharts** tab for the intended view. The same Flint input still compiles; backend support varies by chart type.
+
+---
+
+## Step 6 — Explore and iterate
+
+After the walkthrough, experiment in the [editor](/editor) or from any gallery card (**Open in editor**).
+
+### Swap chart type, keep semantics
+
+Same line data can drive other templates. Change only `chartType` (and encodings if needed) — axis treatment updates automatically.
+
+Example: set `"chartType": "Area Chart"` with the same `column`, `x`, `y`, and `color` as the line chart.
+
+### Compare backends
+
+| Function | Output |
+|----------|--------|
+| `assembleVegaLite(input)` | Vega-Lite spec |
+| `assembleECharts(input)` | ECharts `option` |
+| `assembleChartjs(input)` | Chart.js config |
+
+| Chart | Vega-Lite | ECharts | Chart.js |
+|-------|-----------|---------|----------|
+| Line / Grouped bar / Waterfall / Heatmap | ✓ | ✓ | ✓ |
+| Sunburst | fallback | ✓ primary | partial |
+
+Check support before rendering:
+
+```ts
+import { vlGetTemplateDef, ecGetTemplateDef, cjsGetTemplateDef } from 'flint-chart';
+
+vlGetTemplateDef('Heatmap');
+ecGetTemplateDef('Sunburst Chart');
+```
+
+Unknown `chartType` throws at compile time — not in the renderer.
+
+### Tune layout when labels crowd
+
+Faceted line charts use the `column` channel — no manual facet block. If panels feel cramped:
 
 ```json
 {
-  "data": {
-    "values": [
-      { "a": "C", "b": 2 },
-      { "a": "C", "b": 7 },
-      { "a": "C", "b": 4 },
-      { "a": "D", "b": 1 },
-      { "a": "D", "b": 2 },
-      { "a": "D", "b": 6 },
-      { "a": "E", "b": 8 },
-      { "a": "E", "b": 4 },
-      { "a": "E", "b": 7 }
-    ]
-  },
-  "semantic_types": {
-    "a": "Category",
-    "b": "Quantity"
-  },
-  "chart_spec": {
-    "chartType": "Scatter Plot",
-    "encodings": {
-      "x": { "field": "a" },
-      "y": { "field": "b" }
-    },
-    "canvasSize": { "width": 400, "height": 300 }
+  "options": {
+    "elasticity": 0.5,
+    "maxStretch": 2,
+    "minStep": 8
   }
 }
 ```
 
-Paste this into the [editor](/editor) and open the **Vega-Lite** preview tab.
-You should see one point per row. Categories appear on the x-axis; numeric
-values on the y-axis. The compiler chose axis types, ticks, and grid lines from
-`Category` and `Quantity`.
+See [Layout model](/documentation/layout-model).
 
-Three observations compared to raw Vega-Lite:
+### Gallery workflow
 
-1. You never wrote `"type": "nominal"` or `"type": "quantitative"`.
-2. Axis labels and grid behavior came from semantics, not manual `axis` blocks.
-3. The same input can be compiled to **ECharts** or **Chart.js** from the
-   preview tabs (when that chart type exists in that backend).
+1. Open [gallery](/wall) → **Omni Game Metrics**.
+2. Pick a chart → **Open in editor**.
+3. Change one semantic type or field — all backend tabs rebuild.
 
 ---
 
-## Aggregation
-
-With multiple rows per category, a bar chart usually shows a **summary** per
-category — not every raw point. In Vega-Lite you add `"aggregate": "average"`
-on a channel. Flint uses the same knob on encodings:
-
-```json
-{
-  "data": {
-    "values": [
-      { "a": "C", "b": 2 },
-      { "a": "C", "b": 7 },
-      { "a": "C", "b": 4 },
-      { "a": "D", "b": 1 },
-      { "a": "D", "b": 2 },
-      { "a": "D", "b": 6 },
-      { "a": "E", "b": 8 },
-      { "a": "E", "b": 4 },
-      { "a": "E", "b": 7 }
-    ]
-  },
-  "semantic_types": {
-    "a": "Category",
-    "b": "Quantity"
-  },
-  "chart_spec": {
-    "chartType": "Bar Chart",
-    "encodings": {
-      "x": { "field": "a" },
-      "y": { "field": "b", "aggregate": "average" }
-    },
-    "canvasSize": { "width": 400, "height": 300 }
-  }
-}
-```
-
-Category **D** averages to `(1 + 2 + 6) / 3 = 3`. Switch the preview to
-**Bar Chart** semantics: vertical bars, one per category, height = mean of `b`.
-
-### Horizontal bars
-
-Swap the x and y encodings (same idea as swapping channels in Vega-Lite):
-
-```json
-"chartType": "Bar Chart",
-"encodings": {
-  "x": { "field": "b", "aggregate": "average" },
-  "y": { "field": "a" }
-}
-```
-
-Flint picks the bar orientation from which axis is categorical. You still only
-name fields and aggregates — not `orient`, `size`, or band padding.
-
-### When aggregation is optional
-
-For many semantic types the compiler **auto-aggregates** when multiple rows
-share the same x value — e.g. `Price` → `average`, additive amounts → `sum`.
-Explicit `aggregate` on an encoding always wins. Details are in
-[Semantic types](/documentation/semantic-types#aggregation-role).
-
----
-
-## Compile your chart
-
-The site editor previews specs for you. In your own app, call one assembler:
+## Step 7 — Compile in your app
 
 ```ts
 import { assembleVegaLite, assembleECharts, assembleChartjs } from 'flint-chart';
 
 const input = {
-  data: { values: [/* … */] },
-  semantic_types: { a: 'Category', b: 'Quantity' },
+  data: { values: [/* aggregated rows */] },
+  semantic_types: {
+    period: 'YearMonth',
+    totalUsers: 'Quantity',
+    gameType: 'Category',
+    region: 'Category',
+  },
   chart_spec: {
-    chartType: 'Bar Chart',
+    chartType: 'Line Chart',
     encodings: {
-      x: { field: 'a' },
-      y: { field: 'b', aggregate: 'average' },
+      column: 'region',
+      x: 'period',
+      y: 'totalUsers',
+      color: 'gameType',
     },
-    canvasSize: { width: 400, height: 300 },
+    canvasSize: { width: 480, height: 320 },
   },
 };
 
-const vlSpec  = assembleVegaLite(input);   // → Vega-Lite JSON
-const ecSpec  = assembleECharts(input);    // → ECharts option
-const cjsSpec = assembleChartjs(input);    // → Chart.js config
+const vlSpec  = assembleVegaLite(input);
+const ecSpec  = assembleECharts(input);
+const cjsSpec = assembleChartjs(input);
 ```
 
-Each function returns a complete, render-ready object for that library. The
-Flint input stays identical across backends; only the final instantiation
-step differs. That is the core promise described in
-[Overview](/documentation/overview).
+Same input, three backends. Details: [Overview](/documentation/overview).
 
-### Embed on a web page
+### Embed on a page
 
-**Vega-Lite** — use [Vega-Embed](https://github.com/vega/vega-embed) with the
-compiled spec:
-
-```html
-<div id="vis"></div>
-<script src="https://cdn.jsdelivr.net/npm/vega@6"></script>
-<script src="https://cdn.jsdelivr.net/npm/vega-lite@6"></script>
-<script src="https://cdn.jsdelivr.net/npm/vega-embed@7"></script>
-<script>
-  vegaEmbed('#vis', vlSpec);
-</script>
-```
-
-**ECharts** — pass `ecSpec` to `echarts.init(dom).setOption(ecSpec)`.
-
-**Chart.js** — `new Chart(canvas, cjsSpec)`.
-
-Or skip glue code and use the hosted [editor](/editor) and
-[gallery](/wall) while exploring.
+- **Vega-Lite** — [Vega-Embed](https://github.com/vega/vega-embed): `vegaEmbed('#vis', vlSpec)`
+- **ECharts** — `echarts.init(dom).setOption(ecSpec)`
+- **Chart.js** — `new Chart(canvas, cjsSpec)`
 
 ---
 
 ## Next steps
 
-You now know the three layers of every Flint chart:
-
-```
-data.values  +  semantic_types  +  chart_spec  →  assemble*()  →  render
-```
-
-Continue learning:
-
-- [Exploring data](/tutorials/exploring-data) — swap fields, change chart
-  types, and compare backends without rewriting axis config.
-- [Gallery](/wall) — every chart template with live Vega-Lite / ECharts /
-  Chart.js previews.
-- [Overview](/documentation/overview) — architecture and full
-  `ChartAssemblyInput` reference.
-- [Semantic types](/documentation/semantic-types) — the type registry and
-  compilation rules.
-- [Layout model](/documentation/layout-model) — how discrete axes and facets
-  are sized.
-
-To extend the library itself, see [Adding a chart template](/documentation/adding-a-chart-template).
+| Goal | Link |
+|------|------|
+| Architecture and spec model | [Overview](/documentation/overview) |
+| Semantic type reference | [Semantic types](/documentation/semantic-types) |
+| All templates | [Gallery](/wall) |
+| Add a new chart type | [Adding a chart template](/documentation/adding-a-chart-template) |
+| Local dev setup | [Development](/documentation/development) |

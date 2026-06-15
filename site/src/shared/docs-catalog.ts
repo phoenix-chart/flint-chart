@@ -23,15 +23,8 @@ export const TUTORIAL_GROUPS: DocGroup[] = [
         slug: 'getting-started',
         title: 'Getting started',
         description:
-          'Build your first chart — data, semantic types, encodings, aggregation, and backends.',
+          'Omni Game Metrics — data, semantics, five charts, explore backends, and compile.',
         file: '../../../docs/tutorials/getting-started.md',
-      },
-      {
-        slug: 'exploring-data',
-        title: 'Exploring data',
-        description:
-          'Swap fields, change chart types, and compare Vega-Lite, ECharts, and Chart.js.',
-        file: '../../../docs/tutorials/exploring-data.md',
       },
     ],
   },

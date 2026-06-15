@@ -22,10 +22,15 @@ const LANG_ALIASES: Record<string, string> = {
   shell: 'bash',
 };
 
+/** Language tag from a fenced code block class, e.g. `language-flint-step` → `flint-step`. */
+export function extractFenceLanguage(className?: string): string | null {
+  if (!className?.startsWith('language-')) return null;
+  return className.slice('language-'.length) || null;
+}
+
 export function resolveCodeLanguage(className?: string): string | null {
-  const match = /language-(\w+)/.exec(className ?? '');
-  if (!match) return null;
-  const raw = match[1];
+  const raw = extractFenceLanguage(className);
+  if (!raw) return null;
   return LANG_ALIASES[raw] ?? raw;
 }
 

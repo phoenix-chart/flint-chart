@@ -24,6 +24,8 @@ import { densityPlotDef } from './density';
 import { stripPlotDef } from './jitter';
 import { candlestickChartDef } from './candlestick';
 import { waterfallChartDef } from './waterfall';
+import { ganttChartDef } from './gantt';
+import { bulletChartDef } from './bullet';
 import { barTableDef } from './bar-table';
 import { radarChartDef } from './radar';
 import { roseChartDef } from './rose';
@@ -239,7 +241,7 @@ function withInjectedProperties(def: ChartTemplateDef): ChartTemplateDef {
 export const vlTemplateDefs: { [key: string]: ChartTemplateDef[] } = Object.fromEntries(
     Object.entries({
         "Points":          [scatterPlotDef, regressionDef, rangedDotPlotDef, stripPlotDef],
-        "Bars":            [barChartDef, groupedBarChartDef, stackedBarChartDef, lollipopChartDef, waterfallChartDef],
+        "Bars":            [barChartDef, groupedBarChartDef, stackedBarChartDef, lollipopChartDef, waterfallChartDef, ganttChartDef, bulletChartDef],
         "Distributions":   [histogramDef, densityPlotDef, boxplotDef, pyramidChartDef, candlestickChartDef],
         "Lines & Areas":   [lineChartDef, bumpChartDef, areaChartDef, streamgraphDef],
         "Circular":        [pieChartDef, roseChartDef, radarChartDef],

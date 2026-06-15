@@ -36,6 +36,8 @@ import treeIcon from '../assets/chart-icons/chart-icon-tree.svg';
 import networkIcon from '../assets/chart-icons/chart-icon-network.svg';
 import usMapIcon from '../assets/chart-icons/chart-icon-us-map.svg';
 import worldMapIcon from '../assets/chart-icons/chart-icon-world-map.svg';
+import ganttIcon from '../assets/chart-icons/chart-icon-gantt.svg';
+import bulletIcon from '../assets/chart-icons/chart-icon-bullet.svg';
 
 export interface ChartEntry {
   id: string;
@@ -99,6 +101,8 @@ export const CHART_CATEGORIES: ChartCategory[] = [
       createChart('vegalite', 'density-plot', 'Density Plot', 'Density Plot', densityIcon),
       createChart('vegalite', 'candlestick-chart', 'Candlestick Chart', 'Candlestick Chart', candlestickIcon),
       createChart('vegalite', 'waterfall-chart', 'Waterfall Chart', 'Waterfall Chart', waterfallIcon),
+      createChart('vegalite', 'gantt-chart', 'Gantt Chart', 'Gantt Chart', ganttIcon),
+      createChart('vegalite', 'bullet-chart', 'Bullet Chart', 'Bullet Chart', bulletIcon),
       createChart('vegalite', 'strip-plot', 'Strip Plot', 'Strip Plot', stripPlotIcon),
       createChart('vegalite', 'radar-chart', 'Radar Chart', 'Radar Chart', radarIcon),
       createChart('vegalite', 'pyramid-chart', 'Pyramid Chart', 'Pyramid Chart', pyramidIcon),

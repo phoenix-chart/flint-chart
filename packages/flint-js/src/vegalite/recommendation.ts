@@ -18,6 +18,7 @@ import {
     pick,
     pickQuantitative,
     pickDiscrete,
+    pickTemporal,
     pickLowCardNominal,
     pickLowCardDiscrete,
     pickGeo,
@@ -131,6 +132,32 @@ function vlGetRecommendation(chartType: string, tv: InternalTableView): Record<s
             assign('x', xField);
             assign('y', yField);
             assign('color', pickLowCardDiscrete(tv, used, 20));
+            return rec;
+        }
+
+        case 'Gantt Chart': {
+            // y = task label, x = start, x2 = end. Prefer two temporal fields
+            // for the interval; fall back to quantitative when no dates exist.
+            const yField = pickDiscrete(tv, used);
+            const startField = pickTemporal(tv, used) ?? pickQuantitative(tv, used);
+            const endField = pickTemporal(tv, used) ?? pickQuantitative(tv, used);
+            if (!yField || !startField || !endField) return {};
+            assign('y', yField);
+            assign('x', startField);
+            assign('x2', endField);
+            assign('color', pickLowCardNominal(tv, used, 12));
+            return rec;
+        }
+
+        case 'Bullet Chart': {
+            // y = label, x = measured value, goal = target marker.
+            const yField = pickDiscrete(tv, used);
+            const valueField = pickQuantitative(tv, used);
+            const goalField = pickQuantitative(tv, used);
+            if (!yField || !valueField) return {};
+            assign('y', yField);
+            assign('x', valueField);
+            if (goalField) assign('goal', goalField);
             return rec;
         }
 

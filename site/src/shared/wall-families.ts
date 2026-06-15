@@ -37,6 +37,8 @@ const LABEL_TO_FAMILY: Record<string, string> = {
   combo: 'bar',
   lollipop: 'bar',
   waterfall: 'bar',
+  gantt: 'bar',
+  bullet: 'bar',
   pyramid: 'bar',
   // Line & Area
   line: 'line',

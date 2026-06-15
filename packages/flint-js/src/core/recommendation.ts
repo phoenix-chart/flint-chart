@@ -157,6 +157,18 @@ const FAMILY_RANGE: ChannelRoleMap = {
     column: 'facetCol', row: 'facetRow',
 };
 
+/** Gantt: horizontal interval bar — y=task, x=start, x2=end, color=series */
+const FAMILY_GANTT: ChannelRoleMap = {
+    y: 'category', x: 'measure', x2: 'measure2', color: 'series',
+    detail: 'auxiliary', column: 'facetCol', row: 'facetRow',
+};
+
+/** Bullet: y=label, x=value (measure), goal=target (measure2) */
+const FAMILY_BULLET: ChannelRoleMap = {
+    y: 'category', x: 'measure', goal: 'measure2', color: 'series',
+    column: 'facetCol', row: 'facetRow',
+};
+
 // ── Chart → Family lookup ───────────────────────────────────────────────
 
 const CHART_ROLE_MAP: Record<string, ChannelRoleMap> = {
@@ -167,6 +179,8 @@ const CHART_ROLE_MAP: Record<string, ChannelRoleMap> = {
     'Stacked Bar Chart': FAMILY_XY_STANDARD,
     'Lollipop Chart': FAMILY_XY_STANDARD,
     'Waterfall Chart': FAMILY_XY_STANDARD,
+    'Gantt Chart': FAMILY_GANTT,
+    'Bullet Chart': FAMILY_BULLET,
     'Bar Table': FAMILY_XY_HORIZONTAL,
     'Line Chart': FAMILY_XY_STANDARD,
     'Bump Chart': FAMILY_XY_STANDARD,

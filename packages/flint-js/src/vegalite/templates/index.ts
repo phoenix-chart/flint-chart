@@ -27,7 +27,7 @@ import { waterfallChartDef } from './waterfall';
 import { barTableDef } from './bar-table';
 import { radarChartDef } from './radar';
 import { roseChartDef } from './rose';
-import { usMapDef, worldMapDef } from './map';
+import { mapDef, choroplethDef } from './map';
 import { customPointDef, customLineDef, customBarDef, customRectDef, customAreaDef } from './custom';
 import { kpiCardDef } from './kpi-card';
 
@@ -243,7 +243,7 @@ export const vlTemplateDefs: { [key: string]: ChartTemplateDef[] } = Object.from
         "Distributions":   [histogramDef, densityPlotDef, boxplotDef, pyramidChartDef, candlestickChartDef],
         "Lines & Areas":   [lineChartDef, bumpChartDef, areaChartDef, streamgraphDef],
         "Circular":        [pieChartDef, roseChartDef, radarChartDef],
-        "Tables & Maps":   [heatmapDef, barTableDef, kpiCardDef, usMapDef, worldMapDef],
+        "Tables & Maps":   [heatmapDef, barTableDef, kpiCardDef, mapDef, choroplethDef],
         "Custom":          [customPointDef, customLineDef, customBarDef, customRectDef, customAreaDef],
     }).map(([category, defs]) => [category, defs.map(withInjectedProperties)]),
 );

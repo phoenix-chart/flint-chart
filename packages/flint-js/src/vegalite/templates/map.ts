@@ -1,7 +1,8 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-import { ChartTemplateDef, ChartPropertyDef } from '../../core/types';
+import { ChartTemplateDef, ChartPropertyDef, OptionEvalContext } from '../../core/types';
+import { resolveUsState, resolveCountry, GeoResolver } from './geo-lookup';
 
 const mapProjections = [
     { value: "mercator", label: "Mercator" },
@@ -36,54 +37,157 @@ const projectionCenterPresets: { label: string; center: [number, number] }[] = [
     { label: "Korea", center: [128, 36] },
 ];
 
-export const usMapDef: ChartTemplateDef = {
-    chart: "US Map",
-    template: {
+// ---------------------------------------------------------------------------
+// Map scope (US vs World)
+//
+// Both map templates are generic: the geography (which base TopoJSON,
+// projection and frame size) is chosen by the `region` property, defaulting to
+// 'auto' — infer from the data, preferring the US whenever the data fits it.
+// ---------------------------------------------------------------------------
+
+type MapScope = 'us' | 'world';
+
+interface ScopeGeo {
+    url: string;
+    feature: string;
+    projection: string;
+    width: number;
+    height: number;
+    strokeWidth: number;
+}
+
+const SCOPE_GEO: Record<MapScope, ScopeGeo> = {
+    us: {
+        url: "https://vega.github.io/vega-lite/data/us-10m.json",
+        feature: "states",
+        projection: "albersUsa",
         width: 500,
         height: 300,
-        layer: [
-            {
-                data: {
-                    url: "https://vega.github.io/vega-lite/data/us-10m.json",
-                    format: { type: "topojson", feature: "states" },
-                },
-                projection: { type: "albersUsa" },
-                mark: { type: "geoshape", fill: "lightgray", stroke: "white" },
-            },
-            {
-                projection: { type: "albersUsa" },
-                mark: "circle",
-                encoding: { longitude: {}, latitude: {}, size: {}, color: {} },
-            },
-        ],
+        strokeWidth: 0.5,
     },
-    channels: ["longitude", "latitude", "color", "size"],
-    markCognitiveChannel: 'position',
-    instantiate: (spec, ctx) => {
-        if (!spec.layer[1].encoding) spec.layer[1].encoding = {};
-        for (const [ch, enc] of Object.entries(ctx.resolvedEncodings)) {
-            spec.layer[1].encoding[ch] = { ...(spec.layer[1].encoding[ch] || {}), ...enc };
-        }
-    },
-    properties: [] as ChartPropertyDef[],
-};
-
-export const worldMapDef: ChartTemplateDef = {
-    chart: "World Map",
-    template: {
+    world: {
+        url: "https://vega.github.io/vega-lite/data/world-110m.json",
+        feature: "countries",
+        projection: "equalEarth",
         width: 600,
         height: 350,
+        strokeWidth: 0.4,
+    },
+};
+
+// Generous bounding box for the United States (contiguous states + Alaska +
+// Hawaii). Used only to *infer* scope: a dataset whose every point falls inside
+// is treated as a US map; anything outside flips the whole map to world.
+const US_LON: readonly [number, number] = [-170, -66];
+const US_LAT: readonly [number, number] = [18, 72];
+
+function inUsBox(lon: number, lat: number): boolean {
+    return lon >= US_LON[0] && lon <= US_LON[1] && lat >= US_LAT[0] && lat <= US_LAT[1];
+}
+
+/** Infer scope for a bubble map from its longitude/latitude points. */
+function inferBubbleScope(rows: any[], lonField?: string, latField?: string): MapScope {
+    if (!lonField || !latField) return 'us';
+    for (const r of rows) {
+        const lon = Number(r[lonField]);
+        const lat = Number(r[latField]);
+        if (!Number.isFinite(lon) || !Number.isFinite(lat)) continue;
+        if (!inUsBox(lon, lat)) return 'world';
+    }
+    return 'us';
+}
+
+/** Infer scope for a choropleth from its region keys (names / codes / ids). */
+function inferChoroplethScope(rows: any[], idField?: string): MapScope {
+    if (!idField) return 'us';
+    for (const r of rows) {
+        const v = r[idField];
+        if (v == null || v === '') continue;
+        // A value that resolves as a US state (by name, USPS code, FIPS id, or a
+        // bare numeric that passes straight through) keeps us in the US; the
+        // first value that doesn't flips the whole map to world.
+        if (resolveUsState(v) === undefined) return 'world';
+    }
+    return 'us';
+}
+
+/** Honor an explicit `region` choice, else fall back to inference. */
+function pickScope(chartProperties: any, infer: () => MapScope): MapScope {
+    const choice = chartProperties?.region;
+    if (choice === 'us' || choice === 'world') return choice;
+    return infer();
+}
+
+/** Would this spec render as a world map? (Drives world-only property gating.) */
+function wouldBeWorld(ctx: OptionEvalContext): boolean {
+    const choice = ctx.chartProperties?.region;
+    if (choice === 'us') return false;
+    if (choice === 'world') return true;
+    const rows = ctx.data ?? [];
+    const lonField = ctx.encodings?.longitude?.field;
+    const latField = ctx.encodings?.latitude?.field;
+    return inferBubbleScope(rows, lonField, latField) === 'world';
+}
+
+const regionProperty: ChartPropertyDef = {
+    key: "region",
+    label: "Region",
+    type: "discrete",
+    options: [
+        { value: "auto", label: "Auto-detect" },
+        { value: "us", label: "United States" },
+        { value: "world", label: "World" },
+    ],
+    defaultValue: "auto",
+};
+
+/**
+ * Merge the compiler's resolved encodings onto a layer's point encoding, then
+ * drop any channel left as an empty `{}` (a template placeholder the spec never
+ * bound). Vega-Lite rejects an encoding entry with no field/datum/value, so the
+ * cleanup keeps the emitted spec valid when only some channels are used.
+ */
+function applyPointEncodings(layer: any, resolved: Record<string, any>): void {
+    if (!layer.encoding) layer.encoding = {};
+    for (const [ch, enc] of Object.entries(resolved)) {
+        layer.encoding[ch] = { ...(layer.encoding[ch] || {}), ...enc };
+    }
+    for (const ch of Object.keys(layer.encoding)) {
+        const enc = layer.encoding[ch];
+        if (enc && typeof enc === 'object' && Object.keys(enc).length === 0) {
+            delete layer.encoding[ch];
+        }
+    }
+}
+
+/** Point the base + circle layers of a bubble map at the chosen geography. */
+function configureBubble(spec: any, scope: MapScope): void {
+    const g = SCOPE_GEO[scope];
+    spec.width = g.width;
+    spec.height = g.height;
+    spec.layer[0].data = { url: g.url, format: { type: "topojson", feature: g.feature } };
+    spec.layer[0].projection = { type: g.projection };
+    spec.layer[1].projection = { type: g.projection };
+}
+
+/** Point a choropleth's geoshape at the chosen base map. */
+function configureChoropleth(spec: any, scope: MapScope): void {
+    const g = SCOPE_GEO[scope];
+    spec.width = g.width;
+    spec.height = g.height;
+    spec.data = { url: g.url, format: { type: "topojson", feature: g.feature } };
+    spec.projection = { type: g.projection };
+    if (spec.mark && typeof spec.mark === 'object') spec.mark.strokeWidth = g.strokeWidth;
+}
+
+export const mapDef: ChartTemplateDef = {
+    chart: "Map",
+    template: {
         layer: [
             {
-                data: {
-                    url: "https://vega.github.io/vega-lite/data/world-110m.json",
-                    format: { type: "topojson", feature: "countries" },
-                },
-                projection: { type: "equalEarth" },
                 mark: { type: "geoshape", fill: "lightgray", stroke: "white" },
             },
             {
-                projection: { type: "equalEarth" },
                 mark: "circle",
                 encoding: { longitude: {}, latitude: {}, size: {}, color: {}, opacity: {} },
             },
@@ -92,32 +196,37 @@ export const worldMapDef: ChartTemplateDef = {
     channels: ["longitude", "latitude", "color", "size", "opacity"],
     markCognitiveChannel: 'position',
     instantiate: (spec, ctx) => {
-        if (!spec.layer[1].encoding) spec.layer[1].encoding = {};
-        for (const [ch, enc] of Object.entries(ctx.resolvedEncodings)) {
-            spec.layer[1].encoding[ch] = { ...(spec.layer[1].encoding[ch] || {}), ...enc };
-        }
+        const rows = ctx.fullTable ?? ctx.table ?? [];
+        const lonField = ctx.resolvedEncodings.longitude?.field;
+        const latField = ctx.resolvedEncodings.latitude?.field;
+        const scope = pickScope(ctx.chartProperties, () => inferBubbleScope(rows, lonField, latField));
 
-        const config = ctx.chartProperties;
-        if (config) {
-            const projection = config.projection;
-            const projectionCenter = config.projectionCenter;
-            const applyProjection = (obj: any) => {
-                if (obj?.projection) {
-                    if (projection && projection !== 'default') {
-                        obj.projection.type = projection;
+        configureBubble(spec, scope);
+        applyPointEncodings(spec.layer[1], ctx.resolvedEncodings);
+
+        // Projection controls only apply to the world map; the US map is fixed
+        // to albersUsa (which insets Alaska + Hawaii).
+        if (scope === 'world') {
+            const config = ctx.chartProperties;
+            if (config) {
+                const projection = config.projection;
+                const projectionCenter = config.projectionCenter;
+                const applyProjection = (obj: any) => {
+                    if (obj?.projection) {
+                        if (projection && projection !== 'default') {
+                            obj.projection.type = projection;
+                        }
+                        if (projectionCenter && obj.projection.type !== 'albersUsa') {
+                            obj.projection.rotate = [-projectionCenter[0], -projectionCenter[1], 0];
+                        }
                     }
-                    if (projectionCenter && obj.projection.type !== 'albersUsa') {
-                        obj.projection.rotate = [-projectionCenter[0], -projectionCenter[1], 0];
-                    }
-                }
-            };
-            if (spec.layer && Array.isArray(spec.layer)) {
+                };
                 for (const layer of spec.layer) applyProjection(layer);
             }
-            applyProjection(spec);
         }
     },
     properties: [
+        regionProperty,
         {
             key: "projection",
             label: "Projection",
@@ -127,6 +236,7 @@ export const worldMapDef: ChartTemplateDef = {
                 ...mapProjections.map(p => ({ value: p.value, label: p.label })),
             ],
             defaultValue: "default",
+            check: (ctx) => ({ applicable: wouldBeWorld(ctx) }),
         },
         {
             key: "projectionCenter",
@@ -140,6 +250,77 @@ export const worldMapDef: ChartTemplateDef = {
                 })),
             ],
             defaultValue: undefined,
+            check: (ctx) => ({ applicable: wouldBeWorld(ctx) }),
         },
     ] as ChartPropertyDef[],
+};
+
+/**
+ * Join the user's rows into a choropleth's geoshape.
+ *
+ * A choropleth fills each region of a base TopoJSON map by a data value, so the
+ * geography is the *primary* mark and the user's rows are joined *into* it. We
+ * keep the TopoJSON as the spec's base `data` (set by `configureChoropleth`)
+ * and inline the user rows into a `lookup` transform keyed on each geoshape
+ * feature's numeric `id`.
+ *
+ * The `id` channel carries the region key, but real datasets rarely hold the
+ * raw TopoJSON ids (FIPS / ISO-numeric). They hold *names* ("California",
+ * "United States") or short codes ("CA", "US", "USA"). So we resolve every
+ * row's `id` value through a gazetteer (`resolver`) into the numeric feature
+ * id, stash it on a synthetic `__geo_id` field, and join on that. A value that
+ * is already the numeric id passes straight through.
+ *
+ * Channels: `id` = region name/code/id, `color` = the measure, `detail`
+ * (optional) = an explicit display name for tooltips (defaults to the `id`
+ * field so the user always sees a readable label).
+ */
+function buildChoroplethJoin(spec: any, ctx: any, resolver: GeoResolver): void {
+    const idField: string | undefined = ctx.resolvedEncodings.id?.field;
+    const colorEnc = ctx.resolvedEncodings.color;
+    const valueField: string | undefined = colorEnc?.field;
+    const labelField: string | undefined = ctx.resolvedEncodings.detail?.field ?? idField;
+
+    const rows: any[] = ctx.fullTable ?? ctx.table ?? [];
+
+    if (idField) {
+        const joined = rows.map((r) => ({ ...r, __geo_id: resolver(r[idField]) }));
+        const lookupFields = [valueField, labelField].filter(Boolean) as string[];
+        spec.transform = [
+            {
+                lookup: 'id',
+                from: { data: { values: joined }, key: '__geo_id', fields: lookupFields },
+            },
+        ];
+    }
+
+    spec.encoding = {};
+    if (colorEnc) {
+        spec.encoding.color = { ...colorEnc };
+    }
+
+    const tooltip: any[] = [];
+    if (labelField) tooltip.push({ field: labelField, type: 'nominal' });
+    if (valueField) tooltip.push({ field: valueField, type: colorEnc?.type ?? 'quantitative' });
+    if (tooltip.length) spec.encoding.tooltip = tooltip;
+}
+
+export const choroplethDef: ChartTemplateDef = {
+    chart: "Choropleth",
+    template: {
+        mark: { type: "geoshape", stroke: "white", strokeWidth: 0.5 },
+        encoding: {},
+    },
+    channels: ["id", "color", "detail"],
+    markCognitiveChannel: 'color',
+    instantiate: (spec, ctx) => {
+        const rows = ctx.fullTable ?? ctx.table ?? [];
+        const idField = ctx.resolvedEncodings.id?.field;
+        const scope = pickScope(ctx.chartProperties, () => inferChoroplethScope(rows, idField));
+
+        configureChoropleth(spec, scope);
+        const resolver: GeoResolver = scope === 'us' ? resolveUsState : resolveCountry;
+        buildChoroplethJoin(spec, ctx, resolver);
+    },
+    properties: [regionProperty] as ChartPropertyDef[],
 };

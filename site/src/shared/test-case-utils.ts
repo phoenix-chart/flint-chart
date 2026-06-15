@@ -65,6 +65,9 @@ export function testCaseToFlintSummary(t: TestCase) {
     chart_spec: {
       chartType: t.chartType,
       encodings,
+      ...(t.chartProperties && Object.keys(t.chartProperties).length
+        ? { chartProperties: t.chartProperties }
+        : {}),
     },
   };
 }

@@ -20,6 +20,7 @@ export const CHART_FAMILIES: ChartFamily[] = [
   { id: 'radial', label: 'Circular & Radial' },
   { id: 'matrix', label: 'Tables & Multi-Dimensional' },
   { id: 'flow', label: 'Hierarchies & Flows' },
+  { id: 'maps', label: 'Maps' },
 ];
 
 /** Normalise a chart label so backend-specific suffixes don't break matching. */
@@ -66,6 +67,9 @@ const LABEL_TO_FAMILY: Record<string, string> = {
   'calendar heatmap': 'matrix',
   'parallel coordinates': 'matrix',
   candlestick: 'matrix',
+  // Maps
+  map: 'maps',
+  choropleth: 'maps',
   // Hierarchies & Flows
   treemap: 'flow',
   sunburst: 'flow',

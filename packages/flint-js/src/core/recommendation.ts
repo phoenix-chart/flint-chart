@@ -100,6 +100,11 @@ const FAMILY_MAP: ChannelRoleMap = {
     color: 'series', size: 'auxiliary', opacity: 'auxiliary',
 };
 
+/** Choropleth: id=region (geo), color=measure */
+const FAMILY_CHOROPLETH: ChannelRoleMap = {
+    id: 'geo', color: 'measure', detail: 'auxiliary',
+};
+
 /** Candlestick: x=category, open/high/low/close=price */
 const FAMILY_CANDLESTICK: ChannelRoleMap = {
     x: 'category',
@@ -189,8 +194,8 @@ const CHART_ROLE_MAP: Record<string, ChannelRoleMap> = {
     'Histogram': FAMILY_HISTOGRAM,
     'Density Plot': FAMILY_DENSITY,
     // Geographic
-    'US Map': FAMILY_MAP,
-    'World Map': FAMILY_MAP,
+    'Map': FAMILY_MAP,
+    'Choropleth': FAMILY_CHOROPLETH,
     // Financial
     'Candlestick Chart': FAMILY_CANDLESTICK,
     // ECharts-only

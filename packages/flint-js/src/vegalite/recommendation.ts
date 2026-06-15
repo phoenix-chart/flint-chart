@@ -6,7 +6,7 @@
  *
  * Extends core/recommendation.ts with VL-only chart types (Regression,
  * Ranged Dot Plot, Pyramid, Lollipop, Bump, Density, Waterfall,
- * Strip, US/World Map) and filters results to VL-valid channels.
+ * Strip, Map, Choropleth) and filters results to VL-valid channels.
  */
 
 import {
@@ -134,8 +134,7 @@ function vlGetRecommendation(chartType: string, tv: InternalTableView): Record<s
             return rec;
         }
 
-        case 'US Map':
-        case 'World Map': {
+        case 'Map': {
             const latField = pick(tv, used, (_n, _ty, st) => st === 'Latitude')
                 ?? pick(tv, used, (n) => nameMatches(n, ['latitude', 'lat']));
             const lonField = pick(tv, used, (_n, _ty, st) => st === 'Longitude')
@@ -144,6 +143,18 @@ function vlGetRecommendation(chartType: string, tv: InternalTableView): Record<s
             assign('latitude', latField);
             assign('longitude', lonField);
             assign('color', pickQuantitative(tv, used) ?? pickLowCardNominal(tv, used));
+            return rec;
+        }
+
+        case 'Choropleth': {
+            const GEO_PLACE = ['State', 'Country', 'Region', 'Province', 'County', 'Continent'];
+            const idField = pick(tv, used, (_n, _ty, st) => GEO_PLACE.includes(st as string))
+                ?? pick(tv, used, (n) => nameMatches(n, ['state', 'country', 'region', 'province', 'nation', 'county']))
+                ?? pickDiscrete(tv, used);
+            const measure = pickQuantitative(tv, used);
+            if (!idField || !measure) return {};
+            assign('id', idField);
+            assign('color', measure);
             return rec;
         }
 

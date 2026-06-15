@@ -34,6 +34,8 @@ import doughnutIcon from '../assets/chart-icons/chart-icon-doughnut.svg';
 import comboIcon from '../assets/chart-icons/chart-icon-combo.svg';
 import treeIcon from '../assets/chart-icons/chart-icon-tree.svg';
 import networkIcon from '../assets/chart-icons/chart-icon-network.svg';
+import usMapIcon from '../assets/chart-icons/chart-icon-us-map.svg';
+import worldMapIcon from '../assets/chart-icons/chart-icon-world-map.svg';
 
 export interface ChartEntry {
   id: string;
@@ -101,6 +103,8 @@ export const CHART_CATEGORIES: ChartCategory[] = [
       createChart('vegalite', 'radar-chart', 'Radar Chart', 'Radar Chart', radarIcon),
       createChart('vegalite', 'pyramid-chart', 'Pyramid Chart', 'Pyramid Chart', pyramidIcon),
       createChart('vegalite', 'rose-chart', 'Rose Chart', 'Rose Chart', roseIcon),
+      createChart('vegalite', 'map', 'Map', 'Map', worldMapIcon),
+      createChart('vegalite', 'choropleth', 'Choropleth', 'Choropleth', usMapIcon),
     ],
   },
   {

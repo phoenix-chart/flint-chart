@@ -37,6 +37,7 @@ export { genGoFishScatterTests, genGoFishLineTests, genGoFishBarTests, genGoFish
 export { genDiscreteAxisTests } from './discrete-axis-tests';
 export { genDateTests, genDateYearTests, genDateMonthTests, genDateYearMonthTests, genDateDecadeTests, genDateDateTimeTests, genDateHoursTests } from './date-tests';
 export { genSemanticContextTests, genSnapToBoundTests } from './semantic-tests';
+export { genMapTests, genChoroplethTests } from './map-tests';
 export {
     OMNI_VIZ_ROWS,
     OMNI_VIZ_LEVELS,
@@ -94,6 +95,7 @@ import { TestCase } from './types';
 import { genScatterTests, genRegressionTests } from './scatter-tests';
 import { genBarTests, genStackedBarTests, genGroupedBarTests } from './bar-tests';
 import { genHistogramTests, genBoxplotTests, genDensityTests, genStripPlotTests } from './distribution-tests';
+import { genMapTests, genChoroplethTests } from './map-tests';
 import { genLineTests } from './line-tests';
 import { genBumpChartTests } from './line-area-tests';
 import { genAreaTests, genStreamgraphTests } from './area-tests';
@@ -158,6 +160,8 @@ export const TEST_GENERATORS: Record<string, () => TestCase[]> = {
     'Radar Chart': genRadarTests,
     'Pyramid Chart': genPyramidTests,
     'Rose Chart': genRoseTests,
+    'Map': genMapTests,
+    'Choropleth': genChoroplethTests,
     'Custom Charts': genCustomTests,
     'Facet: Columns': genFacetColumnTests,
     'Facet: Rows': genFacetRowTests,

@@ -544,54 +544,78 @@ function HighlightedFlintSpec({ testCase }: { testCase: TestCase }) {
   );
 }
 
-/** Before/after switcher: the card visual flips between two states. */
+/** The visual content of a single demo stage (a highlighted spec or a chart). */
+function DemoStageContent({ stage }: { stage: DemoStage }) {
+  if (stage.kind === 'spec') {
+    return <HighlightedFlintSpec testCase={stage.testCase} />;
+  }
+  return (
+    <ScaleToFit height={250} padding={6}>
+      <WallChart testCase={stage.testCase} backend={pickBackend(stage.testCase, stage.backend)} />
+    </ScaleToFit>
+  );
+}
+
+/**
+ * Two overlapping cards. The "after" state sits in front; the "before" state
+ * peeks from a corner behind it. Hovering (or focusing / tapping) fans the
+ * stack so the "before" card comes forward and the "after" card recedes.
+ */
 function FeatureDemoView({ build }: { build: () => FeatureDemoConfig }) {
   const demo = useMemo(() => build(), [build]);
-  const [idx, setIdx] = useState(0);
-  const stages = [demo.before, demo.after];
-  const stage = stages[idx];
+  const [revealed, setRevealed] = useState(false);
+
+  // The card currently in front drives the caption.
+  const front = revealed ? demo.before : demo.after;
 
   return (
     <div>
-      <div style={featureChartFrameStyle}>
-        {stage.kind === 'spec' ? (
-          <HighlightedFlintSpec testCase={stage.testCase} />
-        ) : (
-          <ScaleToFit height={300} minHeight={210} padding={6} adaptiveHeight>
-            <WallChart testCase={stage.testCase} backend={pickBackend(stage.testCase, stage.backend)} />
-          </ScaleToFit>
-        )}
-      </div>
-
-      <div style={demoToggleRowStyle} role="tablist" aria-label="Before and after">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={idx === 0}
-          onClick={() => setIdx(0)}
-          style={demoToggleBtnStyle(idx === 0)}
-        >
-          {demo.before.label}
-        </button>
-        <span style={demoToggleArrowStyle} aria-hidden="true">
-          <ChevronIcon dir="right" />
-        </span>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={idx === 1}
-          onClick={() => setIdx(1)}
-          style={demoToggleBtnStyle(idx === 1)}
-        >
-          {demo.after.label}
-        </button>
+      <div
+        style={featureStackStyle}
+        role="group"
+        aria-label={`Compare ${demo.after.label} with ${demo.before.label}`}
+        title="Hover to bring the earlier version forward"
+        tabIndex={0}
+        onMouseEnter={() => setRevealed(true)}
+        onMouseLeave={() => setRevealed(false)}
+        onFocus={() => setRevealed(true)}
+        onBlur={() => setRevealed(false)}
+        onClick={() => setRevealed((v) => !v)}
+      >
+        <div style={{ ...featureStackCardStyle, ...stackCardState(!revealed) }} aria-hidden={revealed}>
+          <span style={stackBadgeStyle}>{demo.after.label}</span>
+          <DemoStageContent stage={demo.after} />
+        </div>
+        <div style={{ ...featureStackCardStyle, ...stackCardState(revealed) }} aria-hidden={!revealed}>
+          <span style={stackBadgeStyle}>{demo.before.label}</span>
+          <DemoStageContent stage={demo.before} />
+        </div>
       </div>
 
       <p style={demoSpecCaptionStyle}>
-        <code style={demoSpecCaptionCodeStyle}>{simplifiedSpec(stage.testCase)}</code>
+        <code style={demoSpecCaptionCodeStyle}>{simplifiedSpec(front.testCase)}</code>
       </p>
     </div>
   );
+}
+
+/** Forward (dominant) vs. receded (peeking corner) state for a stacked card. */
+function stackCardState(front: boolean): CSSProperties {
+  return front
+    ? {
+        transform: 'translate(0px, 0px) rotate(0deg) scale(1)',
+        opacity: 1,
+        filter: 'none',
+        zIndex: 3,
+        boxShadow: SOFT_SHADOW,
+      }
+    : {
+        transform: `translate(${PEEK}px, ${PEEK}px) rotate(2.2deg) scale(0.965)`,
+        opacity: 0.55,
+        filter: 'brightness(0.96) saturate(0.9)',
+        zIndex: 1,
+        boxShadow: FLAT_SHADOW,
+      };
 }
 
 /* ------------------------------------------------------------------ */
@@ -918,12 +942,51 @@ const featureVisualColStyle: CSSProperties = {
   minWidth: 300,
 };
 
-const featureChartFrameStyle: CSSProperties = {
+// Overlapping before/after cards (Halden-style fan on hover).
+const PEEK = 18;
+const SOFT_SHADOW = '0 10px 30px rgba(0, 0, 0, 0.13)';
+const FLAT_SHADOW = '0 1px 2px rgba(0, 0, 0, 0.05)';
+const cardTransition =
+  'transform 0.36s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.32s ease, box-shadow 0.36s ease, filter 0.32s ease';
+
+const featureStackStyle: CSSProperties = {
+  position: 'relative',
+  display: 'grid',
+  gridTemplateColumns: '1fr',
+  cursor: 'pointer',
+  outline: 'none',
+  // Reserve room for the peeking corner and the slight hover rotation.
+  padding: 10,
+  paddingRight: PEEK + 12,
+  paddingBottom: PEEK + 12,
+};
+
+const featureStackCardStyle: CSSProperties = {
+  gridArea: '1 / 1',
+  position: 'relative',
   border: `1px solid ${HAIRLINE}`,
   borderRadius: siteTheme.radius,
   background: PAPER,
   padding: '12px 14px',
   overflow: 'hidden',
+  transition: cardTransition,
+  willChange: 'transform, opacity',
+};
+
+const stackBadgeStyle: CSSProperties = {
+  position: 'absolute',
+  top: 8,
+  left: 10,
+  zIndex: 2,
+  fontSize: 11,
+  fontWeight: 600,
+  letterSpacing: '0.02em',
+  color: siteTheme.textMuted,
+  background: 'rgba(255, 255, 255, 0.86)',
+  border: `1px solid ${HAIRLINE}`,
+  borderRadius: 999,
+  padding: '2px 8px',
+  pointerEvents: 'none',
 };
 
 // Flint spec shown in a demo viewport, with the data spec block highlighted.
@@ -943,33 +1006,6 @@ const demoSpecHotLineStyle: CSSProperties = {
   background: siteTheme.accentBg,
   boxShadow: `inset 2px 0 0 ${siteTheme.accent}`,
   color: siteTheme.text,
-};
-
-const demoToggleRowStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 8,
-  marginTop: 14,
-};
-
-function demoToggleBtnStyle(active: boolean): CSSProperties {
-  return {
-    padding: '5px 12px',
-    border: `1px solid ${active ? siteTheme.accent : HAIRLINE}`,
-    borderRadius: 999,
-    background: active ? siteTheme.accentBg : PAPER,
-    color: active ? siteTheme.accent : siteTheme.textMuted,
-    fontSize: 12.5,
-    fontWeight: active ? 600 : 500,
-    fontFamily: 'inherit',
-    cursor: 'pointer',
-  };
-}
-
-const demoToggleArrowStyle: CSSProperties = {
-  display: 'inline-flex',
-  color: siteTheme.textMuted,
 };
 
 const demoSpecCaptionStyle: CSSProperties = {

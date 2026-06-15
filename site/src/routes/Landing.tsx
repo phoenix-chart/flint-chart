@@ -37,15 +37,7 @@ export function Landing() {
 
           <div style={leadColumnsStyle}>
             <div style={leadTextColStyle}>
-              <p style={leadStyle}>
-                Flint lets you specify high-level visualization intent through a simple
-                chart spec, while its compiler automatically infers and optimizes the
-                low-level chart parameters for you, producing good-looking charts that are
-                easily adaptable. As an intermediate language, Flint lets the user (both
-                humans and AI agents) use the same simple visualization spec to compile to
-                different rendering engines (currently <strong>Vega-Lite</strong>,{' '}
-                <strong>ECharts</strong>, and <strong>Chart.js</strong>).
-              </p>
+              <p style={leadStyle}>{LEAD_INTRO}</p>
 
               <p style={installLineStyle}>
                 <code style={codeStyle}>npm install flint-chart</code> · MIT licensed
@@ -93,12 +85,7 @@ export function Landing() {
         </section>
         */}
 
-        {/* ---- Feature introduction ----------------------------------- */}
-        <section style={{ ...sectionStyle, paddingBottom: 8 }}>
-          <p style={featureIntroStyle}>{FEATURE_INTRO}</p>
-        </section>
-
-        {/* ---- Interactive example: spec -> chart (below the intro) ---- */}
+        {/* ---- Interactive example: spec -> chart ---------------------- */}
         <HeroShowcase />
 
         {/* ---- Feature cards (alternating text / visual) -------------- */}
@@ -335,12 +322,13 @@ function FlintSpecCode({ testCase }: { testCase: TestCase }) {
 /* simple strings so they can be reworded without touching any JSX.    */
 /* ------------------------------------------------------------------ */
 
-// Paragraph shown above the four features.
-const FEATURE_INTRO =
-  'Flint is designed to enable AI agents and humans to create good-looking and adaptable visualizations with simple specifications.' +
-  'Instead of asking the uesr to provide verbose low-level visualization parameters (e.g., scale, axes, step, layout),' +
-  'Flint compiler automatically derives optimized low-level chart parameters from high-level semantic types and physical characteristics of the data based on the desired chart type and encodings.' +
-  'This way, users can create a visually appealing and informative chart with a simple specification.';
+// Lead paragraph shown in the hero (the single intro to Flint).
+const LEAD_INTRO =
+  'Flint helps AI agents and humans create good-looking, adaptable visualizations from simple specifications. ' +
+  'Instead of asking the user to provide verbose low-level parameters such as scales, axes, steps, and layout, ' +
+  'the Flint compiler automatically derives optimized low-level settings from the semantic types and physical ' +
+  'characteristics of the data, guided by the desired chart type and encodings. ' +
+  'This way, users get a clear, informative chart from a concise specification.';
 
 interface Feature {
   title: string;
@@ -486,8 +474,8 @@ function demoLayout(): FeatureDemoConfig {
 function demoAdapt(): FeatureDemoConfig {
   const wf = omni('Omni: Waterfall');
   return {
-    before: { kind: 'chart', label: 'Bar chart', testCase: asChartType(wf, 'Bar Chart'), backend: 'echarts' },
-    after: { kind: 'chart', label: 'Waterfall', testCase: wf, backend: 'echarts' },
+    before: { kind: 'chart', label: 'Bar chart', testCase: asChartType(wf, 'Bar Chart'), backend: 'vegalite' },
+    after: { kind: 'chart', label: 'Waterfall', testCase: wf, backend: 'vegalite' },
   };
 }
 
@@ -505,17 +493,6 @@ function demoBackends(): FeatureDemoConfig {
 function pickBackend(t: TestCase, want: PreviewBackend): PreviewBackend {
   const supported = getSupportedBackends(t.chartType);
   return supported.includes(want) ? want : supported[0] ?? 'vegalite';
-}
-
-/** A simplified Flint spec, e.g. `Heatmap [x → period, y → game, color → newUsers]`. */
-function simplifiedSpec(t: TestCase): string {
-  const idToName = new Map(t.fields.map((f) => [f.id, f.name]));
-  const parts: string[] = [];
-  for (const [channel, e] of Object.entries(t.encodingMap)) {
-    if (!e?.fieldID) continue;
-    parts.push(`${channel} → ${idToName.get(e.fieldID) ?? e.fieldID}`);
-  }
-  return `${t.chartType} [${parts.join(', ')}]`;
 }
 
 /** A Flint spec with the data spec (semantic types) block color-highlighted. */
@@ -582,7 +559,6 @@ function FeatureDemoView({ build }: { build: () => FeatureDemoConfig }) {
 
   // Slot in front: the hovered card, or the "after" (bottom) card by default.
   const frontSlot: 'top' | 'bottom' = hovered ?? 'bottom';
-  const frontStage = frontSlot === 'top' ? demo.before : demo.after;
 
   const cardHandlers = (slot: 'top' | 'bottom') => ({
     tabIndex: 0,
@@ -594,31 +570,25 @@ function FeatureDemoView({ build }: { build: () => FeatureDemoConfig }) {
   });
 
   return (
-    <div>
-      <div style={featureStackStyle} role="group" aria-label={`Compare ${demo.after.label} with ${demo.before.label}`}>
-        <div
-          style={{ ...featureStackCardStyle, ...stackCardPos('bottom'), ...stackCardEmphasis(frontSlot === 'bottom') }}
-          aria-hidden={frontSlot !== 'bottom'}
-          title={demo.after.label}
-          {...cardHandlers('bottom')}
-        >
-          <span style={stackBadgeStyle}>{demo.after.label}</span>
-          <DemoStageContent stage={demo.after} />
-        </div>
-        <div
-          style={{ ...featureStackCardStyle, ...stackCardPos('top'), ...stackCardEmphasis(frontSlot === 'top') }}
-          aria-hidden={frontSlot !== 'top'}
-          title={demo.before.label}
-          {...cardHandlers('top')}
-        >
-          <span style={stackBadgeStyle}>{demo.before.label}</span>
-          <DemoStageContent stage={demo.before} />
-        </div>
+    <div style={featureStackStyle} role="group" aria-label={`Compare ${demo.after.label} with ${demo.before.label}`}>
+      <div
+        style={{ ...featureStackCardStyle, ...stackCardPos('bottom'), ...stackCardEmphasis(frontSlot === 'bottom') }}
+        aria-hidden={frontSlot !== 'bottom'}
+        title={demo.after.label}
+        {...cardHandlers('bottom')}
+      >
+        <span style={stackBadgeStyle}>{demo.after.label}</span>
+        <DemoStageContent stage={demo.after} />
       </div>
-
-      <p style={demoSpecCaptionStyle}>
-        <code style={demoSpecCaptionCodeStyle}>{simplifiedSpec(frontStage.testCase)}</code>
-      </p>
+      <div
+        style={{ ...featureStackCardStyle, ...stackCardPos('top'), ...stackCardEmphasis(frontSlot === 'top') }}
+        aria-hidden={frontSlot !== 'top'}
+        title={demo.before.label}
+        {...cardHandlers('top')}
+      >
+        <span style={stackBadgeStyle}>{demo.before.label}</span>
+        <DemoStageContent stage={demo.before} />
+      </div>
     </div>
   );
 }
@@ -727,15 +697,6 @@ const actionBoxLabelStyle: CSSProperties = {
   textTransform: 'uppercase',
   color: siteTheme.textMuted,
   margin: '0 0 2px 2px',
-};
-
-const featureIntroStyle: CSSProperties = {
-  maxWidth: 760,
-  margin: '0 0 28px',
-  fontSize: 17,
-  fontWeight: 300,
-  lineHeight: 1.65,
-  color: siteTheme.text,
 };
 
 const leadStyle: CSSProperties = {
@@ -1024,24 +985,6 @@ const demoSpecHotLineStyle: CSSProperties = {
   background: siteTheme.accentBg,
   boxShadow: `inset 2px 0 0 ${siteTheme.accent}`,
   color: siteTheme.text,
-};
-
-const demoSpecCaptionStyle: CSSProperties = {
-  margin: '12px 0 0',
-  textAlign: 'center',
-};
-
-const demoSpecCaptionCodeStyle: CSSProperties = {
-  fontFamily: siteTheme.fontMono,
-  fontSize: 12.5,
-  color: siteTheme.textMuted,
-  background: NEUTRAL_FILL,
-  padding: '4px 10px',
-  borderRadius: 4,
-  display: 'inline-block',
-  maxWidth: '100%',
-  boxSizing: 'border-box',
-  wordBreak: 'break-word',
 };
 
 const featureTitleStyle: CSSProperties = {

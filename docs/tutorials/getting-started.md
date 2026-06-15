@@ -1,11 +1,10 @@
 # Getting started
 
-This tutorial walks through **Omni Game Metrics** — a synthetic game-operations dataset used in the published paper. You will build five charts in three phases and learn how Flint turns **data + semantic types + chart intent** into render-ready specs.
+This tutorial walks through **Game Metrics Data** — a synthetic game-operations dataset used in the published paper. You will build five charts in three phases and learn how Flint turns **data + semantic types + chart intent** into render-ready specs.
 
 | What you need | Where |
 |---------------|-------|
 | Paste JSON and preview | [Editor](/editor) |
-| See every step side by side | This page |
 | API details | [API reference](/documentation/api-reference) |
 
 Each chart step below shows a **live preview** (Vega-Lite, ECharts, Chart.js tabs).

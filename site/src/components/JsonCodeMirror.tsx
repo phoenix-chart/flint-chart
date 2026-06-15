@@ -48,9 +48,15 @@ export function JsonCodeMirror({
     if (view) scheduleFoldJsonProperties(view, foldKeys);
   };
 
+  // Only re-apply default folds when `foldKey` changes (e.g. a new example is
+  // loaded), not on every edit — otherwise the `data` block would re-collapse
+  // after each keystroke. `foldKeys` is serialized so a new array literal with
+  // the same contents doesn't retrigger the fold.
+  const foldKeysSig = foldKeys.join('\u0000');
   useEffect(() => {
     applyFold();
-  }, [foldKey, foldKeys]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [foldKey, foldKeysSig]);
 
   return (
     <CodeMirror
@@ -59,6 +65,7 @@ export function JsonCodeMirror({
       style={{ flex: 1, overflow: 'auto', fontSize: 12, fontFamily: siteTheme.fontMono }}
       extensions={extensions}
       editable={!readOnly}
+      basicSetup={{ foldGutter: false }}
       onChange={onChange}
       onCreateEditor={(view) => {
         viewRef.current = view;

@@ -11,6 +11,7 @@ import { SiteNavBar, MicrosoftDisclosures } from '../components/SiteShell';
 import { WallChart } from '../components/WallChart';
 import { ScaleToFit } from '../components/ScaleToFit';
 import { testCaseToFlintSummary } from '../shared/test-case-utils';
+import { buildGalleryEditorHref } from '../shared/editor-payload';
 import {
   ALL_BACKENDS,
   BACKEND_LABELS,
@@ -33,10 +34,10 @@ export function Landing() {
       <main style={mainStyle}>
         {/* ---- Hero ------------------------------------------------------ */}
         <section style={{ ...sectionStyle, paddingTop: 72, paddingBottom: 24 }}>
+          <h1 style={heroTitleStyle}>Flint: A Visualization Language for the AI Era</h1>
+
           <div style={leadColumnsStyle}>
             <div style={leadTextColStyle}>
-              <h1 style={heroTitleStyle}>Flint: A Visualization Library for AI Agents and Humans</h1>
-
               <p style={leadStyle}>{LEAD_INTRO}</p>
 
               <p style={installLineStyle}>
@@ -46,19 +47,11 @@ export function Landing() {
 
             <div style={leadButtonsColStyle}>
               <div style={actionBoxStyle}>
-                <span style={actionBoxLabelStyle}>Get started</span>
-                <Link to="/wall" style={heroPrimaryBtn}>
-                  Browse the gallery
-                </Link>
-                <Link to="/editor" style={heroSecondaryBtn}>
-                  Try online
-                </Link>
-                <Link to="/documentation/overview" style={heroSecondaryBtn}>
-                  Documentation
-                </Link>
-                <a href={GITHUB_REPO} style={heroSecondaryBtn} target="_blank" rel="noreferrer">
-                  GitHub
-                </a>
+                <HeroActionLink href={GITHUB_REPO} label="GitHub" />
+                <HeroActionLink to="/wall" label="Gallery" />
+                <HeroActionLink to="/documentation/overview" label="Documentation" />
+                <HeroActionLink href={`${GITHUB_REPO}/blob/main/agent-skills/SKILL.md`} label="Skill.md" />
+                <HeroActionLink to="/editor" label="Editor" />
               </div>
             </div>
           </div>
@@ -95,8 +88,8 @@ export function Landing() {
                   <h2 style={featureTitleStyle}>{feature.title}</h2>
                   <p style={featureBodyStyle}>{feature.body}</p>
                   {feature.example && (
-                    <p style={featureExampleStyle}>
-                      <span style={featureExampleLabelStyle}>e.g.</span> {feature.example}
+                    <p style={featureExampleStyle} aria-label={`Example: ${feature.example}`}>
+                      {feature.example}
                     </p>
                   )}
                 </div>
@@ -113,24 +106,21 @@ export function Landing() {
         {/* ---- Interactive example: spec -> chart (below the demos) ---- */}
         <HeroShowcase />
 
-        {/* ---- Closing CTA ---------------------------------------------- */}
-        <section style={{ ...sectionStyle, paddingBottom: 72 }}>
-          <div style={closingCardStyle}>
-            <h2 style={{ fontSize: 26, margin: '0 0 8px', fontWeight: 500 }}>
-              Less spec, clearer charts.
-            </h2>
-            <p style={{ margin: '0 0 22px', color: siteTheme.textMuted, fontSize: 16, lineHeight: 1.6 }}>
-              Browse the gallery for dozens of chart types, or open any example in
-              the editor and watch the Flint spec compile across all three backends.
-            </p>
-            <div style={{ ...ctaRowStyle, marginTop: 0 }}>
-              <Link to="/wall" style={primaryBtn}>
-                Browse the gallery
-              </Link>
-              <Link to="/editor" style={secondaryBtn}>
-                Try online
-              </Link>
-            </div>
+        {/* ---- Closing CTA -------------------------------------------- */}
+        <section style={{ ...sectionStyle, paddingBottom: 72, textAlign: 'center' }}>
+          <h2 style={{ fontSize: 26, margin: '0 0 8px', fontWeight: 500 }}>
+            Start building with Flint.
+          </h2>
+          <p style={{ margin: '0 0 22px', color: siteTheme.textMuted, fontSize: 16, lineHeight: 1.6 }}>
+            Open source and ready to use. Explore the gallery or jump straight into the editor.
+          </p>
+          <div style={{ ...ctaRowStyle, marginTop: 0, justifyContent: 'center' }}>
+            <Link to="/editor" style={primaryBtn}>
+              Open the editor
+            </Link>
+            <Link to="/wall" style={secondaryBtn}>
+              Browse the gallery
+            </Link>
           </div>
         </section>
       </main>
@@ -150,42 +140,37 @@ interface ShowcaseExample {
   caption: string;
   generator: string;
   index: number;
+  /** Optional canvas override; narrower widths force facet panels to wrap. */
+  canvasSize?: { width: number; height: number };
 }
 
 const SHOWCASE_EXAMPLES: ShowcaseExample[] = [
   {
     id: 'line',
     label: 'Faceted line chart',
-    caption:
-      'One small multiple per region. From a four-line spec, Flint reads the month field as a ' +
-      'date, lays out the panels, and keeps the axes, scales, and colors in sync across them.',
+    caption: 'Monthly active users over the year, with one small-multiple panel per region.',
     generator: 'Omni: Line',
     index: 0,
+    canvasSize: { width: 300, height: 600 },
   },
   {
     id: 'heatmap',
     label: 'Diverging heatmap',
-    caption:
-      'Net new users can be positive or negative, so Flint picks a diverging color scale ' +
-      'centered at zero instead of a plain gradient. Same data, read correctly.',
+    caption: 'Net new users by region and month, colored from losses to gains around zero.',
     generator: 'Omni: Heatmap',
     index: 0,
   },
   {
     id: 'waterfall',
     label: 'Waterfall',
-    caption:
-      'A running total that separates gains from losses. Flint works out the baselines and the ' +
-      'up and down coloring from the spec, so the monthly steps add up on their own.',
+    caption: 'How monthly gains and losses build up to the running user total over the year.',
     generator: 'Omni: Waterfall',
     index: 0,
   },
   {
     id: 'sunburst',
     label: 'Sunburst',
-    caption:
-      'The same short spec composes a three-level hierarchy (region, gameType, game). Vega-Lite ' +
-      'has no native sunburst, so switch the engine to ECharts and the chart still renders.',
+    caption: 'Users broken down across a three-level hierarchy of region, game type, and game.',
     generator: 'Omni: Sunburst',
     index: 0,
   },
@@ -198,6 +183,30 @@ function SectionDivider({ label }: { label: string }) {
       <span style={sectionDividerLabelStyle}>{label}</span>
       <span style={sectionDividerLineStyle} />
     </div>
+  );
+}
+
+function HeroActionLink({ label, to, href }: { label: string; to?: string; href?: string }) {
+  const [active, setActive] = useState(false);
+  const handlers = {
+    onMouseEnter: () => setActive(true),
+    onMouseLeave: () => setActive(false),
+    onFocus: () => setActive(true),
+    onBlur: () => setActive(false),
+  };
+
+  if (href) {
+    return (
+      <a href={href} style={heroActionLinkStyle(active)} target="_blank" rel="noreferrer" {...handlers}>
+        {label}
+      </a>
+    );
+  }
+
+  return (
+    <Link to={to ?? '/'} style={heroActionLinkStyle(active)} {...handlers}>
+      {label}
+    </Link>
   );
 }
 
@@ -223,7 +232,7 @@ function HeroShowcase() {
 
   return (
     <section style={sectionStyle}>
-      <SectionDivider label="Live example" />
+      <SectionDivider label="Examples" />
       <div style={carouselRowStyle}>
         <button
           type="button"
@@ -237,8 +246,11 @@ function HeroShowcase() {
 
         <div style={{ ...showcaseCardStyle, flex: 1, minWidth: 0 }}>
           <div style={showcasePaneStyle}>
-            <div style={paneLabelStyle}>Flint spec</div>
-            <FlintSpecCode testCase={testCase} />
+            <div style={paneHeaderRowStyle}>
+              <span style={paneLabelStyle}>Flint spec</span>
+              <OpenEditorButton href={buildGalleryEditorHref(example.generator, example.index)} />
+            </div>
+            <FlintSpecCode testCase={testCase} canvasSize={example.canvasSize} />
           </div>
 
           <div style={{ ...showcasePaneStyle, ...chartPaneStyle, borderLeft: `1px solid ${HAIRLINE}` }}>
@@ -267,7 +279,7 @@ function HeroShowcase() {
             </div>
             <div style={{ padding: '4px 12px 14px' }}>
               <ScaleToFit height={360} minHeight={236} padding={6} adaptiveHeight>
-                <WallChart testCase={testCase} backend={backend} />
+                <WallChart testCase={testCase} backend={backend} canvasSize={example.canvasSize} />
               </ScaleToFit>
             </div>
           </div>
@@ -321,26 +333,59 @@ function ChevronIcon({ dir }: { dir: 'left' | 'right' }) {
   );
 }
 
-function FlintSpecCode({ testCase }: { testCase: TestCase }) {
-  const text = useMemo(() => JSON.stringify(testCaseToFlintSummary(testCase), null, 2), [testCase]);
+function OpenEditorButton({ href }: { href: string }) {
+  const [active, setActive] = useState(false);
+  return (
+    <a
+      href={href}
+      style={openEditorBtnStyle(active)}
+      title="Open this example in the editor"
+      onMouseEnter={() => setActive(true)}
+      onMouseLeave={() => setActive(false)}
+      onFocus={() => setActive(true)}
+      onBlur={() => setActive(false)}
+    >
+      Open in editor →
+    </a>
+  );
+}
+
+function FlintSpecCode({ testCase, canvasSize }: { testCase: TestCase; canvasSize?: { width: number; height: number } }) {
+  const text = useMemo(() => {
+    const summary = testCaseToFlintSummary(testCase);
+    const withCanvas = canvasSize
+      ? { ...summary, options: { canvasSize } }
+      : summary;
+    const body = JSON.stringify(withCanvas, null, 2);
+    return body.replace(/^{\n/, '{\n  "data": {...},\n');
+  }, [testCase, canvasSize]);
   return <pre style={specPreStyle}>{text}</pre>;
 }
 
 /* ------------------------------------------------------------------ */
 /* Feature section copy                                                */
 /*                                                                     */
-/* Edit the plain-text strings below to rewrite the landing copy. The  */
-/* intro paragraph and each feature's title/body are kept here as      */
-/* simple strings so they can be reworded without touching any JSX.    */
+/* Edit the copy below to rewrite the landing copy. The intro uses     */
+/* small inline highlights; feature title/body/example strings stay    */
+/* plain so they can be reworded without touching JSX.                 */
 /* ------------------------------------------------------------------ */
 
+function LeadHighlight({ children }: { children: string }) {
+  return <span style={leadHighlightStyle}>{children}</span>;
+}
+
 // Lead paragraph shown in the hero (the single intro to Flint).
-const LEAD_INTRO =
-  'Flint helps AI agents and humans create good-looking, adaptable visualizations from simple specifications. ' +
-  'Instead of asking the user to provide verbose low-level parameters such as scales, axes, steps, and layout, ' +
-  'the Flint compiler automatically derives optimized low-level settings from the semantic types and physical ' +
-  'characteristics of the data, guided by the desired chart type and encodings. ' +
-  'This way, users get a clear, informative chart from a concise specification.';
+const LEAD_INTRO = (
+  <>
+    Flint is a visualization intermediate language that allows{' '}
+    <LeadHighlight>AI agents to create expressive, good-looking visualizations</LeadHighlight> from{' '}
+    <LeadHighlight>simple, human-editable chart specs</LeadHighlight>. Instead of requiring verbose
+    low-level parameters such as scales, axes, spacing, and layout, the Flint compiler derives
+    optimized chart settings from the data, semantic types, chart type, and encodings. The result is a
+    compact chart specification that is easy for agents to create, easy for people to edit, and{' '}
+    <LeadHighlight>it can be rendered in different backends (Vega-Lite, ECharts, Chart.js)</LeadHighlight>.
+  </>
+);
 
 interface Feature {
   title: string;
@@ -355,41 +400,39 @@ const FEATURES: Feature[] = [
   {
     title: 'Specify with semantic types',
     body:
-      'Flint employs semantic types to that capture what each data field means ' +
-      '(e.g., Revenue, Rank, YearMonth, Temperature) to guide the chart configuration. ' +
-      'Flint automatically derives the right parsing, scale, axes, formatting (e.g., temporal granularity), and color (e.g., diverging vs. sequential schemes) to produce a well-formed chart.',
+      'Flint uses semantic types to capture meanings of data fields ' +
+      '(e.g., Rank, YearMonth, Delta, Temperature), and uses them to infer the low-level chart configuration like parsing, scale, axes, formatting and color schemes. ',
     example:
-      'Flint automatically configures the x-axis axes temporal granularity as Year-Month with temporal axis and diverging color scheme centered at 0 to optimize the visualization ofa heatmap representing month x week x profit based on data sematnic types',
+      'For this heatmap of net new users gains by game and month, Flint determines the temporal value parser, axis formatting, and diverging color scheme and midpoint based on the semantic types of the fields.',
     demo: demoSemanticTypes,
   },
   {
     title: 'Automatic layout optimization',
     body:
-      'Flint optimizes the chart layout based on the chart speficiation and data characteristics based on an elastic layout model and banking principles.' + 
-      'Given the desired chart dimensions and allowed canvas sizes, the compiler dynamically manages sizing, spacing, and arrangement so the chart nicely fits into the canvas with principled layout decisions.',
+      'Flint optimizes the chart layout based on the chart speficiation and data characteristics based on an elastic layout model and banking principles. ' + 
+      'Given the desired chart dimensions and allowed canvas sizes, the compiler dynamically manages sizing, spacing, and arrangement so the chart nicely fits into the canvas with principled layout decisions. ',
     example:
-      'A desnse bar chart with 80 items trades stretches the canvas size and reduces it\'s band width so it fits the canvas nicely, similar to how springs fit into expandable containers.',
+      'As the same grouped bar chart grows from 5 categories to 22, Flint stretches the canvas and reduces the band width so the dense version still fits the canvas nicely, similar to how springs settle into an expandable container.',
     demo: demoLayout,
   },
   {
     title: 'Easy to generate and adapt',
     body:
-      'Without fragile low-level parameters in the chart specification, Flint specs can be easily ' +
-      'generated by AI agents and adapted by users. Changing a chart design requires only switching ' +
-      'the chart type and rebinding visual encodings, and the compiler automatically cascades the new ' +
+      'Without fragile low-level parameters, Flint specs can be easily ' +
+      'generated and adapted by users. Changing a chart design requires only switching ' +
+      'the chart type and rebinding visual encodings, and the compiler cascades the new ' +
       'encoding choices to the low-level settings.',
     example:
-      'When switching from a faceted line chart to a waterfall chart, the user only needs to update the visual encodings and the compiler automatically derives the new low-level paramters, despite the compiled chart spec are radically different.',
+      'To turn a faceted bar showing the population distribution by gender and age (the 2000 U.S. Census) into a pyramid chart, the user can simply switch the chart type. The compiler adapts low-level settings based on new layout requirements automatically.',
     demo: demoAdapt,
   },
   {
     title: 'Render with different backends',
     body:
-      'Write a chart once and render it with different backends. Flint currently supports 34 chart types across Vega-Lite, ECharts, and Chart.js. Despite their different APIs and ' +
-      'programming models, Flint hides them behind a unified interface. The user can easily choose the desirable ' +
-      'backend and leverage its unique features.',
+      'Flint specs can be compiled to 34 different chart types in different backends (Vega-Lite, ECharts, and Chart.js). Despite their different APIs and ' +
+      'programming models, Flint hides them behind a unified interface. The user can easily switch to different backends and leverage their unique features.',
     example:
-      'Vega-Lite has no native sunburst support, but it\'s easy to turn a grouped bar chart into sunburst using Flint and render it with ECharts.',
+      'Vega-Lite has no native sunburst, but the user can easily convert Vega-Lite bar chart that shows region \u00d7 gameType \u00d7 game to a sunburst chart in ECharts by simply switching the chart type and the rendering backend.',
     demo: demoBackends,
   },
 ];
@@ -482,12 +525,69 @@ function demoLayout(): FeatureDemoConfig {
   };
 }
 
-// Card 3: same encoding, different chart type — a bar chart becomes a waterfall.
-function demoAdapt(): FeatureDemoConfig {
-  const wf = omni('Omni: Waterfall');
+// Card 3: same encoding, different chart type — a faceted bar becomes a pyramid.
+//
+// Real data: U.S. resident population by 5-year age band and sex, 2000 census
+// (the same source Vega-Lite's own population-pyramid example draws from).
+const US_POP_2000: Array<[band: string, male: number, female: number]> = [
+  ['0–4', 9735380, 9310714],
+  ['5–9', 10552146, 10069564],
+  ['10–14', 10563233, 10022524],
+  ['15–19', 10237419, 9692669],
+  ['20–24', 9731315, 9324244],
+  ['25–29', 9659493, 9518507],
+  ['30–34', 10205879, 10119296],
+  ['35–39', 11475182, 11635647],
+  ['40–44', 11320252, 11488578],
+  ['45–49', 9925006, 10261253],
+  ['50–54', 8507934, 8911133],
+  ['55–59', 6459082, 6921268],
+  ['60–64', 5123399, 5668961],
+  ['65–69', 4453623, 4804784],
+  ['70–74', 3792145, 5184855],
+  ['75–79', 2912655, 4355644],
+  ['80–84', 1902638, 3221898],
+  ['85–89', 970357, 1981156],
+  ['90+', 336303, 1064581],
+];
+
+/** Long-format population table built from the real 2000 census slice (millions). */
+function usPopulationPyramid(): TestCase {
+  const data: Array<Record<string, unknown>> = [];
+  for (const [band, male, female] of US_POP_2000) {
+    data.push({ 'Age Band': band, Sex: 'Male', People: Math.round(male / 1e5) / 10 });
+    data.push({ 'Age Band': band, Sex: 'Female', People: Math.round(female / 1e5) / 10 });
+  }
   return {
-    before: { kind: 'chart', label: 'Bar chart', testCase: asChartType(wf, 'Bar Chart'), backend: 'vegalite' },
-    after: { kind: 'chart', label: 'Waterfall', testCase: wf, backend: 'vegalite' },
+    title: 'U.S. population by age and sex (2000)',
+    description: '',
+    tags: [],
+    chartType: 'Pyramid Chart',
+    data,
+    fields: [makeField('Age Band'), makeField('People'), makeField('Sex')],
+    metadata: buildMetadata(data),
+    encodingMap: {
+      y: makeEncodingItem('Age Band'),
+      x: makeEncodingItem('People'),
+      color: makeEncodingItem('Sex'),
+    },
+  };
+}
+
+function demoAdapt(): FeatureDemoConfig {
+  const pyr = usPopulationPyramid();
+  const facetedBar: TestCase = {
+    ...pyr,
+    chartType: 'Bar Chart',
+    encodingMap: {
+      x: makeEncodingItem('Age Band'),
+      y: makeEncodingItem('People'),
+      column: makeEncodingItem('Sex'),
+    },
+  };
+  return {
+    before: { kind: 'chart', label: 'Faceted bar', testCase: facetedBar, backend: 'vegalite' },
+    after: { kind: 'chart', label: 'Pyramid', testCase: pyr, backend: 'vegalite' },
   };
 }
 
@@ -683,10 +783,10 @@ const sectionDividerLineStyle: CSSProperties = {
 };
 
 const heroTitleStyle: CSSProperties = {
-  fontSize: 38,
+  fontSize: 42,
   lineHeight: 1.18,
-  margin: '0 0 22px',
-  maxWidth: 760,
+  margin: '0 0 32px',
+  maxWidth: 960,
   fontWeight: 300,
   letterSpacing: '0.01em',
 };
@@ -706,31 +806,20 @@ const leadTextColStyle: CSSProperties = {
 
 const leadButtonsColStyle: CSSProperties = {
   flex: '0 0 auto',
-  width: 240,
+  width: 164,
   display: 'flex',
   flexDirection: 'column',
+  borderLeft: `1px solid ${HAIRLINE}`,
+  paddingLeft: 20,
 };
 
-// A clear, bordered "action box" grouping the four CTAs (Vega-Lite-style
-// sidebar feel). The buttons inside are intentionally muted so the box, not any
-// single button, reads as the action area.
+// Right-side quick actions kept flat to avoid competing with the hero copy.
 const actionBoxStyle: CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
-  gap: 8,
-  padding: 14,
-  border: `1px solid ${HAIRLINE}`,
-  borderRadius: siteTheme.radius,
-  background: NEUTRAL_FILL,
-};
-
-const actionBoxLabelStyle: CSSProperties = {
-  fontSize: 11,
-  fontWeight: 600,
-  letterSpacing: '0.06em',
-  textTransform: 'uppercase',
-  color: siteTheme.textMuted,
-  margin: '0 0 2px 2px',
+  alignItems: 'flex-start',
+  gap: 3,
+  paddingTop: 2,
 };
 
 const leadStyle: CSSProperties = {
@@ -739,6 +828,13 @@ const leadStyle: CSSProperties = {
   lineHeight: 1.65,
   margin: 0,
   fontWeight: 300,
+};
+
+const leadHighlightStyle: CSSProperties = {
+  color: '#005a9e',
+  fontWeight: 500,
+  borderBottom: '1px solid rgba(0, 120, 212, 0.16)',
+  boxShadow: 'inset 0 -0.42em 0 rgba(0, 120, 212, 0.08)',
 };
 
 const installLineStyle: CSSProperties = {
@@ -823,6 +919,22 @@ const paneLabelStyle: CSSProperties = {
   textTransform: 'uppercase',
   color: siteTheme.textMuted,
 };
+
+function openEditorBtnStyle(active: boolean): CSSProperties {
+  return {
+    margin: '6px 10px 0 0',
+    padding: '4px 10px',
+    fontSize: 12,
+    fontWeight: 600,
+    color: active ? siteTheme.text : siteTheme.textMuted,
+    background: active ? NEUTRAL_FILL : 'transparent',
+    border: `1px solid ${HAIRLINE}`,
+    borderRadius: siteTheme.radius,
+    textDecoration: 'none',
+    whiteSpace: 'nowrap',
+    transition: 'background 0.15s, color 0.15s',
+  };
+}
 
 const backendToggleStyle: CSSProperties = {
   display: 'inline-flex',
@@ -919,8 +1031,8 @@ const specPreStyle: CSSProperties = {
   margin: 0,
   padding: '4px 16px 16px',
   fontFamily: siteTheme.fontMono,
-  fontSize: 12.5,
-  lineHeight: 1.55,
+  fontSize: 11,
+  lineHeight: 1.5,
   color: siteTheme.text,
   background: PAPER,
   overflowX: 'auto',
@@ -1034,6 +1146,18 @@ const featureBodyStyle: CSSProperties = {
   margin: 0,
 };
 
+function featureExampleRowStyle(): CSSProperties {
+  return {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 14,
+    margin: '12px 0 0',
+    // Paragraph stays first so its left border lines up with the text above;
+    // the arrow trails on the right.
+    flexDirection: 'row',
+  };
+}
+
 const featureExampleStyle: CSSProperties = {
   margin: '12px 0 0',
   paddingLeft: 12,
@@ -1041,20 +1165,6 @@ const featureExampleStyle: CSSProperties = {
   fontSize: 14,
   lineHeight: 1.6,
   color: siteTheme.textMuted,
-};
-
-const featureExampleLabelStyle: CSSProperties = {
-  fontStyle: 'italic',
-  fontWeight: 600,
-  color: siteTheme.text,
-};
-
-const closingCardStyle: CSSProperties = {
-  textAlign: 'center',
-  border: `1px solid ${HAIRLINE}`,
-  borderRadius: siteTheme.radius,
-  background: PAPER,
-  padding: '40px 28px',
 };
 
 const codeStyle: CSSProperties = {
@@ -1088,33 +1198,20 @@ const secondaryBtn: CSSProperties = {
   fontSize: 14.5,
 };
 
-// Hero CTA buttons stack inside the action box (Vega-Lite-style sidebar): block,
-// full-width, centred label, and intentionally muted so the box reads as one
-// clear action area rather than a row of loud buttons.
-const heroBtnBlock: CSSProperties = {
-  display: 'block',
-  width: '100%',
-  margin: 0,
-  textAlign: 'center',
-  boxSizing: 'border-box',
-  padding: '9px 16px',
-  borderRadius: siteTheme.radius,
-  textDecoration: 'none',
-  fontSize: 14,
-  fontWeight: 500,
-};
-
-const heroPrimaryBtn: CSSProperties = {
-  ...heroBtnBlock,
-  background: siteTheme.accentBg,
-  color: siteTheme.accent,
-  border: `1px solid rgba(0, 120, 212, 0.4)`,
-  fontWeight: 600,
-};
-
-const heroSecondaryBtn: CSSProperties = {
-  ...heroBtnBlock,
-  background: PAPER,
-  color: siteTheme.textMuted,
-  border: `1px solid ${HAIRLINE}`,
-};
+function heroActionLinkStyle(active: boolean): CSSProperties {
+  return {
+    display: 'block',
+    margin: 0,
+    textAlign: 'left',
+    boxSizing: 'border-box',
+    padding: '3px 8px',
+    borderRadius: 4,
+    textDecoration: 'none',
+    fontSize: 13,
+    fontWeight: 500,
+    color: active ? siteTheme.text : siteTheme.accent,
+    background: active ? siteTheme.hover : 'transparent',
+    transform: active ? 'translateX(2px)' : 'translateX(0)',
+    transition: 'background 0.12s ease, color 0.12s ease, transform 0.12s ease',
+  };
+}

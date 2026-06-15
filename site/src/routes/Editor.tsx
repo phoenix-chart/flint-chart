@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { assembleVegaLite, assembleECharts, assembleChartjs } from 'flint-chart';
+import { assembleVegaLite, assembleECharts, assembleChartjs, type ChartAssemblyInput } from 'flint-chart';
 import { SiteShell } from '../components/SiteShell';
 import { JsonCodeMirror } from '../components/JsonCodeMirror';
 import { ResizeSplit } from '../components/ResizeSplit';
@@ -27,6 +27,25 @@ function compile<T>(fn: () => T): CompileResult<T> {
     return { ok: true, value: fn() };
   } catch (err) {
     return { ok: false, err };
+  }
+}
+
+/**
+ * Lenient JSON parse: tolerates trailing commas and `//` / `/* *\/` comments
+ * that a strict `JSON.parse` would reject, so hand-edited specs stay forgiving.
+ */
+function parseLenientJson(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    const cleaned = text
+      // strip block comments
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      // strip line comments (not inside strings is approximated; safe for specs)
+      .replace(/(^|[^:"'\\])\/\/[^\n\r]*/g, '$1')
+      // drop trailing commas before } or ]
+      .replace(/,(\s*[}\]])/g, '$1');
+    return JSON.parse(cleaned);
   }
 }
 
@@ -67,7 +86,7 @@ export function Editor() {
 
   const parsed = useMemo(() => {
     try {
-      return { ok: true as const, value: JSON.parse(text) };
+      return { ok: true as const, value: parseLenientJson(text) };
     } catch (err) {
       return { ok: false as const, err };
     }
@@ -90,7 +109,7 @@ export function Editor() {
 
   const compiledByBackend = useMemo(() => {
     if (!parsed.ok) return { ok: false as const, err: parsed.err };
-    const input = parsed.value;
+    const input = parsed.value as ChartAssemblyInput;
     return {
       ok: true as const,
       value: {
@@ -128,8 +147,7 @@ export function Editor() {
       >
         <section style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
           <InputPane
-            label="Flint input"
-            hint="data · semantic_types · chart_spec"
+            label="Flint spec"
             loadedFromGallery={loadedFromGallery}
             text={text}
             onChange={setText}
@@ -175,7 +193,6 @@ export function Editor() {
 
 function InputPane({
   label,
-  hint,
   text,
   onChange,
   parseError,
@@ -185,7 +202,6 @@ function InputPane({
   foldKey,
 }: {
   label: string;
-  hint: string;
   text: string;
   onChange: (v: string) => void;
   parseError: string | null;
@@ -196,14 +212,14 @@ function InputPane({
 }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
-      <PaneHeader label={label} hint={hint}>
+      <PaneHeader label={label}>
         {loadedFromGallery ? (
           <span style={{ fontSize: 11, color: siteTheme.accent }}>loaded from Gallery</span>
         ) : (
           <>
-            <span style={{ color: siteTheme.textMuted, fontSize: 12 }}>example:</span>
+            <span style={{ color: siteTheme.textMuted, fontSize: 12 }}>example</span>
             <select
-              style={{ fontSize: 12 }}
+              style={exampleSelectStyle}
               onChange={(e) => {
                 const ex = examples.find((x) => x.name === e.target.value);
                 if (ex) onSelectExample(ex.input);
@@ -334,7 +350,7 @@ function PaneHeader({
   children,
 }: {
   label: string;
-  hint: string;
+  hint?: string;
   children?: React.ReactNode;
 }) {
   return (
@@ -351,9 +367,19 @@ function PaneHeader({
     >
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 13, fontWeight: 600 }}>{label}</div>
-        <div style={{ fontSize: 11, color: siteTheme.textMuted }}>{hint}</div>
+        {hint && <div style={{ fontSize: 11, color: siteTheme.textMuted }}>{hint}</div>}
       </div>
       {children}
     </header>
   );
 }
+
+const exampleSelectStyle: React.CSSProperties = {
+  fontSize: 12,
+  color: siteTheme.text,
+  background: siteTheme.surface,
+  border: `1px solid ${siteTheme.borderMuted}`,
+  borderRadius: siteTheme.radius,
+  padding: '4px 8px',
+  cursor: 'pointer',
+};

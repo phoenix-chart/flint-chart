@@ -434,21 +434,34 @@ function asChartType(base: TestCase, chartType: string): TestCase {
   return { ...base, chartType };
 }
 
-/** A synthetic single-series bar chart with `n` categories (for layout demos). */
-function synthBar(n: number, title: string): TestCase {
-  const data = Array.from({ length: n }, (_, i) => ({
-    item: 'G' + String(i + 1).padStart(2, '0'),
-    value: Math.round(24 + 56 * Math.abs(Math.sin(i * 1.35 + 0.6))),
-  }));
+/** A synthetic grouped bar chart with `nCats` categories × `nGroups` series (for layout demos). */
+function synthGroupedBar(nCats: number, nGroups: number, title: string): TestCase {
+  const series = Array.from({ length: nGroups }, (_, g) => 'Series ' + String.fromCharCode(65 + g));
+  const data: Array<Record<string, unknown>> = [];
+  for (let i = 0; i < nCats; i++) {
+    const item = 'G' + String(i + 1).padStart(2, '0');
+    for (let g = 0; g < nGroups; g++) {
+      data.push({
+        item,
+        series: series[g],
+        value: Math.round(20 + 55 * Math.abs(Math.sin(i * 0.9 + g * 1.7 + 0.5))),
+      });
+    }
+  }
   return {
     title,
     description: '',
     tags: [],
-    chartType: 'Bar Chart',
+    chartType: 'Grouped Bar Chart',
     data,
-    fields: [makeField('item'), makeField('value')],
+    fields: [makeField('item'), makeField('series'), makeField('value')],
     metadata: buildMetadata(data),
-    encodingMap: { x: makeEncodingItem('item'), y: makeEncodingItem('value') },
+    encodingMap: {
+      x: makeEncodingItem('item'),
+      y: makeEncodingItem('value'),
+      color: makeEncodingItem('series'),
+      group: makeEncodingItem('series'),
+    },
   };
 }
 
@@ -461,11 +474,11 @@ function demoSemanticTypes(): FeatureDemoConfig {
   };
 }
 
-// Card 2: same spec, more categories — the layout adapts from sparse to dense.
+// Card 2: same grouped-bar spec, more categories — the layout adapts from sparse to dense.
 function demoLayout(): FeatureDemoConfig {
   return {
-    before: { kind: 'chart', label: 'Sparse · 6 bars', testCase: synthBar(6, 'Sparse bar'), backend: 'vegalite' },
-    after: { kind: 'chart', label: 'Dense · 60 bars', testCase: synthBar(60, 'Dense bar'), backend: 'vegalite' },
+    before: { kind: 'chart', label: 'Sparse · 5 × 3', testCase: synthGroupedBar(5, 3, 'Sparse grouped bar'), backend: 'vegalite' },
+    after: { kind: 'chart', label: 'Dense · 22 × 3', testCase: synthGroupedBar(22, 3, 'Dense grouped bar'), backend: 'vegalite' },
   };
 }
 

@@ -23,7 +23,7 @@ export const TUTORIAL_GROUPS: DocGroup[] = [
         slug: 'getting-started',
         title: 'Getting started',
         description:
-          'Omni Game Metrics — data, semantics, five charts, explore backends, and compile.',
+          'Game Metrics Data — data, semantics, five charts, explore backends, and compile.',
         file: '../../../docs/tutorials/getting-started.md',
       },
     ],

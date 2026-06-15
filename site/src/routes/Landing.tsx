@@ -33,10 +33,10 @@ export function Landing() {
       <main style={mainStyle}>
         {/* ---- Hero ------------------------------------------------------ */}
         <section style={{ ...sectionStyle, paddingTop: 72, paddingBottom: 24 }}>
-          <h1 style={heroTitleStyle}>Flint: A Visualization Library for AI Agents and Humans</h1>
-
           <div style={leadColumnsStyle}>
             <div style={leadTextColStyle}>
+              <h1 style={heroTitleStyle}>Flint: A Visualization Library for AI Agents and Humans</h1>
+
               <p style={leadStyle}>{LEAD_INTRO}</p>
 
               <p style={installLineStyle}>
@@ -85,11 +85,9 @@ export function Landing() {
         </section>
         */}
 
-        {/* ---- Interactive example: spec -> chart ---------------------- */}
-        <HeroShowcase />
-
         {/* ---- Feature cards (alternating text / visual) -------------- */}
         <section style={sectionStyle}>
+          <SectionDivider label="How it works" />
           <div style={featureRowsStyle}>
             {FEATURES.map((feature, i) => (
               <article key={feature.title} style={featureRowStyle(i % 2 === 1)}>
@@ -111,6 +109,9 @@ export function Landing() {
             ))}
           </div>
         </section>
+
+        {/* ---- Interactive example: spec -> chart (below the demos) ---- */}
+        <HeroShowcase />
 
         {/* ---- Closing CTA ---------------------------------------------- */}
         <section style={{ ...sectionStyle, paddingBottom: 72 }}>
@@ -190,6 +191,16 @@ const SHOWCASE_EXAMPLES: ShowcaseExample[] = [
   },
 ];
 
+/** A small labeled hairline divider that marks the start of a subsection. */
+function SectionDivider({ label }: { label: string }) {
+  return (
+    <div style={sectionDividerStyle}>
+      <span style={sectionDividerLabelStyle}>{label}</span>
+      <span style={sectionDividerLineStyle} />
+    </div>
+  );
+}
+
 function HeroShowcase() {
   const [exampleIdx, setExampleIdx] = useState(0);
   const [selectedBackend, setSelectedBackend] = useState<PreviewBackend>('vegalite');
@@ -211,7 +222,8 @@ function HeroShowcase() {
   const goNext = () => setExampleIdx((i) => (i + 1) % count);
 
   return (
-    <section style={{ ...sectionStyle, paddingTop: 8 }}>
+    <section style={sectionStyle}>
+      <SectionDivider label="Live example" />
       <div style={carouselRowStyle}>
         <button
           type="button"
@@ -646,6 +658,28 @@ const sectionStyle: CSSProperties = {
   padding: '40px 24px',
   width: '100%',
   boxSizing: 'border-box',
+};
+
+const sectionDividerStyle: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 14,
+  margin: '0 0 28px',
+};
+
+const sectionDividerLabelStyle: CSSProperties = {
+  fontSize: 11,
+  fontWeight: 600,
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
+  color: siteTheme.textMuted,
+  whiteSpace: 'nowrap',
+};
+
+const sectionDividerLineStyle: CSSProperties = {
+  flex: 1,
+  height: 1,
+  background: HAIRLINE,
 };
 
 const heroTitleStyle: CSSProperties = {

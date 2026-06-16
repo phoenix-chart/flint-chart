@@ -61,6 +61,8 @@ const LABEL_TO_FAMILY: Record<string, string> = {
   boxplot: 'distribution',
   density: 'distribution',
   'density plot': 'distribution',
+  violin: 'distribution',
+  'violin plot': 'distribution',
   // Circular & Radial
   pie: 'radial',
   doughnut: 'radial',

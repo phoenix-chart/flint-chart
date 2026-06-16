@@ -24,6 +24,7 @@ import { rangeAreaChartDef } from './range-area';
 import { pieChartDef } from './pie';
 import { lollipopChartDef } from './lollipop';
 import { densityPlotDef } from './density';
+import { violinPlotDef } from './violin';
 import { stripPlotDef } from './jitter';
 import { candlestickChartDef } from './candlestick';
 import { waterfallChartDef } from './waterfall';
@@ -245,7 +246,7 @@ export const vlTemplateDefs: { [key: string]: ChartTemplateDef[] } = Object.from
     Object.entries({
         "Points":          [scatterPlotDef, regressionDef, connectedScatterDef, rangedDotPlotDef, stripPlotDef],
         "Bars":            [barChartDef, groupedBarChartDef, stackedBarChartDef, lollipopChartDef, waterfallChartDef, ganttChartDef, bulletChartDef],
-        "Distributions":   [histogramDef, densityPlotDef, boxplotDef, pyramidChartDef, candlestickChartDef],
+        "Distributions":   [histogramDef, densityPlotDef, violinPlotDef, boxplotDef, pyramidChartDef, candlestickChartDef],
         "Lines & Areas":   [lineChartDef, bumpChartDef, slopeChartDef, areaChartDef, streamgraphDef, rangeAreaChartDef],
         "Circular":        [pieChartDef, roseChartDef, radarChartDef],
         "Tables & Maps":   [heatmapDef, barTableDef, kpiCardDef, mapDef, choroplethDef],

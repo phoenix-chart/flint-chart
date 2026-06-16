@@ -66,6 +66,10 @@ export const cjsRangeAreaChartDef: ChartTemplateDef = {
         const xIsTemporal = xCS.type === 'temporal';
         const mapContinuousX = (raw: unknown) => (xIsTemporal ? coerceUnixMsForChartJs(raw) : Number(raw));
 
+        // Title the value axis with BOTH bound fields (matching Vega-Lite's
+        // native "low, high" axis title), falling back to the single name.
+        const valueTitle = lowField === highField ? lowField : `${lowField}, ${highField}`;
+
         const categories = xIsDiscrete
             ? extractCategories(table, xField, xCS.ordinalSortOrder)
             : undefined;
@@ -103,7 +107,7 @@ export const cjsRangeAreaChartDef: ChartTemplateDef = {
                         type: 'linear',
                         // A ranged area reads its extent, not its distance from
                         // zero — fit the band rather than forcing a zero baseline.
-                        title: { display: true, text: lowField },
+                        title: { display: true, text: valueTitle },
                         ticks: { font: { size: 10 } },
                     },
                 },

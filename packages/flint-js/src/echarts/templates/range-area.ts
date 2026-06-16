@@ -118,6 +118,10 @@ export const ecRangeAreaChartDef: ChartTemplateDef = {
 
         const opacity = ctx.chartProperties?.opacity ?? 0.35;
 
+        // Title the value axis with BOTH bound fields (matching Vega-Lite's
+        // native "low, high" axis title), falling back to the single name.
+        const valueTitle = lowField === highField ? lowField : `${lowField}, ${highField}`;
+
         const option: any = {
             tooltip: {
                 trigger: 'axis',
@@ -156,7 +160,7 @@ export const ecRangeAreaChartDef: ChartTemplateDef = {
                 // A ranged area reads its extent, not its distance from zero —
                 // fit the band rather than forcing a zero baseline.
                 scale: true,
-                name: lowField,
+                name: valueTitle,
                 nameLocation: 'middle',
                 nameGap: 45,
                 axisTick: { show: true },

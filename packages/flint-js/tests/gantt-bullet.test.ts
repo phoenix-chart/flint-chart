@@ -104,9 +104,9 @@ describe('Bullet chart', () => {
     expect(bands).toHaveLength(3);
     const yField = spec.encoding.y.field;
     const sample = bands[0].data.values[0];
-    const rowGoal = genBulletTests()[0].data.find(
+    const rowGoal = genBulletTests()[0]!.data.find(
       (r: any) => r[yField] === sample[yField],
-    ).quota;
+    )!.quota;
     const tops = bands.map(
       (b: any) => b.data.values.find((v: any) => v[yField] === sample[yField]).__hi,
     );

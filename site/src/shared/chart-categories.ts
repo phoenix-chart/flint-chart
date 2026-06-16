@@ -135,6 +135,8 @@ export const CHART_CATEGORIES: ChartCategory[] = [
       createChart('echarts', 'echarts-radar', 'Radar Chart', 'ECharts: Radar', radarIcon),
       createChart('echarts', 'echarts-candlestick', 'Candlestick Chart', 'ECharts: Candlestick', candlestickIcon),
       createChart('echarts', 'echarts-waterfall', 'Waterfall Chart', 'Waterfall Chart', waterfallIcon),
+      createChart('echarts', 'echarts-gantt', 'Gantt Chart', 'Gantt Chart', ganttIcon),
+      createChart('echarts', 'echarts-bullet', 'Bullet Chart', 'Bullet Chart', bulletIcon),
       createChart('echarts', 'echarts-streamgraph', 'Streamgraph', 'ECharts: Streamgraph', streamgraphIcon),
       createChart('echarts', 'echarts-rose', 'Rose Chart', 'ECharts: Rose', roseIcon),
       createChart('echarts', 'echarts-gauge', 'Gauge', 'ECharts: Gauge', gaugeIcon),
@@ -168,6 +170,8 @@ export const CHART_CATEGORIES: ChartCategory[] = [
       createChart('chartjs', 'chartjs-histogram', 'Histogram', 'Chart.js: Histogram', histogramIcon),
       createChart('chartjs', 'chartjs-radar', 'Radar Chart', 'Chart.js: Radar', radarIcon),
       createChart('chartjs', 'chartjs-rose', 'Rose Chart', 'Chart.js: Rose', roseIcon),
+      createChart('chartjs', 'chartjs-waterfall', 'Waterfall Chart', 'Waterfall Chart', waterfallIcon),
+      createChart('chartjs', 'chartjs-gantt', 'Gantt Chart', 'Gantt Chart', ganttIcon),
     ],
   },
 ];

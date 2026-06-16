@@ -36,6 +36,8 @@ import { ecCalendarHeatmapDef } from './calendar';
 import { ecParallelCoordinatesDef } from './parallel';
 import { ecGraphDef } from './graph';
 import { ecTreeDef } from './tree';
+import { ecGanttChartDef } from './gantt';
+import { ecBulletChartDef } from './bullet';
 
 /**
  * ECharts chart template definitions, grouped by category.
@@ -48,7 +50,7 @@ export const ecTemplateDefs: { [key: string]: ChartTemplateDef[] } = {
     'Part-to-Whole':   [ecPieChartDef, ecFunnelChartDef, ecTreemapDef, ecSunburstDef, ecTreeDef],
     'Statistical':     [ecHistogramDef, ecDensityPlotDef, ecParallelCoordinatesDef],
     'Financial':       [ecCandlestickDef],
-    'Other':           [ecWaterfallChartDef],
+    'Other':           [ecWaterfallChartDef, ecGanttChartDef, ecBulletChartDef],
     'Polar':           [ecRadarChartDef, ecRoseChartDef],
     'Indicator':       [ecGaugeChartDef],
     'Flow':            [ecSankeyDef, ecGraphDef],

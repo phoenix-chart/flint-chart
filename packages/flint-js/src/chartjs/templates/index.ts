@@ -20,13 +20,15 @@ import { cjsDoughnutChartDef } from './doughnut';
 import { cjsHistogramDef } from './histogram';
 import { cjsRadarChartDef } from './radar';
 import { cjsRoseChartDef } from './rose';
+import { cjsGanttChartDef } from './gantt';
+import { cjsWaterfallChartDef } from './waterfall';
 
 /**
  * Chart.js chart template definitions, grouped by category.
  */
 export const cjsTemplateDefs: { [key: string]: ChartTemplateDef[] } = {
     'Scatter & Point': [cjsScatterPlotDef, cjsBubbleChartDef],
-    'Bar':             [cjsBarChartDef, cjsGroupedBarChartDef, cjsStackedBarChartDef, cjsComboChartDef, cjsHistogramDef],
+    'Bar':             [cjsBarChartDef, cjsGroupedBarChartDef, cjsStackedBarChartDef, cjsComboChartDef, cjsHistogramDef, cjsWaterfallChartDef, cjsGanttChartDef],
     'Line & Area':     [cjsLineChartDef, cjsAreaChartDef],
     'Part-to-Whole':   [cjsPieChartDef, cjsDoughnutChartDef],
     'Polar':           [cjsRadarChartDef, cjsRoseChartDef],

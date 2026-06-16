@@ -25,6 +25,11 @@
         background-clip: padding-box;
       }
       ::-webkit-scrollbar-corner { background: transparent; }
+
+      /* Sidebars scroll with the wheel but hide their own scrollbar, so only
+         the main content shows one — avoids a competing second scrollbar. */
+      .app-sidebar { scrollbar-width: none; }
+      .app-sidebar::-webkit-scrollbar { width: 0; height: 0; display: none; }
     </style>
   </head>
   <body>

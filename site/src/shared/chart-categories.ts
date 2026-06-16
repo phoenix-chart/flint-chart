@@ -16,6 +16,7 @@ import boxplotIcon from '../assets/chart-icons/chart-icon-box-plot.svg';
 import radarIcon from '../assets/chart-icons/chart-icon-radar.svg';
 import streamgraphIcon from '../assets/chart-icons/chart-icon-streamgraph.svg';
 import densityIcon from '../assets/chart-icons/chart-icon-density.svg';
+import violinIcon from '../assets/chart-icons/chart-icon-violin.svg';
 import lollipopIcon from '../assets/chart-icons/chart-icon-lollipop.svg';
 import candlestickIcon from '../assets/chart-icons/chart-icon-candlestick.svg';
 import waterfallIcon from '../assets/chart-icons/chart-icon-waterfall.svg';
@@ -57,6 +58,8 @@ export interface ChartCategory {
   description: string;
   /** Name of the assembler entry point for this backend (used in intro snippets). */
   fn: string;
+  /** A complete, runnable example spec (data + semantic types + chart spec). */
+  snippet: string;
   charts: ChartEntry[];
 }
 
@@ -85,6 +88,28 @@ export const CHART_CATEGORIES: ChartCategory[] = [
       'Compiles a Flint spec into a clean Vega-Lite specification — ideal for ' +
       'crisp, publication-quality statistical graphics rendered with Vega.',
     fn: 'assembleVegaLite',
+    snippet: `import { assembleVegaLite } from 'flint-chart';
+
+const input = {
+  data: {
+    values: [
+      { weight: 2.6, mpg: 33, origin: 'Asia' },
+      { weight: 3.4, mpg: 26, origin: 'Europe' },
+      { weight: 4.1, mpg: 17, origin: 'USA' },
+    ],
+  },
+  semantic_types: { weight: 'Quantity', mpg: 'Quantity', origin: 'Region' },
+  chart_spec: {
+    chartType: 'Scatter Plot',
+    encodings: {
+      x: { field: 'weight' },
+      y: { field: 'mpg' },
+      color: { field: 'origin' },
+    },
+  },
+};
+
+const spec = assembleVegaLite(input);`,
     charts: [
       createChart('vegalite', 'scatter-plot', 'Scatter Plot', 'Scatter Plot', scatterIcon),
       createChart('vegalite', 'connected-scatter', 'Connected Scatter Plot', 'Connected Scatter Plot', connectedScatterIcon),
@@ -105,6 +130,7 @@ export const CHART_CATEGORIES: ChartCategory[] = [
       createChart('vegalite', 'range-area', 'Range Area Chart', 'Range Area Chart', rangeAreaIcon),
       createChart('vegalite', 'lollipop-chart', 'Lollipop Chart', 'Lollipop Chart', lollipopIcon),
       createChart('vegalite', 'density-plot', 'Density Plot', 'Density Plot', densityIcon),
+      createChart('vegalite', 'violin', 'Violin Plot', 'Violin Plot', violinIcon),
       createChart('vegalite', 'candlestick-chart', 'Candlestick Chart', 'Candlestick Chart', candlestickIcon),
       createChart('vegalite', 'waterfall-chart', 'Waterfall Chart', 'Waterfall Chart', waterfallIcon),
       createChart('vegalite', 'gantt-chart', 'Gantt Chart', 'Gantt Chart', ganttIcon),
@@ -125,6 +151,28 @@ export const CHART_CATEGORIES: ChartCategory[] = [
       'interactive dashboards and richer chart types such as gauges, sunbursts, ' +
       'sankeys and network graphs.',
     fn: 'assembleECharts',
+    snippet: `import { assembleECharts } from 'flint-chart';
+
+const input = {
+  data: {
+    values: [
+      { quarter: 'Q1', revenue: 120 },
+      { quarter: 'Q2', revenue: 156 },
+      { quarter: 'Q3', revenue: 143 },
+      { quarter: 'Q4', revenue: 189 },
+    ],
+  },
+  semantic_types: { quarter: 'Quarter', revenue: 'Amount' },
+  chart_spec: {
+    chartType: 'Bar Chart',
+    encodings: {
+      x: { field: 'quarter' },
+      y: { field: 'revenue' },
+    },
+  },
+};
+
+const option = assembleECharts(input);`,
     charts: [
       createChart('echarts', 'echarts-scatter', 'Scatter Plot', 'ECharts: Scatter', scatterIcon),
       createChart('echarts', 'echarts-connected-scatter', 'Connected Scatter Plot', 'ECharts: Connected Scatter', connectedScatterIcon),
@@ -164,13 +212,34 @@ export const CHART_CATEGORIES: ChartCategory[] = [
       'Compiles a Flint spec into a Chart.js config — ideal for familiar, ' +
       'lightweight dashboard visuals that drop straight into a canvas element.',
     fn: 'assembleChartjs',
+    snippet: `import { assembleChartjs } from 'flint-chart';
+
+const input = {
+  data: {
+    values: [
+      { month: 'Jan', users: 1200 },
+      { month: 'Feb', users: 1680 },
+      { month: 'Mar', users: 2040 },
+      { month: 'Apr', users: 2510 },
+    ],
+  },
+  semantic_types: { month: 'Month', users: 'Count' },
+  chart_spec: {
+    chartType: 'Line Chart',
+    encodings: {
+      x: { field: 'month' },
+      y: { field: 'users' },
+    },
+  },
+};
+
+const config = assembleChartjs(input);`,
     charts: [
       createChart('chartjs', 'chartjs-scatter', 'Scatter Plot', 'Chart.js: Scatter', scatterIcon),
       createChart('chartjs', 'chartjs-connected-scatter', 'Connected Scatter Plot', 'Chart.js: Connected Scatter', connectedScatterIcon),
       createChart('chartjs', 'chartjs-bubble', 'Bubble Chart *', 'Chart.js: Bubble *', bubbleIcon),
       createChart('chartjs', 'chartjs-line', 'Line Chart', 'Chart.js: Line', lineIcon),
       createChart('chartjs', 'chartjs-slope', 'Slope Chart', 'Chart.js: Slope', slopeIcon),
-      createChart('chartjs', 'chartjs-facet-line', 'Line Chart', 'Facet: Dense Line', lineIcon),
       createChart('chartjs', 'chartjs-bar', 'Bar Chart', 'Chart.js: Bar', barIcon),
       createChart('chartjs', 'chartjs-combo', 'Combo Chart *', 'Chart.js: Combo *', comboIcon),
       createChart('chartjs', 'chartjs-stacked-bar', 'Stacked Bar Chart', 'Chart.js: Stacked Bar', stackedBarIcon),

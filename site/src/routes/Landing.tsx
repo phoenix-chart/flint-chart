@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useMemo, useState, type CSSProperties, type MouseEvent } from 'react';
 import { Link } from 'react-router-dom';
 import {
   TEST_GENERATORS,
@@ -10,8 +10,9 @@ import {
 import { SiteNavBar, MicrosoftDisclosures } from '../components/SiteShell';
 import { WallChart } from '../components/WallChart';
 import { ScaleToFit } from '../components/ScaleToFit';
-import { testCaseToFlintSummary } from '../shared/test-case-utils';
-import { buildGalleryEditorHref } from '../shared/editor-payload';
+import { testCaseToFlintSummary, testCaseToAssemblyInput } from '../shared/test-case-utils';
+import { buildGalleryEditorHref, openEditorWithPayload } from '../shared/editor-payload';
+import { MOVIE_RATINGS } from './movie-ratings-data';
 import {
   ALL_BACKENDS,
   BACKEND_LABELS,
@@ -27,8 +28,22 @@ import overviewImg from '../assets/flint-overview.png';
  * Copy is written to read plainly, with one interactive spec→chart example.
  */
 export function Landing() {
+  const [installCopied, setInstallCopied] = useState(false);
+  const installCommand = 'npm install flint-chart';
+
+  const handleCopyInstall = async () => {
+    try {
+      await navigator.clipboard.writeText(installCommand);
+      setInstallCopied(true);
+      window.setTimeout(() => setInstallCopied(false), 1600);
+    } catch {
+      setInstallCopied(false);
+    }
+  };
+
   return (
     <div style={pageStyle}>
+      <style>{landingInteractiveStyles}</style>
       <SiteNavBar flush />
 
       <main style={mainStyle}>
@@ -41,7 +56,34 @@ export function Landing() {
               <p style={leadStyle}>{LEAD_INTRO}</p>
 
               <p style={installLineStyle}>
-                <code style={codeStyle}>npm install flint-chart</code> · MIT licensed
+                Install the library with npm:{' '}
+                <span style={installCommandWrapStyle}>
+                  <button
+                    type="button"
+                    className="landing-install-command"
+                    style={installCommandButtonStyle}
+                    onClick={handleCopyInstall}
+                    title={installCopied ? 'Copied' : 'Click to copy npm install command'}
+                    aria-label={installCopied ? 'Copied npm install command' : 'Copy npm install command'}
+                  >
+                    <code style={installCommandCodeStyle}>{installCommand}</code>
+                  </button>
+                  {installCopied && (
+                    <span style={installCopiedTooltipStyle} role="status" aria-live="polite">
+                      Copied!
+                    </span>
+                  )}
+                </span>{' '}
+                · For agent workflows, visit{' '}
+                <a
+                  href={`${GITHUB_REPO}/blob/main/agent-skills/SKILL.md`}
+                  className="landing-skill-link"
+                  style={installLineLinkStyle}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Skill.md
+                </a>
               </p>
             </div>
 
@@ -138,10 +180,94 @@ interface ShowcaseExample {
   id: string;
   label: string;
   caption: string;
-  generator: string;
-  index: number;
+  generator?: string;
+  index?: number;
+  /** Pre-built test case (for examples not backed by a gallery generator). */
+  testCase?: TestCase;
   /** Optional canvas override; narrower widths force facet panels to wrap. */
   canvasSize?: { width: number; height: number };
+}
+
+/* ---- Chart-property examples (real data-formulator "movies" dataset) ---- */
+
+// Film counts by MPAA rating across the full 3,201-row Vega movies corpus.
+const MOVIE_MPAA: Array<[rating: string, films: number]> = [
+  ['R', 1194],
+  ['PG-13', 865],
+  ['PG', 354],
+  ['Not Rated', 94],
+  ['G', 79],
+  ['NC-17', 8],
+];
+
+/** Pie made into a donut purely by an `innerRadius` chart property. */
+function moviesDonut(): TestCase {
+  const data = MOVIE_MPAA.map(([Rating, Films]) => ({ Rating, Films }));
+  return {
+    title: 'Films by MPAA rating',
+    description: '',
+    tags: [],
+    chartType: 'Pie Chart',
+    data,
+    fields: [makeField('Rating'), makeField('Films')],
+    metadata: buildMetadata(data),
+    encodingMap: { color: makeEncodingItem('Rating'), size: makeEncodingItem('Films') },
+    chartProperties: { innerRadius: 50 },
+  };
+}
+
+/** Scatter + fitted trend line via the `Regression` chart type. */
+function moviesRegression(): TestCase {
+  const data = MOVIE_RATINGS.map(([rt, imdb]) => ({
+    'Rotten Tomatoes': rt,
+    'IMDB Rating': imdb,
+  }));
+  return {
+    title: 'Critic vs audience scores',
+    description: '',
+    tags: [],
+    chartType: 'Regression',
+    data,
+    fields: [makeField('Rotten Tomatoes'), makeField('IMDB Rating')],
+    metadata: buildMetadata(data),
+    encodingMap: {
+      x: makeEncodingItem('Rotten Tomatoes'),
+      y: makeEncodingItem('IMDB Rating'),
+    },
+  };
+}
+
+// Film counts by major genre.
+const MOVIE_GENRE: Array<[genre: string, films: number]> = [
+  ['Drama', 789],
+  ['Comedy', 675],
+  ['Action', 420],
+  ['Adventure', 274],
+  ['Thriller/Suspense', 239],
+  ['Horror', 219],
+  ['Romantic Comedy', 137],
+  ['Musical', 53],
+  ['Documentary', 43],
+  ['Black Comedy', 36],
+  ['Western', 36],
+];
+
+/** Bars ordered by descending film count via a sort-by-measure (`-y`) override. */
+function moviesSortedBar(): TestCase {
+  const data = MOVIE_GENRE.map(([Genre, Films]) => ({ Genre, Films }));
+  return {
+    title: 'Films by genre (most to fewest)',
+    description: '',
+    tags: [],
+    chartType: 'Bar Chart',
+    data,
+    fields: [makeField('Genre'), makeField('Films')],
+    metadata: buildMetadata(data),
+    encodingMap: {
+      x: makeEncodingItem('Genre', { sortBy: 'y', sortOrder: 'descending' }),
+      y: makeEncodingItem('Films'),
+    },
+  };
 }
 
 const SHOWCASE_EXAMPLES: ShowcaseExample[] = [
@@ -174,7 +300,32 @@ const SHOWCASE_EXAMPLES: ShowcaseExample[] = [
     generator: 'Omni: Sunburst',
     index: 0,
   },
+  {
+    id: 'donut',
+    label: 'Donut chart',
+    caption:
+      'Share of films by MPAA rating. The pie becomes a donut just by setting an ' +
+      '\u201CinnerRadius\u201D chart property \u2014 no change to the data or encodings.',
+    testCase: moviesDonut(),
+  },
+  {
+    id: 'regression',
+    label: 'Regression scatter',
+    caption:
+      'Critic vs. audience scores for every rated film in the dataset. The Regression chart type ' +
+      'fits a trend line over the points to show how strongly the two ratings correlate.',
+    testCase: moviesRegression(),
+  },
+  {
+    id: 'sorted-bar',
+    label: 'Sorted bar chart',
+    caption:
+      'Film counts by genre. A sort override on the category axis (sortBy: \u201Cy\u201D, ' +
+      'sortOrder: \u201Cdescending\u201D) orders the bars from the most to the fewest films.',
+    testCase: moviesSortedBar(),
+  },
 ];
+
 
 /** A small labeled hairline divider that marks the start of a subsection. */
 function SectionDivider({ label }: { label: string }) {
@@ -215,7 +366,8 @@ function HeroShowcase() {
   const [selectedBackend, setSelectedBackend] = useState<PreviewBackend>('vegalite');
 
   const example = SHOWCASE_EXAMPLES[exampleIdx];
-  const testCase = useTestCase(example.generator, example.index);
+  const galleryTestCase = useTestCase(example.generator ?? '', example.index ?? 0);
+  const testCase = example.testCase ?? galleryTestCase;
   const supported = useMemo(
     () => (testCase ? getSupportedBackends(testCase.chartType) : []),
     [testCase],
@@ -248,7 +400,18 @@ function HeroShowcase() {
           <div style={showcasePaneStyle}>
             <div style={paneHeaderRowStyle}>
               <span style={paneLabelStyle}>Flint spec</span>
-              <OpenEditorButton href={buildGalleryEditorHref(example.generator, example.index)} />
+              <OpenEditorButton
+                href={
+                  example.generator
+                    ? buildGalleryEditorHref(example.generator, example.index ?? 0)
+                    : undefined
+                }
+                onActivate={
+                  example.generator
+                    ? undefined
+                    : () => openEditorWithPayload(testCaseToAssemblyInput(testCase))
+                }
+              />
             </div>
             <FlintSpecCode testCase={testCase} canvasSize={example.canvasSize} />
           </div>
@@ -284,7 +447,7 @@ function HeroShowcase() {
             </div>
           </div>
         </div>
-
+                
         <button
           type="button"
           onClick={goNext}
@@ -295,6 +458,10 @@ function HeroShowcase() {
           <ChevronIcon dir="right" />
         </button>
       </div>
+      <p style={showcaseCaptionStyle}>
+        <strong style={{ color: siteTheme.text, fontWeight: 600 }}> {example.label}.</strong>{' '}
+        {example.caption}
+      </p>
 
       {/* Example pager dots */}
       <div style={{ ...dotsRowStyle, marginTop: 16 }} role="tablist" aria-label="Example">
@@ -311,10 +478,6 @@ function HeroShowcase() {
           />
         ))}
       </div>
-      <p style={showcaseCaptionStyle}>
-        <strong style={{ color: siteTheme.text, fontWeight: 600 }}>{example.label}.</strong>{' '}
-        {example.caption}
-      </p>
     </section>
   );
 }
@@ -333,13 +496,26 @@ function ChevronIcon({ dir }: { dir: 'left' | 'right' }) {
   );
 }
 
-function OpenEditorButton({ href }: { href: string }) {
+function OpenEditorButton({
+  href,
+  onActivate,
+}: {
+  href?: string;
+  onActivate?: () => string;
+}) {
   const [active, setActive] = useState(false);
+  const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    if (onActivate) {
+      e.preventDefault();
+      window.location.hash = onActivate();
+    }
+  };
   return (
     <a
-      href={href}
+      href={href ?? '#/editor'}
       style={openEditorBtnStyle(active)}
       title="Open this example in the editor"
+      onClick={handleClick}
       onMouseEnter={() => setActive(true)}
       onMouseLeave={() => setActive(false)}
       onFocus={() => setActive(true)}
@@ -378,8 +554,7 @@ function LeadHighlight({ children }: { children: string }) {
 const LEAD_INTRO = (
   <>
     Flint is a visualization intermediate language that allows{' '}
-    <LeadHighlight>AI agents to create expressive, good-looking visualizations</LeadHighlight> from{' '}
-    <LeadHighlight>simple, human-editable chart specs</LeadHighlight>. Instead of requiring verbose
+    <LeadHighlight>AI agents to create expressive, good-looking visualizations from simple, human-editable chart specs</LeadHighlight>. Instead of requiring verbose
     low-level parameters such as scales, axes, spacing, and layout, the Flint compiler derives
     optimized chart settings from the data, semantic types, chart type, and encodings. The result is a
     compact chart specification that is easy for agents to create, easy for people to edit, and{' '}
@@ -831,17 +1006,96 @@ const leadStyle: CSSProperties = {
 };
 
 const leadHighlightStyle: CSSProperties = {
+  fontWeight: 600,
   color: '#005a9e',
-  fontWeight: 500,
-  borderBottom: '1px solid rgba(0, 120, 212, 0.16)',
-  boxShadow: 'inset 0 -0.42em 0 rgba(0, 120, 212, 0.08)',
 };
 
 const installLineStyle: CSSProperties = {
-  margin: '18px 0 0',
+  display: 'inline-block',
+  margin: '20px 0 0',
+  padding: '8px 10px',
+  border: `1px solid ${HAIRLINE}`,
+  borderRadius: siteTheme.radius,
+  background: '#f6f8fa',
   color: siteTheme.textMuted,
-  fontSize: 13,
+  fontSize: 15.5,
+  lineHeight: 1.65,
 };
+
+const installCommandWrapStyle: CSSProperties = {
+  position: 'relative',
+  display: 'inline-flex',
+  verticalAlign: 'baseline',
+};
+
+const installCommandButtonStyle: CSSProperties = {
+  appearance: 'none',
+  display: 'inline-flex',
+  alignItems: 'center',
+  margin: '0 2px',
+  padding: '1px 6px',
+  border: '1px solid rgba(0, 0, 0, 0.06)',
+  borderRadius: 4,
+  background: 'rgba(0, 0, 0, 0.025)',
+  color: '#57606a',
+  font: 'inherit',
+  lineHeight: 'inherit',
+  boxShadow: 'none',
+  cursor: 'pointer',
+  textAlign: 'left',
+  verticalAlign: 'baseline',
+  transition: 'background 120ms ease, border-color 120ms ease',
+};
+
+const installCommandCodeStyle: CSSProperties = {
+  fontFamily: siteTheme.fontMono,
+  fontSize: '0.92em',
+  color: '#57606a',
+  background: 'transparent',
+};
+
+const installCopiedTooltipStyle: CSSProperties = {
+  position: 'absolute',
+  left: '50%',
+  bottom: 'calc(100% + 6px)',
+  transform: 'translateX(-50%)',
+  padding: '3px 7px',
+  borderRadius: 4,
+  background: siteTheme.text,
+  color: '#fff',
+  fontSize: 12,
+  fontWeight: 500,
+  lineHeight: 1.3,
+  whiteSpace: 'nowrap',
+  pointerEvents: 'none',
+  zIndex: 2,
+};
+
+const installLineLinkStyle: CSSProperties = {
+  color: '#005a9e',
+  fontWeight: 500,
+  textDecoration: 'underline',
+  textUnderlineOffset: 3,
+  transition: 'color 120ms ease, box-shadow 120ms ease',
+};
+
+const landingInteractiveStyles = `
+  .landing-install-command:hover,
+  .landing-install-command:active {
+    background: rgba(0, 0, 0, 0.045) !important;
+    border-color: rgba(0, 0, 0, 0.10) !important;
+    color: #57606a !important;
+  }
+
+  .landing-install-command:focus-visible {
+    outline: 2px solid rgba(0, 120, 212, 0.35);
+    outline-offset: 2px;
+  }
+
+  .landing-skill-link:hover {
+    color: #0078d4 !important;
+  }
+`;
 
 const ctaRowStyle: CSSProperties = {
   display: 'flex',
@@ -1021,7 +1275,7 @@ function dotStyle(active: boolean): CSSProperties {
 }
 
 const showcaseCaptionStyle: CSSProperties = {
-  marginTop: 10,
+  margin: '14px auto 0',
   textAlign: 'center',
   color: siteTheme.textMuted,
   fontSize: 13.5,

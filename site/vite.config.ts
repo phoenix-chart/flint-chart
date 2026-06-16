@@ -30,7 +30,22 @@ export default defineConfig({
     sourcemap: true,
   },
   server: {
+    // Bind to all interfaces so the dev server is reachable when running on a
+    // remote server (via SSH port-forward or direct host access), not just
+    // from localhost on that machine.
+    host: true,
     port: 5274,
-    open: true,
+    strictPort: true,
+    // Allow access via any Host header (e.g. when reaching the server through
+    // its hostname or a reverse proxy). Vite 7 otherwise blocks unknown hosts.
+    allowedHosts: true,
+    // Don't try to launch a browser on a headless server.
+    open: false,
+  },
+  preview: {
+    host: true,
+    port: 4173,
+    strictPort: true,
+    allowedHosts: true,
   },
 });

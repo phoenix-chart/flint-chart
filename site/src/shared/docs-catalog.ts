@@ -1,4 +1,4 @@
-export type DocSection = 'tutorials' | 'documentation';
+export type DocSection = 'documentation';
 
 export interface DocEntry {
   slug: string;
@@ -14,23 +14,27 @@ export interface DocGroup {
   docs: DocEntry[];
 }
 
-export const TUTORIAL_GROUPS: DocGroup[] = [
+export const DOCUMENTATION_GROUPS: DocGroup[] = [
   {
-    id: 'learn',
-    label: 'Learn',
+    id: 'quick-start',
+    label: 'Quick start',
     docs: [
       {
         slug: 'getting-started',
         title: 'Getting started',
         description:
-          'Game Metrics Data — data, semantics, five charts, explore backends, and compile.',
+          'Build your first chart — data, semantic types, encodings, aggregation, and backends.',
         file: '../../../docs/tutorials/getting-started.md',
+      },
+      {
+        slug: 'exploring-data',
+        title: 'Exploring data',
+        description:
+          'Swap fields, change chart types, and compare Vega-Lite, ECharts, and Chart.js.',
+        file: '../../../docs/tutorials/exploring-data.md',
       },
     ],
   },
-];
-
-export const DOCUMENTATION_GROUPS: DocGroup[] = [
   {
     id: 'introduction',
     label: 'Introduction',
@@ -117,14 +121,11 @@ export const DOCUMENTATION_GROUPS: DocGroup[] = [
   },
 ];
 
-/** @deprecated Use TUTORIAL_GROUPS — flat list for link resolution. */
-export const TUTORIAL_DOCS: DocEntry[] = TUTORIAL_GROUPS.flatMap((g) => g.docs);
-
 /** @deprecated Use DOCUMENTATION_GROUPS — flat list for link resolution. */
 export const DOCUMENTATION_DOCS: DocEntry[] = DOCUMENTATION_GROUPS.flatMap((g) => g.docs);
 
-export function getDocGroups(section: DocSection): DocGroup[] {
-  return section === 'tutorials' ? TUTORIAL_GROUPS : DOCUMENTATION_GROUPS;
+export function getDocGroups(_section: DocSection): DocGroup[] {
+  return DOCUMENTATION_GROUPS;
 }
 
 export function getDocsForSection(section: DocSection): DocEntry[] {
@@ -134,7 +135,3 @@ export function getDocsForSection(section: DocSection): DocEntry[] {
 export function getDocEntry(section: DocSection, slug: string): DocEntry | undefined {
   return getDocsForSection(section).find((d) => d.slug === slug);
 }
-
-// export function sectionTitle(section: DocSection): string {
-//   return section === 'tutorials' ? 'Tutorials' : 'Documentation';
-// }

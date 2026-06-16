@@ -21,4 +21,7 @@ export const siteTheme = {
   fontMono: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
 } as const;
 
+/** Max width of the centered content column (nav, sidebar + main), Vega-Lite style. */
+export const CONTENT_MAX_WIDTH = 1180;
+
 export const GITHUB_REPO = 'https://github.com/microsoft/flint-chart';

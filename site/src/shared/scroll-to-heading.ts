@@ -23,24 +23,23 @@ export function scrollToHeading(
 
 export const DOC_SCROLL_TO_KEY = 'flint-doc-scroll-to';
 
-/** Pick the heading whose section is currently at the top of the scroll container. */
-export function resolveActiveHeadingId(
-  headingIds: string[],
-  scrollContainer: HTMLElement,
-  offset = 48,
-): string | null {
-  if (headingIds.length === 0) return null;
-
-  const containerTop = scrollContainer.getBoundingClientRect().top;
-  let active = headingIds[0];
-
-  for (const id of headingIds) {
-    const el = document.getElementById(id);
-    if (!el) continue;
-    if (el.getBoundingClientRect().top <= containerTop + offset) {
-      active = id;
-    }
+/**
+ * Scroll a sidebar just enough to bring its active item into view, and only
+ * when that item is currently outside the visible area. Unlike a continuous
+ * position sync, this is discrete (fires on active-item change), so it never
+ * forms a scroll feedback loop or fights the user.
+ */
+export function scrollNavItemIntoView(
+  sidebar: HTMLElement | null,
+  item: HTMLElement | null,
+  margin = 24,
+) {
+  if (!sidebar || !item) return;
+  const s = sidebar.getBoundingClientRect();
+  const i = item.getBoundingClientRect();
+  if (i.top < s.top + margin) {
+    sidebar.scrollTop -= s.top + margin - i.top;
+  } else if (i.bottom > s.bottom - margin) {
+    sidebar.scrollTop += i.bottom - (s.bottom - margin);
   }
-
-  return active;
 }

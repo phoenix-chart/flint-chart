@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type Ref,
 } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { TEST_GENERATORS, type TestCase } from 'flint-chart/test-data';
@@ -22,7 +23,8 @@ import { selectVariants } from '../shared/wall-variants';
 import { CHART_FAMILIES, familyForChart } from '../shared/wall-families';
 import { humanizeVariants } from '../shared/wall-title';
 import type { PreviewBackend } from '../shared/supported-backends';
-import { siteTheme } from '../shared/theme';
+import { siteTheme, CONTENT_MAX_WIDTH } from '../shared/theme';
+import { scrollNavItemIntoView } from '../shared/scroll-to-heading';
 
 const MAX_VARIANTS = 4;
 const TILE_CHART_HEIGHT = 190;
@@ -118,7 +120,8 @@ export function ChartWall() {
   const navigate = useNavigate();
   const category = resolveCategory(backendParam);
 
-  const mainRef = useRef<HTMLElement>(null);
+  const mainRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLElement>(null);
   const navScrollingRef = useRef(false);
   const [activeId, setActiveId] = useState('');
   const [active, setActive] = useState<ActiveModal | null>(null);
@@ -199,44 +202,56 @@ export function ChartWall() {
     }, 700);
   }, []);
 
+  // Bring the active chart type into view in the sidebar, but only when it has
+  // scrolled out of the sidebar's visible area. Discrete (on activeId change),
+  // so it never forms a scroll feedback loop.
+  useEffect(() => {
+    if (!activeId) return;
+    const sidebar = sidebarRef.current;
+    const item = sidebar?.querySelector<HTMLElement>(
+      `[data-chart-nav="${CSS.escape(activeId)}"]`,
+    );
+    scrollNavItemIntoView(sidebar, item ?? null);
+  }, [activeId]);
+
   return (
     <SiteShell>
-      <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
-        <WallSidebar
-          category={category}
-          groups={groups}
-          activeId={activeId}
-          onNavigate={scrollToChart}
-          onSelectBackend={(id) => navigate(`/wall/${id}`)}
-        />
-
-        <main
-          ref={mainRef}
-          style={{ flex: 1, minHeight: 0, overflowY: 'auto', background: siteTheme.surface }}
+      <div
+        ref={mainRef}
+        style={{
+          flex: 1,
+          minHeight: 0,
+          overflowY: 'auto',
+          background: siteTheme.surface,
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            width: '100%',
+            maxWidth: CONTENT_MAX_WIDTH,
+            margin: '0 auto',
+          }}
         >
-          <div style={{ maxWidth: 1100, margin: '0 auto', padding: '36px 40px 96px' }}>
-            <header style={{ marginBottom: 18 }}>
-              <p style={{ margin: '0 0 6px', fontSize: 12, color: siteTheme.textMuted }}>Gallery</p>
-              <h1 style={{ margin: 0, fontSize: 28, fontWeight: 600, letterSpacing: -0.4 }}>
-                Example Gallery
-              </h1>
-              <p
-                style={{
-                  margin: '10px 0 0',
-                  maxWidth: 720,
-                  color: siteTheme.textMuted,
-                  fontSize: 14.5,
-                  lineHeight: 1.65,
-                }}
-              >
-                Flint Chart turns table data, field semantic types, and a short chart spec into a
-                fully styled chart — no hand-written scales, axes, or legends. Pick a rendering
-                backend, then jump to a chart type from the sidebar. Click any example to step
-                through its variations and copy the Flint spec or compiled output.
-              </p>
-            </header>
+          <WallSidebar
+            sidebarRef={sidebarRef}
+            category={category}
+            groups={groups}
+            activeId={activeId}
+            onNavigate={scrollToChart}
+            onSelectBackend={(id) => navigate(`/wall/${id}`)}
+          />
 
-            <BackendIntro category={category} totalTiles={totalTiles} />
+          <main style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ maxWidth: 1100, margin: '0 auto', padding: '36px 40px 96px' }}>
+              <header style={{ marginBottom: 18 }}>
+                <h1 style={{ margin: 0, fontSize: 28, fontWeight: 600, letterSpacing: -0.4 }}>
+                  Example Gallery ({category.label} backend)
+                </h1>
+              </header>
+
+              <BackendIntro category={category} totalTiles={totalTiles} />
 
             {groups.map((group) => (
               <div key={group.id} style={{ marginTop: 44 }}>
@@ -293,8 +308,9 @@ export function ChartWall() {
                 ))}
               </div>
             ))}
-          </div>
-        </main>
+            </div>
+          </main>
+        </div>
       </div>
 
       {active && (
@@ -311,12 +327,14 @@ export function ChartWall() {
 }
 
 function WallSidebar({
+  sidebarRef,
   category,
   groups,
   activeId,
   onNavigate,
   onSelectBackend,
 }: {
+  sidebarRef: Ref<HTMLElement>;
   category: ChartCategory;
   groups: FamilyGroup[];
   activeId: string;
@@ -325,12 +343,17 @@ function WallSidebar({
 }) {
   return (
     <aside
+      ref={sidebarRef}
+      className="app-sidebar"
       style={{
         width: SIDEBAR_WIDTH,
         flexShrink: 0,
-        borderRight: `1px solid ${siteTheme.border}`,
-        background: siteTheme.bg,
+        position: 'sticky',
+        top: 0,
+        alignSelf: 'flex-start',
+        maxHeight: '100vh',
         overflowY: 'auto',
+        background: 'transparent',
         padding: '18px 0 28px',
       }}
     >
@@ -466,7 +489,7 @@ function BackendIntro({ category, totalTiles }: { category: ChartCategory; total
     return names;
   }, [category]);
 
-  const snippet = `import { ${category.fn} } from 'flint-chart';\n\nconst spec = ${category.fn}(input);`;
+  const snippet = category.snippet;
 
   return (
     <div style={{ marginTop: 22 }}>
@@ -484,7 +507,7 @@ function BackendIntro({ category, totalTiles }: { category: ChartCategory; total
         and render the result directly:
       </p>
 
-      <CodeBlock customStyle={{ marginTop: 12, maxWidth: 520, fontSize: 12.5 }}>
+      <CodeBlock customStyle={{ marginTop: 12, maxWidth: 560, fontSize: 12.5 }}>
         {snippet}
       </CodeBlock>
 
@@ -497,10 +520,11 @@ function BackendIntro({ category, totalTiles }: { category: ChartCategory; total
           lineHeight: 1.6,
         }}
       >
+        The {category.label} backend supports{' '}
         <strong style={{ color: siteTheme.text, fontWeight: 600 }}>
           {typeNames.length} chart types
         </strong>{' '}
-        ({totalTiles} curated examples): {typeNames.join(', ')}.
+        across {totalTiles} curated examples — including {typeNames.join(', ')}.
       </p>
     </div>
   );

@@ -6,11 +6,9 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import { Link, useLocation } from 'react-router-dom';
-import { CodeBlock, extractFenceLanguage, PlainTextBlock, resolveCodeLanguage } from './CodeBlock';
-import { parseFlintStepBlock, TutorialFlintStep } from './TutorialFlintStep';
+import { CodeBlock, PlainTextBlock, resolveCodeLanguage } from './CodeBlock';
 import { resolveMarkdownHref, resolveMarkdownImageSrc } from '../shared/load-docs';
 import { DOC_SCROLL_TO_KEY, scrollToHeading } from '../shared/scroll-to-heading';
-import { slugifyHeading } from '../shared/slugify-heading';
 import { siteTheme } from '../shared/theme';
 
 function getTextContent(node: ReactNode): string {
@@ -21,6 +19,16 @@ function getTextContent(node: ReactNode): string {
       return '';
     })
     .join('');
+}
+
+function slugifyHeading(text: string): string {
+  return text
+    .trim()
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
 }
 
 function headingProps(children: ReactNode, style: CSSProperties) {
@@ -114,24 +122,11 @@ export function MarkdownView({
     th: ({ children }) => <th style={thStyle}>{children}</th>,
     td: ({ children }) => <td style={tdStyle}>{children}</td>,
     code: ({ className, children }) => {
-      const text = getTextContent(children).replace(/\n$/, '');
+      const text = String(children).replace(/\n$/, '');
       const isBlock = Boolean(className?.startsWith('language-')) || text.includes('\n');
 
       if (!isBlock) {
         return <code style={inlineCodeStyle}>{children}</code>;
-      }
-
-      const rawLang = extractFenceLanguage(className) ?? '';
-      if (rawLang === 'flint-step') {
-        const parsed = parseFlintStepBlock(text);
-        if (parsed) {
-          return <TutorialFlintStep generator={parsed.generator} index={parsed.index} />;
-        }
-        return (
-          <PlainTextBlock customStyle={{ color: siteTheme.error }}>
-            Invalid flint-step block. Expected: generator key on line 1, optional index on line 2.
-          </PlainTextBlock>
-        );
       }
 
       const language = resolveCodeLanguage(className);

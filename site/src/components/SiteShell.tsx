@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { GITHUB_REPO, siteTheme } from '../shared/theme';
+import { CONTENT_MAX_WIDTH, GITHUB_REPO, siteTheme } from '../shared/theme';
 
 /**
  * Shared chrome: Vega-Lite-style top nav + page body + Microsoft disclosures.
@@ -33,6 +33,9 @@ export function SiteNavBar(_props: { flush?: boolean } = {}) {
         display: 'flex',
         alignItems: 'center',
         gap: 20,
+        width: '100%',
+        maxWidth: CONTENT_MAX_WIDTH,
+        margin: '0 auto',
         padding: '0 20px',
         height: 48,
         background: 'transparent',
@@ -47,10 +50,10 @@ export function SiteNavBar(_props: { flush?: boolean } = {}) {
         <NavLink to="/wall" active={pathname.startsWith('/wall') || pathname.startsWith('/gallery')}>
           Gallery
         </NavLink>
-        <NavLink to="/tutorials/getting-started" active={pathname.startsWith('/tutorials')}>
-          Tutorials
-        </NavLink>
-        <NavLink to="/documentation/overview" active={pathname.startsWith('/documentation')}>
+        <NavLink
+          to="/documentation"
+          active={pathname.startsWith('/documentation') || pathname.startsWith('/tutorials')}
+        >
           Documentation
         </NavLink>
         {/* <NavLink to="/tutorials/quick-start" active={pathname === '/tutorials/quick-start'}>

@@ -152,3 +152,87 @@ describe('choropleth maps from names', () => {
     expect(spec.transform?.[0]?.from?.key).toBe('__geo_id');
   });
 });
+
+describe('choropleth lookup robustness', () => {
+  it('uses the id field semantic type to disambiguate colliding codes/names', () => {
+    // "CA", "IN" and "Georgia" all exist in BOTH namespaces. The declared
+    // semantic type — not value inference — decides which map and resolver win.
+    const codes = [{ region: 'CA', v: 1 }, { region: 'IN', v: 2 }, { region: 'Georgia', v: 3 }];
+
+    const asStates = buildChoropleth(codes, 'region', 'v', 'State');
+    expect(asStates.feature).toBe('states');
+    expect(asStates.joined.get('CA')).toBe(6);       // California
+    expect(asStates.joined.get('IN')).toBe(18);      // Indiana
+    expect(asStates.joined.get('Georgia')).toBe(13); // Georgia (US state)
+
+    const asCountries = buildChoropleth(codes, 'region', 'v', 'Country');
+    expect(asCountries.feature).toBe('countries');
+    expect(asCountries.joined.get('CA')).toBe(124);      // Canada
+    expect(asCountries.joined.get('IN')).toBe(356);      // India
+    expect(asCountries.joined.get('Georgia')).toBe(268); // Georgia (country)
+  });
+
+  it('keeps a State-typed dataset on the US map even when a value is unresolvable', () => {
+    // Value inference alone flips to world on the first miss; the semantic type
+    // pins the scope so the resolvable USPS codes still join correctly.
+    const rows = [
+      { st: 'CA', v: 1 },
+      { st: '???', v: 2 },  // garbage — would otherwise flip the frame
+      { st: 'NY', v: 3 },
+    ];
+    const r = buildChoropleth(rows, 'st', 'v', 'State');
+    expect(r.feature).toBe('states');
+    expect(r.joined.get('CA')).toBe(6);
+    expect(r.joined.get('NY')).toBe(36);
+  });
+
+  it('resolves AP-style abbreviations, directional and qualified state forms', () => {
+    const rows = [
+      { s: 'Calif.', v: 1 },            // AP abbreviation
+      { s: 'Wash.', v: 2 },
+      { s: 'N. Carolina', v: 3 },       // directional shorthand
+      { s: 'S. Dakota', v: 4 },
+      { s: 'California, USA', v: 5 },    // qualified
+      { s: 'Washington State', v: 6 },
+    ];
+    const r = buildChoropleth(rows, 's', 'v', 'State');
+    expect(r.feature).toBe('states');
+    expect(r.joined.get('Calif.')).toBe(6);
+    expect(r.joined.get('Wash.')).toBe(53);
+    expect(r.joined.get('N. Carolina')).toBe(37);
+    expect(r.joined.get('S. Dakota')).toBe(46);
+    expect(r.joined.get('California, USA')).toBe(6);
+    expect(r.joined.get('Washington State')).toBe(53);
+  });
+
+  it('resolves country aliases, alternate forms and accented names', () => {
+    const rows = [
+      { c: 'Holland', v: 1 },            // → Netherlands
+      { c: 'S. Korea', v: 2 },           // → South Korea
+      { c: 'Korea, Rep.', v: 3 },        // → South Korea
+      { c: 'Côte d’Ivoire', v: 4 },      // accented → Ivory Coast
+      { c: 'Türkiye', v: 5 },            // → Turkey
+    ];
+    const r = buildChoropleth(rows, 'c', 'v', 'Country');
+    expect(r.feature).toBe('countries');
+    expect(r.joined.get('Holland')).toBe(528);
+    expect(r.joined.get('S. Korea')).toBe(410);
+    expect(r.joined.get('Korea, Rep.')).toBe(410);
+    expect(r.joined.get('Côte d’Ivoire')).toBe(384);
+    expect(r.joined.get('Türkiye')).toBe(792);
+  });
+
+  it('resolves the expanded set of countries verified against world-110m', () => {
+    const rows = [
+      { c: 'Georgia', v: 1 }, { c: 'Nepal', v: 2 }, { c: 'Cuba', v: 3 },
+      { c: 'Qatar', v: 4 }, { c: 'Croatia', v: 5 }, { c: 'Taiwan', v: 6 },
+    ];
+    const r = buildChoropleth(rows, 'c', 'v', 'Country');
+    expect(r.joined.get('Georgia')).toBe(268);
+    expect(r.joined.get('Nepal')).toBe(524);
+    expect(r.joined.get('Cuba')).toBe(192);
+    expect(r.joined.get('Qatar')).toBe(634);
+    expect(r.joined.get('Croatia')).toBe(191);
+    expect(r.joined.get('Taiwan')).toBe(158);
+  });
+});

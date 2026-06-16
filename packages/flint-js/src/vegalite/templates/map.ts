@@ -3,6 +3,7 @@
 
 import { ChartTemplateDef, ChartPropertyDef, OptionEvalContext } from '../../core/types';
 import { resolveUsState, resolveCountry, GeoResolver } from './geo-lookup';
+import { toTypeString } from '../../core/field-semantics';
 
 const mapProjections = [
     { value: "mercator", label: "Mercator" },
@@ -111,10 +112,34 @@ function inferChoroplethScope(rows: any[], idField?: string): MapScope {
     return 'us';
 }
 
-/** Honor an explicit `region` choice, else fall back to inference. */
-function pickScope(chartProperties: any, infer: () => MapScope): MapScope {
+/**
+ * Map the id field's *semantic type* to a map scope. This is the most reliable
+ * signal we have: a field declared 'State' should use the US states map and the
+ * US-state resolver, a field declared 'Country' the world map and country
+ * resolver. It disambiguates the codes that collide between the two namespaces
+ * — "CA" (California vs Canada), "IN" (Indiana vs India), "Georgia" (US state
+ * vs the country) — which value inference alone cannot. Geographic types that
+ * neither base layer can render (City, Region, Address, ZipCode) return
+ * undefined so we fall back to value inference.
+ */
+const SEMANTIC_SCOPE: Record<string, MapScope> = { State: 'us', Country: 'world' };
+
+function semanticScope(semType: string | undefined): MapScope | undefined {
+    if (!semType) return undefined;
+    return Object.prototype.hasOwnProperty.call(SEMANTIC_SCOPE, semType)
+        ? SEMANTIC_SCOPE[semType]
+        : undefined;
+}
+
+/** Honor an explicit `region` choice, else the id field's semantic type, else inference. */
+function pickScope(
+    chartProperties: any,
+    semScope: MapScope | undefined,
+    infer: () => MapScope,
+): MapScope {
     const choice = chartProperties?.region;
     if (choice === 'us' || choice === 'world') return choice;
+    if (semScope) return semScope;
     return infer();
 }
 
@@ -199,7 +224,7 @@ export const mapDef: ChartTemplateDef = {
         const rows = ctx.fullTable ?? ctx.table ?? [];
         const lonField = ctx.resolvedEncodings.longitude?.field;
         const latField = ctx.resolvedEncodings.latitude?.field;
-        const scope = pickScope(ctx.chartProperties, () => inferBubbleScope(rows, lonField, latField));
+        const scope = pickScope(ctx.chartProperties, undefined, () => inferBubbleScope(rows, lonField, latField));
 
         configureBubble(spec, scope);
         applyPointEncodings(spec.layer[1], ctx.resolvedEncodings);
@@ -316,7 +341,13 @@ export const choroplethDef: ChartTemplateDef = {
     instantiate: (spec, ctx) => {
         const rows = ctx.fullTable ?? ctx.table ?? [];
         const idField = ctx.resolvedEncodings.id?.field;
-        const scope = pickScope(ctx.chartProperties, () => inferChoroplethScope(rows, idField));
+        const semType = idField ? toTypeString(ctx.semanticTypes?.[idField]) : '';
+        const semScope = semanticScope(semType);
+        const scope = pickScope(
+            ctx.chartProperties,
+            semScope,
+            () => inferChoroplethScope(rows, idField),
+        );
 
         configureChoropleth(spec, scope);
         const resolver: GeoResolver = scope === 'us' ? resolveUsState : resolveCountry;

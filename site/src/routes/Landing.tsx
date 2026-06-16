@@ -1369,6 +1369,8 @@ const stackBadgeStyle: CSSProperties = {
 };
 
 // Flint spec shown in a demo viewport, with the data spec block highlighted.
+// The surrounding card clips overflow, so the pre itself never scrolls — it
+// renders the (short) summary spec in full without an unintended scrollbar.
 const demoSpecPreStyle: CSSProperties = {
   margin: 0,
   padding: '2px 4px',
@@ -1377,8 +1379,7 @@ const demoSpecPreStyle: CSSProperties = {
   lineHeight: 1.5,
   color: siteTheme.text,
   background: PAPER,
-  maxHeight: 300,
-  overflow: 'auto',
+  overflow: 'hidden',
 };
 
 const demoSpecHotLineStyle: CSSProperties = {

@@ -5,7 +5,7 @@ description = "Python port of the Flint semantic chart compiler — Vega-Lite ba
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = ["python-dateutil>=2.8"]
-license = "MIT"
+license = {text = "MIT"}
 
 [project.urls]
 Homepage = "https://github.com/microsoft/flint-chart"

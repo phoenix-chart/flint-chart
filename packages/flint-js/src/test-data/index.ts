@@ -26,6 +26,7 @@ export { genSlopeTests, genEChartsSlopeTests, genChartJsSlopeTests } from './slo
 export { genConnectedScatterTests, genEChartsConnectedScatterTests, genChartJsConnectedScatterTests } from './connected-scatter-tests';
 export { genAreaTests, genStreamgraphTests } from './area-tests';
 export { genRangeAreaTests, genEChartsRangeAreaTests, genChartJsRangeAreaTests } from './range-area-tests';
+export { genEcdfTests, genEChartsEcdfTests, genChartJsEcdfTests } from './ecdf-tests';
 export {
     genHeatmapTests, genPieTests, genRangedDotPlotTests, genLollipopTests,
     genCustomTests, genWaterfallTests, genBarTableTests, genCandlestickTests, genRadarTests, genPyramidTests,
@@ -109,6 +110,7 @@ import { genSlopeTests, genEChartsSlopeTests, genChartJsSlopeTests } from './slo
 import { genConnectedScatterTests, genEChartsConnectedScatterTests, genChartJsConnectedScatterTests } from './connected-scatter-tests';
 import { genAreaTests, genStreamgraphTests } from './area-tests';
 import { genRangeAreaTests, genEChartsRangeAreaTests, genChartJsRangeAreaTests } from './range-area-tests';
+import { genEcdfTests, genEChartsEcdfTests, genChartJsEcdfTests } from './ecdf-tests';
 import {
     genHeatmapTests, genPieTests, genRangedDotPlotTests, genLollipopTests,
     genCustomTests, genWaterfallTests, genBarTableTests, genCandlestickTests, genRadarTests, genPyramidTests,
@@ -165,6 +167,7 @@ export const TEST_GENERATORS: Record<string, () => TestCase[]> = {
     'Area Chart': genAreaTests,
     'Streamgraph': genStreamgraphTests,
     'Range Area Chart': genRangeAreaTests,
+    'ECDF Plot': genEcdfTests,
     'Lollipop Chart': genLollipopTests,
     'Density Plot': genDensityTests,
     'Candlestick Chart': genCandlestickTests,
@@ -218,6 +221,7 @@ export const TEST_GENERATORS: Record<string, () => TestCase[]> = {
     'ECharts: Slope': genEChartsSlopeTests,
     'ECharts: Connected Scatter': genEChartsConnectedScatterTests,
     'ECharts: Range Area': genEChartsRangeAreaTests,
+    'ECharts: ECDF': genEChartsEcdfTests,
     'ECharts: Facet Small': genEChartsFacetSmallTests,
     'ECharts: Facet Wrap': genEChartsFacetWrapTests,
     'ECharts: Facet Clip': genEChartsFacetClipTests,
@@ -238,6 +242,7 @@ export const TEST_GENERATORS: Record<string, () => TestCase[]> = {
     'Chart.js: Slope': genChartJsSlopeTests,
     'Chart.js: Connected Scatter': genChartJsConnectedScatterTests,
     'Chart.js: Range Area': genChartJsRangeAreaTests,
+    'Chart.js: ECDF': genChartJsEcdfTests,
     'Chart.js: Bar': genChartJsBarTests,
     'Chart.js: Stacked Bar': genChartJsStackedBarTests,
     'Chart.js: Grouped Bar': genChartJsGroupedBarTests,

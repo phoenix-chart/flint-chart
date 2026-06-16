@@ -17,6 +17,7 @@ import radarIcon from '../assets/chart-icons/chart-icon-radar.svg';
 import streamgraphIcon from '../assets/chart-icons/chart-icon-streamgraph.svg';
 import densityIcon from '../assets/chart-icons/chart-icon-density.svg';
 import violinIcon from '../assets/chart-icons/chart-icon-violin.svg';
+import ecdfIcon from '../assets/chart-icons/chart-icon-ecdf.svg';
 import lollipopIcon from '../assets/chart-icons/chart-icon-lollipop.svg';
 import candlestickIcon from '../assets/chart-icons/chart-icon-candlestick.svg';
 import waterfallIcon from '../assets/chart-icons/chart-icon-waterfall.svg';
@@ -130,6 +131,7 @@ const spec = assembleVegaLite(input);`,
       createChart('vegalite', 'range-area', 'Range Area Chart', 'Range Area Chart', rangeAreaIcon),
       createChart('vegalite', 'lollipop-chart', 'Lollipop Chart', 'Lollipop Chart', lollipopIcon),
       createChart('vegalite', 'density-plot', 'Density Plot', 'Density Plot', densityIcon),
+      createChart('vegalite', 'ecdf', 'ECDF Plot', 'ECDF Plot', ecdfIcon),
       createChart('vegalite', 'violin', 'Violin Plot', 'Violin Plot', violinIcon),
       createChart('vegalite', 'candlestick-chart', 'Candlestick Chart', 'Candlestick Chart', candlestickIcon),
       createChart('vegalite', 'waterfall-chart', 'Waterfall Chart', 'Waterfall Chart', waterfallIcon),
@@ -187,6 +189,7 @@ const option = assembleECharts(input);`,
       createChart('echarts', 'echarts-heatmap', 'Heatmap', 'ECharts: Heatmap', heatmapIcon),
       createChart('echarts', 'echarts-calendar', 'Calendar Heatmap *', 'ECharts: Calendar Heatmap *', calendarIcon),
       createChart('echarts', 'echarts-histogram', 'Histogram', 'ECharts: Histogram', histogramIcon),
+      createChart('echarts', 'echarts-ecdf', 'ECDF Plot', 'ECharts: ECDF', ecdfIcon),
       createChart('echarts', 'echarts-parallel', 'Parallel Coordinates *', 'ECharts: Parallel Coordinates *', parallelIcon),
       createChart('echarts', 'echarts-boxplot', 'Boxplot', 'ECharts: Boxplot', boxplotIcon),
       createChart('echarts', 'echarts-radar', 'Radar Chart', 'ECharts: Radar', radarIcon),
@@ -249,6 +252,7 @@ const config = assembleChartjs(input);`,
       createChart('chartjs', 'chartjs-pie', 'Pie Chart', 'Chart.js: Pie', pieIcon),
       createChart('chartjs', 'chartjs-doughnut', 'Doughnut Chart *', 'Chart.js: Doughnut *', doughnutIcon),
       createChart('chartjs', 'chartjs-histogram', 'Histogram', 'Chart.js: Histogram', histogramIcon),
+      createChart('chartjs', 'chartjs-ecdf', 'ECDF Plot', 'Chart.js: ECDF', ecdfIcon),
       createChart('chartjs', 'chartjs-radar', 'Radar Chart', 'Chart.js: Radar', radarIcon),
       createChart('chartjs', 'chartjs-rose', 'Rose Chart', 'Chart.js: Rose', roseIcon),
       createChart('chartjs', 'chartjs-waterfall', 'Waterfall Chart', 'Waterfall Chart', waterfallIcon),

@@ -21,6 +21,7 @@ import { cjsRangeAreaChartDef } from './range-area';
 import { cjsPieChartDef } from './pie';
 import { cjsDoughnutChartDef } from './doughnut';
 import { cjsHistogramDef } from './histogram';
+import { cjsEcdfPlotDef } from './ecdf';
 import { cjsRadarChartDef } from './radar';
 import { cjsRoseChartDef } from './rose';
 import { cjsGanttChartDef } from './gantt';
@@ -32,7 +33,7 @@ import { cjsWaterfallChartDef } from './waterfall';
 export const cjsTemplateDefs: { [key: string]: ChartTemplateDef[] } = {
     'Scatter & Point': [cjsScatterPlotDef, cjsConnectedScatterDef, cjsBubbleChartDef],
     'Bar':             [cjsBarChartDef, cjsGroupedBarChartDef, cjsStackedBarChartDef, cjsComboChartDef, cjsHistogramDef, cjsWaterfallChartDef, cjsGanttChartDef],
-    'Line & Area':     [cjsLineChartDef, cjsSlopeChartDef, cjsAreaChartDef, cjsRangeAreaChartDef],
+    'Line & Area':     [cjsLineChartDef, cjsSlopeChartDef, cjsAreaChartDef, cjsRangeAreaChartDef, cjsEcdfPlotDef],
     'Part-to-Whole':   [cjsPieChartDef, cjsDoughnutChartDef],
     'Polar':           [cjsRadarChartDef, cjsRoseChartDef],
 };

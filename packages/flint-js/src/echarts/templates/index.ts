@@ -35,6 +35,7 @@ import { ecWaterfallChartDef } from './waterfall';
 import { ecPyramidChartDef } from './pyramid';
 import { ecRangedDotPlotDef } from './ranged-dot';
 import { ecDensityPlotDef } from './density';
+import { ecEcdfPlotDef } from './ecdf';
 import { ecCalendarHeatmapDef } from './calendar';
 import { ecParallelCoordinatesDef } from './parallel';
 import { ecGraphDef } from './graph';
@@ -51,7 +52,7 @@ export const ecTemplateDefs: { [key: string]: ChartTemplateDef[] } = {
     'Bar':             [ecBarChartDef, ecGroupedBarChartDef, ecStackedBarChartDef, ecLollipopChartDef, ecPyramidChartDef, ecHeatmapDef, ecCalendarHeatmapDef],
     'Line & Area':     [ecLineChartDef, ecBumpChartDef, ecSlopeChartDef, ecAreaChartDef, ecStreamgraphDef, ecRangeAreaChartDef],
     'Part-to-Whole':   [ecPieChartDef, ecFunnelChartDef, ecTreemapDef, ecSunburstDef, ecTreeDef],
-    'Statistical':     [ecHistogramDef, ecDensityPlotDef, ecParallelCoordinatesDef],
+    'Statistical':     [ecHistogramDef, ecDensityPlotDef, ecEcdfPlotDef, ecParallelCoordinatesDef],
     'Financial':       [ecCandlestickDef],
     'Other':           [ecWaterfallChartDef, ecGanttChartDef, ecBulletChartDef],
     'Polar':           [ecRadarChartDef, ecRoseChartDef],

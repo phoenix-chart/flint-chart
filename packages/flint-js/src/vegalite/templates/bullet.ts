@@ -122,14 +122,17 @@ export const bulletChartDef: ChartTemplateDef = {
         }
         layers.push(barLayer);
 
-        // --- Target marker — a dark tick at the goal, taller than the bar ---
+        // --- Target marker — a dark tick at the goal, sized to the row band ---
         if (goal) {
-            const plotHeight = ctx.canvasSize?.height || 300;
-            let tickSize = 24;
-            if (y?.field && table.length > 0) {
-                const rows = new Set(table.map((r: any) => r[y.field])).size || 1;
-                tickSize = Math.max(12, Math.min(46, Math.round((plotHeight * 0.62) / rows)));
-            }
+            // Size the tick to the actual row band (yStep) so the marker always
+            // sits within its own row, whatever the cardinality. The value bar
+            // fills 50% of the band, so a tick at ~72% reads as a slightly taller
+            // reference marker without spilling into neighbouring rows or past the
+            // plot edges (the bug when sizing off canvas height / row count).
+            const band = ctx.layout?.yStep;
+            const tickSize = band && band > 0
+                ? Math.min(band, Math.max(8, Math.round(band * 0.72)))
+                : 22;
             layers.push({
                 mark: { type: 'tick', color: '#1a1a1a', thickness: 3, opacity: 1, size: tickSize },
                 encoding: {

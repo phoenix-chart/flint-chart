@@ -145,6 +145,18 @@ describe('Bullet chart', () => {
     expect(typeof tick.mark?.size).toBe('number');
     expect(tick.mark.size).toBeGreaterThan(0);
   });
+
+  it('keeps the target tick within its row band (no cross-row spill)', () => {
+    // The tick is sized off the layout band (yStep), so it must never exceed the
+    // per-row step — otherwise it bleeds into neighbouring rows / past the plot
+    // edge on low-cardinality bullets. spec.height is `{ step: N }` for the
+    // banded category axis.
+    const step = (spec.height && typeof spec.height === 'object')
+      ? spec.height.step
+      : undefined;
+    expect(typeof step).toBe('number');
+    expect(tick.mark.size).toBeLessThanOrEqual(step);
+  });
 });
 
 describe('gallery examples compile', () => {

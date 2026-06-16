@@ -34,16 +34,23 @@ from `site/src/shared/chart-categories.ts`._
 | Round | Types added (1 line) | Vega-Lite | ECharts | Chart.js | n |
 |-------|----------------------|-----------|---------|----------|---|
 | 1     | Slope Chart, Connected Scatter Plot | 28 | 28 | 18 | 2 |
+| 2     | Range Area Chart | 29 | 29 | 19 | 1 |
+| 3     | Violin Plot (VL only) | 30 | 29 | 19 | 1 |
 
 ## Backlog and conditional candidates
 
 _Types triaged but not implemented, with the blocker. Promote when the blocker
 clears._
 
-- **Range / Band Area** (Include, next round): high–low band over a continuum;
-  needs a `y2`/band channel. Top of the Round 2 queue.
+- **Range / Band Area** — _shipped in Round 2_ (VL native `area` y/y2; ECharts
+  transparent stacked base + translucent delta; Chart.js paired lines with
+  `fill:{target}`).
 - **Violin Plot** (Conditional): Include for VL (own KDE → mirrored area);
   ECharts conditional (precomputed KDE polygons); Chart.js reject (plugin only).
+- **Violin Plot** — _Vega-Lite shipped in Round 3_ (native `density` transform +
+  mirrored `area`, `x:density stack:center`). **ECharts conditional / Chart.js
+  reject** — see `uncertain-candidates.md` (ECharts needs `renderItem`; Chart.js
+  needs a plugin).
 - **Waffle, Marimekko/Mosaic, Ridgeline, Hexbin, Chord** (Backlog): heavier
   layout math or non-serializable layouts; Chart.js can't do most. See
   `work/candidates.md`.
@@ -73,6 +80,22 @@ _Per-backend feasibility limits and mapping tricks worth carrying forward._
   connected scatter) the *change* is the read, not absolute level, so fit-data
   framing (`zero:false`) reads better — but it diverges from the engine default.
   Treat "always fit-data for these types" as an open product choice (below).
+- **Fitted axes must pad on BOTH bounds.** When an axis is fit-data (non-zero)
+  and the chart maps a paired positional bound on it (`y`+`y2`, `x`+`x2`), the
+  domain-padding pass must union both fields' values or the band/span clips at
+  the far bound. Fixed once in `echarts/instantiate-spec.ts` for all such types.
+- **ECharts stacking goes wrong across zero.** A stacked series that can take
+  negative values is routed into a separate negative stack and collapses to the
+  zero line; set `stackStrategy:'all'` so stacking is cumulative regardless of
+  sign (needed for range bands / stacked areas with negatives).
+- **KDE charts need a padded extent.** For violin/ridgeline and any shared-extent
+  KDE, pad the density extent by ~`1.5 × bandwidth` (use the *largest* per-group
+  auto/NRD bandwidth) or wide-bandwidth groups render flat clipped caps at the
+  extent edge instead of tapering to a point. Mirrors Vega/seaborn auto "cut".
+- **Include/Conditional/Reject is genuinely per-backend.** The same type can be a
+  native VL transform (Violin = `density`+mirrored area), a `renderItem`-only job
+  in ECharts, and a plugin in Chart.js. Decide and record per backend; ship where
+  the idiom is serializable, surface the rest in `uncertain-candidates.md`.
 
 ## Open questions / TODO
 
@@ -80,8 +103,8 @@ _Per-backend feasibility limits and mapping tricks worth carrying forward._
   (`zero:false`) for VL; connected scatter keeps the engine's sibling-Scatter
   zero decision and fixes clipping via padding/`clip:false`. Decide whether
   slope and connected scatter should *both* always fit-data for tighter framing.
-- **Range / Band Area** is the next Include — start Round 2 there (needs the
-  `y2`/band channel).
+- **Range / Band Area** — shipped in Round 2. Next Include candidate is Violin
+  (VL); see backlog.
 
 ---
 
@@ -177,3 +200,116 @@ connection order independent of x.
 **Lessons.** Promoted to Durable lessons: the `order`-channel pattern for
 trajectory charts, end-markers-clip-at-bounds fix, and the zero-baseline-vs-
 trajectory-framing tension (left as an open product question).
+
+## Round 2: Range bands (2026-06-16)
+
+**Sources swept.** No new survey — Range/Band Area was promoted from the Round 1
+Conditional queue, where it had been held back to keep Round 1 coherent on
+pure-position types. It was the top backlog item with a clear cross-backend idiom.
+
+**Triage.**
+
+| Verdict | Count | Types |
+|---------|-------|-------|
+| Include     | 1 | Range Area Chart |
+| Conditional | 0 | — |
+| Backlog     | 0 | — |
+| Reject      | 0 | — |
+
+**Implemented.** **Range Area Chart** (band / high–low / area-range) in all three
+backends — a translucent band between a lower bound (`y`) and upper bound (`y2`)
+over a continuum; the value axis fits the band and is never anchored at zero.
+Reused the existing `y2` channel (no new channel needed). markCognitiveChannel
+`'area'`.
+
+- **Vega-Lite** — native `mark:"area"` with `encoding.y` (low) + `encoding.y2`
+  (high), `opacity≈0.5`, `scale.zero=false`, and `y.stack=null` when `color` is
+  present so multiple bands overlap rather than stack.
+- **ECharts** — per band a transparent stacked base (lower bound;
+  `lineStyle.opacity:0`, `itemStyle.color:'transparent'` so it consumes no palette
+  slot) + a translucent stacked delta (`high−low`) on the same `stack` → a ribbon
+  between bounds. Fully serializable (no `renderItem`); custom low–high tooltip.
+- **Chart.js** — per band a lower-bound line dataset (`fill:false`) + upper-bound
+  line dataset (`fill:{target:<lowerIndex>}`) with translucent `backgroundColor`,
+  no point markers; legend filters lower datasets so each band gets one entry.
+
+**Tests.** +33 structural tests (`tests/range-area.test.ts`); suite 178 → 211, all
+green. Vision: all 16 gallery/test images rendered per backend (VL `vl_convert`;
+ECharts SSR-SVG→resvg; Chart.js @napi-rs/canvas) and reviewed by Azure `gpt-5.5` —
+every image returned `band_between_bounds:true, filled_to_axis:false`, no issues,
+including the critical ECharts band-not-to-zero check and a zero-crossing band.
+Variants inspected: temporal daily low/high, multi-city color bands, numeric-x
+confidence band, ordinal quarterly band, zero-crossing anomaly band, narrowing→
+widening forecast cone, high-cardinality and column-faceted bands. Build + site
+typecheck + lint all green.
+
+**Deferred.** Nothing new deferred; backlog unchanged (Violin conditional next;
+Waffle/Marimekko/Ridgeline/Hexbin/Chord backlog; cross-backend porting backlog).
+
+**Backend bugs found.** Two real defects surfaced by VLM rendering and fixed at
+the root cause: (1) the ECharts value-axis domain-padding pass computed the fitted
+domain from only the `y` (lower) field, clipping the band's top — fixed in
+`echarts/instantiate-spec.ts` to include the paired `y2`/`x2` bound when present
+(also strictly correct for gantt spans; gantt-bullet tests stay green); (2) a
+zero-crossing band collapsed to the zero line because ECharts routes a negative
+base into a separate negative stack — fixed with `stackStrategy:'all'` on both
+band series so stacking is cumulative regardless of sign.
+
+**Lessons.** Promoted to Durable lessons: for any fitted (non-zero) value axis,
+domain padding must consider BOTH positional bounds on that axis (`y`+`y2`,
+`x`+`x2`), not just the primary field; and ECharts stacking needs
+`stackStrategy:'all'` whenever a stacked series can go negative.
+
+## Round 3: Distribution shape — Violin (2026-06-16)
+
+**Sources swept.** No new survey — a targeted gap-fill. The distribution family
+already had Histogram, Density Plot, and Boxplot in VL+ECharts; Violin was the one
+canonical distribution chart missing everywhere. Confirmed the gap by listing the
+three backends' `templates/` and the gallery.
+
+**Triage.** Decided per backend (the idioms diverge sharply here):
+
+| Verdict | Backend | Reason |
+|---------|---------|--------|
+| Include     | Vega-Lite | native `density` transform → mirrored `area` (`x:density, stack:"center"`); no plugin |
+| Conditional | ECharts | KDE is reusable (`echarts/density.ts` already computes a vega-matched Gaussian `kde()`), but a *filled mirrored violin polygon* spanning both axes needs `custom`/`renderItem`, which the JSON code modal can't show → deferred, surfaced in `uncertain-candidates.md` |
+| Reject      | Chart.js | violin needs a plugin (`chartjs-chart-boxplot`/violin); core-only constraint |
+
+**Implemented.** **Violin Plot — Vega-Lite only.** Native VL violin: a `density`
+transform grouped by category + `mark:"area"` with `x` mapped to `density` and
+`stack:"center"` for the symmetric mirror; the measure sits on the shared `value`
+(y) axis; one violin per category via VL faceting; a `bandwidth` property reusing
+`density.ts`'s wiring. Channel mapping mirrors Boxplot — `x` = category, `y` =
+measure, `color` = category (optional), `row` = optional outer facet. **`column`
+is consumed internally** for the per-category violin panels (the standard VL
+violin layout), so it is not offered as a user facet (documented in the def and
+SKILL.md).
+
+**Tests.** +23 structural tests (`tests/violin.test.ts`): density transform keyed
+on the measure with category `groupby`, mirrored `x.stack==="center"`, measure on
+the `value` axis, `bandwidth` feeds the transform, one violin per category, hidden
+density-axis ticks/labels, plus a gallery compile sweep. Suite 211 → 234, all
+green. Vision: all 8 cases rendered via `vl_convert` and reviewed by Azure
+`gpt-5.5`. Variants: multi-class scores (bimodal/skewed/tight/broad), explicit
+bimodal sensor (two humps), zero-crossing returns, uneven group sizes, 6-category
+spacing, single violin, color=category, and a `row`-faceted case. Build + site
+typecheck + lint all green.
+
+**Deferred.** ECharts Violin (renderItem-only) and Chart.js Violin (plugin) — both
+appended to `uncertain-candidates.md` with the blocker and a possible serializable
+ECharts hack to evaluate (stacked transparent-base band per category on a `value`
+axis, the range-area technique applied to KDE). Not implemented this round per the
+"surface uncertain candidates" directive.
+
+**Backend bugs found.** None in the assemblers. One render defect fixed in the new
+template: with a shared density `extent`, a wide-bandwidth group (auto NRD ≈ 3× the
+others) hit the extent boundary and rendered flat clipped caps instead of tapering
+to a point — fixed by padding the shared extent by `max(range×0.05, 1.5 ×
+effectiveBandwidth)` (effectiveBandwidth = user bandwidth, else the max per-group
+NRD), matching Vega/seaborn's auto-bandwidth "cut".
+
+**Lessons.** Promoted to Durable lessons: KDE violins/ridgelines need the shared
+density extent padded by ~1.5× the (largest) bandwidth or wide-bandwidth groups
+clip at the extent edge; and the per-backend Include/Conditional/Reject split is
+real — a native VL transform becomes a renderItem requirement in ECharts and a
+plugin in Chart.js.

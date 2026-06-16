@@ -67,3 +67,8 @@ df-reference/
 # Local-only WIP planning docs
 docs/HANDOFF.md
 docs/flint-spinout-plan.md
+
+# Loops: commit only the top-level method docs (README.md, log.md).
+# Per-loop work artifacts (datasets, test cases, render scripts, rendered
+# images, scratch) live under work/ and are kept local, not committed.
+loops/*/work/

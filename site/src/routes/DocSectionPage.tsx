@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { MarkdownView } from '../components/MarkdownView';
 import { SiteShell } from '../components/SiteShell';
 import type { DocSection } from '../shared/docs-catalog';
@@ -15,17 +15,26 @@ import { CONTENT_MAX_WIDTH, siteTheme } from '../shared/theme';
 export function DocSectionPage({ section }: { section: DocSection }) {
   const mainRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLElement>(null);
+  const navigate = useNavigate();
   const { slug } = useParams<{ slug?: string }>();
   const groups = getDocGroups(section);
   const docs = groups.flatMap((g) => g.docs);
-  const activeSlug = slug ?? docs[0]?.slug;
+  const firstSlug = docs[0]?.slug;
+  const activeSlug = slug ?? firstSlug;
   const entry = activeSlug ? getDocEntry(section, activeSlug) : undefined;
-
-  if (!slug && docs[0]) {
-    return <Navigate to={`/${section}/${docs[0].slug}`} replace />;
-  }
-
   const markdown = entry ? getDocMarkdown(entry) : null;
+
+  // Canonicalize a slug-less URL (/documentation) to the first doc WITHOUT a
+  // redirect render. We render the default doc immediately and only replace the
+  // URL in place, so the shell never unmounts — avoiding the blank flash a
+  // returned <Navigate> caused. Keeping every hook unconditional also prevents
+  // the "rendered more hooks" crash when moving between the /documentation and
+  // /documentation/:slug routes (they share this component instance).
+  useEffect(() => {
+    if (!slug && firstSlug) {
+      navigate(`/${section}/${firstSlug}`, { replace: true });
+    }
+  }, [slug, section, firstSlug, navigate]);
 
   useEffect(() => {
     const pending = sessionStorage.getItem(DOC_SCROLL_TO_KEY);

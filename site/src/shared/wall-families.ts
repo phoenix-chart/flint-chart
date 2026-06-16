@@ -43,11 +43,15 @@ const LABEL_TO_FAMILY: Record<string, string> = {
   // Line & Area
   line: 'line',
   area: 'line',
+  'range area': 'line',
   streamgraph: 'line',
   bump: 'line',
+  slope: 'line',
   // Scatter & Points
   'scatter plot': 'scatter',
   scatter: 'scatter',
+  'connected scatter plot': 'scatter',
+  'connected scatter': 'scatter',
   bubble: 'scatter',
   regression: 'scatter',
   'strip plot': 'scatter',

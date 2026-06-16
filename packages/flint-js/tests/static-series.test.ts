@@ -232,6 +232,22 @@ describe('static series end-to-end: Vega-Lite', () => {
         expect(yEnc.type).toBe('quantitative');
     });
 
+    it('measure axis title is readable, not the synthetic value column name', () => {
+        const spec = assembleVegaLite(STATIC_SERIES_INPUT) as any;
+        const yEnc = spec.encoding?.y;
+        // The synthetic value column must never leak into the axis title.
+        expect(yEnc.title).toBe('Value');
+        expect(yEnc.title).not.toBe(STATIC_SERIES_VALUE_COLUMN);
+    });
+
+    it('honors a host-provided display name for the value column', () => {
+        const spec = assembleVegaLite({
+            ...STATIC_SERIES_INPUT,
+            field_display_names: { [STATIC_SERIES_VALUE_COLUMN]: 'Sales (USD)' },
+        }) as any;
+        expect(spec.encoding?.y?.title).toBe('Sales (USD)');
+    });
+
     it('data contains folded rows', () => {
         const spec = assembleVegaLite(STATIC_SERIES_INPUT) as any;
         const data = spec.data?.values;

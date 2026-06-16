@@ -21,7 +21,10 @@ export { genBarTests, genStackedBarTests, genGroupedBarTests } from './bar-tests
 export { genHistogramTests, genBoxplotTests, genDensityTests, genStripPlotTests } from './distribution-tests';
 export { genLineTests } from './line-tests';
 export { genBumpChartTests } from './line-area-tests';
+export { genSlopeTests, genEChartsSlopeTests, genChartJsSlopeTests } from './slope-tests';
+export { genConnectedScatterTests, genEChartsConnectedScatterTests, genChartJsConnectedScatterTests } from './connected-scatter-tests';
 export { genAreaTests, genStreamgraphTests } from './area-tests';
+export { genRangeAreaTests, genEChartsRangeAreaTests, genChartJsRangeAreaTests } from './range-area-tests';
 export {
     genHeatmapTests, genPieTests, genRangedDotPlotTests, genLollipopTests,
     genCustomTests, genWaterfallTests, genBarTableTests, genCandlestickTests, genRadarTests, genPyramidTests,
@@ -100,7 +103,10 @@ import { genMapTests, genChoroplethTests } from './map-tests';
 import { genGanttTests, genBulletTests } from './gantt-bullet-tests';
 import { genLineTests } from './line-tests';
 import { genBumpChartTests } from './line-area-tests';
+import { genSlopeTests, genEChartsSlopeTests, genChartJsSlopeTests } from './slope-tests';
+import { genConnectedScatterTests, genEChartsConnectedScatterTests, genChartJsConnectedScatterTests } from './connected-scatter-tests';
 import { genAreaTests, genStreamgraphTests } from './area-tests';
+import { genRangeAreaTests, genEChartsRangeAreaTests, genChartJsRangeAreaTests } from './range-area-tests';
 import {
     genHeatmapTests, genPieTests, genRangedDotPlotTests, genLollipopTests,
     genCustomTests, genWaterfallTests, genBarTableTests, genCandlestickTests, genRadarTests, genPyramidTests,
@@ -148,11 +154,14 @@ export const TEST_GENERATORS: Record<string, () => TestCase[]> = {
     'Heatmap': genHeatmapTests,
     'Line Chart': genLineTests,
     'Bump Chart': genBumpChartTests,
+    'Slope Chart': genSlopeTests,
+    'Connected Scatter Plot': genConnectedScatterTests,
     'Boxplot': genBoxplotTests,
     'Pie Chart': genPieTests,
     'Ranged Dot Plot': genRangedDotPlotTests,
     'Area Chart': genAreaTests,
     'Streamgraph': genStreamgraphTests,
+    'Range Area Chart': genRangeAreaTests,
     'Lollipop Chart': genLollipopTests,
     'Density Plot': genDensityTests,
     'Candlestick Chart': genCandlestickTests,
@@ -203,6 +212,9 @@ export const TEST_GENERATORS: Record<string, () => TestCase[]> = {
     'ECharts: Radar': genEChartsRadarTests,
     'ECharts: Candlestick': genEChartsCandlestickTests,
     'ECharts: Streamgraph': genEChartsStreamgraphTests,
+    'ECharts: Slope': genEChartsSlopeTests,
+    'ECharts: Connected Scatter': genEChartsConnectedScatterTests,
+    'ECharts: Range Area': genEChartsRangeAreaTests,
     'ECharts: Facet Small': genEChartsFacetSmallTests,
     'ECharts: Facet Wrap': genEChartsFacetWrapTests,
     'ECharts: Facet Clip': genEChartsFacetClipTests,
@@ -220,6 +232,9 @@ export const TEST_GENERATORS: Record<string, () => TestCase[]> = {
     'ECharts: Unique Stress': genEChartsUniqueStressTests,
     'Chart.js: Scatter': genChartJsScatterTests,
     'Chart.js: Line': genChartJsLineTests,
+    'Chart.js: Slope': genChartJsSlopeTests,
+    'Chart.js: Connected Scatter': genChartJsConnectedScatterTests,
+    'Chart.js: Range Area': genChartJsRangeAreaTests,
     'Chart.js: Bar': genChartJsBarTests,
     'Chart.js: Stacked Bar': genChartJsStackedBarTests,
     'Chart.js: Grouped Bar': genChartJsGroupedBarTests,

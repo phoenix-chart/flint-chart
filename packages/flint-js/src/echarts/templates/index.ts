@@ -10,9 +10,12 @@
 
 import { ChartTemplateDef } from '../../core/types';
 import { ecScatterPlotDef, ecRegressionDef } from './scatter';
+import { ecConnectedScatterDef } from './connected-scatter';
 import { ecBarChartDef, ecStackedBarChartDef, ecGroupedBarChartDef } from './bar';
 import { ecLineChartDef, ecBumpChartDef } from './line';
+import { ecSlopeChartDef } from './slope';
 import { ecAreaChartDef } from './area';
+import { ecRangeAreaChartDef } from './range-area';
 import { ecPieChartDef } from './pie';
 import { ecHeatmapDef } from './heatmap';
 import { ecHistogramDef } from './histogram';
@@ -44,9 +47,9 @@ import { ecBulletChartDef } from './bullet';
  * Mirrors vegalite/templates/index.ts so VegaLite test cases can run through ECharts.
  */
 export const ecTemplateDefs: { [key: string]: ChartTemplateDef[] } = {
-    'Scatter & Point': [ecScatterPlotDef, ecRegressionDef, ecRangedDotPlotDef, ecBoxplotDef, ecStripPlotDef],
+    'Scatter & Point': [ecScatterPlotDef, ecRegressionDef, ecConnectedScatterDef, ecRangedDotPlotDef, ecBoxplotDef, ecStripPlotDef],
     'Bar':             [ecBarChartDef, ecGroupedBarChartDef, ecStackedBarChartDef, ecLollipopChartDef, ecPyramidChartDef, ecHeatmapDef, ecCalendarHeatmapDef],
-    'Line & Area':     [ecLineChartDef, ecBumpChartDef, ecAreaChartDef, ecStreamgraphDef],
+    'Line & Area':     [ecLineChartDef, ecBumpChartDef, ecSlopeChartDef, ecAreaChartDef, ecStreamgraphDef, ecRangeAreaChartDef],
     'Part-to-Whole':   [ecPieChartDef, ecFunnelChartDef, ecTreemapDef, ecSunburstDef, ecTreeDef],
     'Statistical':     [ecHistogramDef, ecDensityPlotDef, ecParallelCoordinatesDef],
     'Financial':       [ecCandlestickDef],

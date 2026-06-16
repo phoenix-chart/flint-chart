@@ -1,12 +1,14 @@
 import type { PreviewBackend } from './supported-backends';
 import { BACKEND_LABELS } from './supported-backends';
 import scatterIcon from '../assets/chart-icons/chart-icon-scatter.svg';
+import connectedScatterIcon from '../assets/chart-icons/chart-icon-connected-scatter.svg';
 import regressionIcon from '../assets/chart-icons/chart-icon-linear-regression.svg';
 import barIcon from '../assets/chart-icons/chart-icon-column.svg';
 import stackedBarIcon from '../assets/chart-icons/chart-icon-column-stacked.svg';
 import groupedBarIcon from '../assets/chart-icons/chart-icon-column-grouped.svg';
 import lineIcon from '../assets/chart-icons/chart-icon-line.svg';
 import areaIcon from '../assets/chart-icons/chart-icon-area.svg';
+import rangeAreaIcon from '../assets/chart-icons/chart-icon-range-area.svg';
 import pieIcon from '../assets/chart-icons/chart-icon-pie.svg';
 import heatmapIcon from '../assets/chart-icons/chart-icon-heat-map.svg';
 import histogramIcon from '../assets/chart-icons/chart-icon-histogram.svg';
@@ -20,6 +22,7 @@ import waterfallIcon from '../assets/chart-icons/chart-icon-waterfall.svg';
 import roseIcon from '../assets/chart-icons/chart-icon-rose.svg';
 import pyramidIcon from '../assets/chart-icons/chart-icon-pyramid.svg';
 import bumpIcon from '../assets/chart-icons/chart-icon-bump.svg';
+import slopeIcon from '../assets/chart-icons/chart-icon-slope.svg';
 import stripPlotIcon from '../assets/chart-icons/chart-icon-strip-plot.svg';
 import funnelIcon from '../assets/chart-icons/chart-icon-funnel.svg';
 import gaugeIcon from '../assets/chart-icons/chart-icon-gauge.svg';
@@ -84,6 +87,7 @@ export const CHART_CATEGORIES: ChartCategory[] = [
     fn: 'assembleVegaLite',
     charts: [
       createChart('vegalite', 'scatter-plot', 'Scatter Plot', 'Scatter Plot', scatterIcon),
+      createChart('vegalite', 'connected-scatter', 'Connected Scatter Plot', 'Connected Scatter Plot', connectedScatterIcon),
       createChart('vegalite', 'regression', 'Regression', 'Regression', regressionIcon),
       createChart('vegalite', 'bar-chart', 'Bar Chart', 'Bar Chart', barIcon),
       createChart('vegalite', 'stacked-bar-chart', 'Stacked Bar Chart', 'Stacked Bar Chart', stackedBarIcon),
@@ -92,11 +96,13 @@ export const CHART_CATEGORIES: ChartCategory[] = [
       createChart('vegalite', 'heatmap', 'Heatmap', 'Heatmap', heatmapIcon),
       createChart('vegalite', 'line-chart', 'Line Chart', 'Line Chart', lineIcon),
       createChart('vegalite', 'bump-chart', 'Bump Chart', 'Bump Chart', bumpIcon),
+      createChart('vegalite', 'slope-chart', 'Slope Chart', 'Slope Chart', slopeIcon),
       createChart('vegalite', 'boxplot', 'Boxplot', 'Boxplot', boxplotIcon),
       createChart('vegalite', 'pie-chart', 'Pie Chart', 'Pie Chart', pieIcon),
       createChart('vegalite', 'ranged-dot-plot', 'Ranged Dot Plot', 'Ranged Dot Plot', rangedDotPlotIcon),
       createChart('vegalite', 'area-chart', 'Area Chart', 'Area Chart', areaIcon),
       createChart('vegalite', 'streamgraph', 'Streamgraph', 'Streamgraph', streamgraphIcon),
+      createChart('vegalite', 'range-area', 'Range Area Chart', 'Range Area Chart', rangeAreaIcon),
       createChart('vegalite', 'lollipop-chart', 'Lollipop Chart', 'Lollipop Chart', lollipopIcon),
       createChart('vegalite', 'density-plot', 'Density Plot', 'Density Plot', densityIcon),
       createChart('vegalite', 'candlestick-chart', 'Candlestick Chart', 'Candlestick Chart', candlestickIcon),
@@ -121,11 +127,14 @@ export const CHART_CATEGORIES: ChartCategory[] = [
     fn: 'assembleECharts',
     charts: [
       createChart('echarts', 'echarts-scatter', 'Scatter Plot', 'ECharts: Scatter', scatterIcon),
+      createChart('echarts', 'echarts-connected-scatter', 'Connected Scatter Plot', 'ECharts: Connected Scatter', connectedScatterIcon),
       createChart('echarts', 'echarts-line', 'Line Chart', 'ECharts: Line', lineIcon),
+      createChart('echarts', 'echarts-slope', 'Slope Chart', 'ECharts: Slope', slopeIcon),
       createChart('echarts', 'echarts-bar', 'Bar Chart', 'ECharts: Bar', barIcon),
       createChart('echarts', 'echarts-stacked-bar', 'Stacked Bar Chart', 'ECharts: Stacked Bar', stackedBarIcon),
       createChart('echarts', 'echarts-grouped-bar', 'Grouped Bar Chart', 'ECharts: Grouped Bar', groupedBarIcon),
       createChart('echarts', 'echarts-area', 'Area Chart', 'ECharts: Area', areaIcon),
+      createChart('echarts', 'echarts-range-area', 'Range Area Chart', 'ECharts: Range Area', rangeAreaIcon),
       createChart('echarts', 'echarts-pie', 'Pie Chart', 'ECharts: Pie', pieIcon),
       createChart('echarts', 'echarts-heatmap', 'Heatmap', 'ECharts: Heatmap', heatmapIcon),
       createChart('echarts', 'echarts-calendar', 'Calendar Heatmap *', 'ECharts: Calendar Heatmap *', calendarIcon),
@@ -157,14 +166,17 @@ export const CHART_CATEGORIES: ChartCategory[] = [
     fn: 'assembleChartjs',
     charts: [
       createChart('chartjs', 'chartjs-scatter', 'Scatter Plot', 'Chart.js: Scatter', scatterIcon),
+      createChart('chartjs', 'chartjs-connected-scatter', 'Connected Scatter Plot', 'Chart.js: Connected Scatter', connectedScatterIcon),
       createChart('chartjs', 'chartjs-bubble', 'Bubble Chart *', 'Chart.js: Bubble *', bubbleIcon),
       createChart('chartjs', 'chartjs-line', 'Line Chart', 'Chart.js: Line', lineIcon),
+      createChart('chartjs', 'chartjs-slope', 'Slope Chart', 'Chart.js: Slope', slopeIcon),
       createChart('chartjs', 'chartjs-facet-line', 'Line Chart', 'Facet: Dense Line', lineIcon),
       createChart('chartjs', 'chartjs-bar', 'Bar Chart', 'Chart.js: Bar', barIcon),
       createChart('chartjs', 'chartjs-combo', 'Combo Chart *', 'Chart.js: Combo *', comboIcon),
       createChart('chartjs', 'chartjs-stacked-bar', 'Stacked Bar Chart', 'Chart.js: Stacked Bar', stackedBarIcon),
       createChart('chartjs', 'chartjs-grouped-bar', 'Grouped Bar Chart', 'Chart.js: Grouped Bar', groupedBarIcon),
       createChart('chartjs', 'chartjs-area', 'Area Chart', 'Chart.js: Area', areaIcon),
+      createChart('chartjs', 'chartjs-range-area', 'Range Area Chart', 'Chart.js: Range Area', rangeAreaIcon),
       createChart('chartjs', 'chartjs-pie', 'Pie Chart', 'Chart.js: Pie', pieIcon),
       createChart('chartjs', 'chartjs-doughnut', 'Doughnut Chart *', 'Chart.js: Doughnut *', doughnutIcon),
       createChart('chartjs', 'chartjs-histogram', 'Histogram', 'Chart.js: Histogram', histogramIcon),

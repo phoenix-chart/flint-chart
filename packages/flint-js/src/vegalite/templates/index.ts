@@ -14,10 +14,13 @@ import type { ChartPropertyDef, OptionEvalContext } from '../../core/types';
 
 // --- Individual chart imports ---
 import { scatterPlotDef, regressionDef, rangedDotPlotDef, boxplotDef } from './scatter';
+import { connectedScatterDef } from './connected-scatter';
 import { barChartDef, pyramidChartDef, groupedBarChartDef, stackedBarChartDef, histogramDef, heatmapDef } from './bar';
 import { lineChartDef } from './line';
 import { bumpChartDef } from './bump';
+import { slopeChartDef } from './slope';
 import { areaChartDef, streamgraphDef } from './area';
+import { rangeAreaChartDef } from './range-area';
 import { pieChartDef } from './pie';
 import { lollipopChartDef } from './lollipop';
 import { densityPlotDef } from './density';
@@ -240,10 +243,10 @@ function withInjectedProperties(def: ChartTemplateDef): ChartTemplateDef {
  */
 export const vlTemplateDefs: { [key: string]: ChartTemplateDef[] } = Object.fromEntries(
     Object.entries({
-        "Points":          [scatterPlotDef, regressionDef, rangedDotPlotDef, stripPlotDef],
+        "Points":          [scatterPlotDef, regressionDef, connectedScatterDef, rangedDotPlotDef, stripPlotDef],
         "Bars":            [barChartDef, groupedBarChartDef, stackedBarChartDef, lollipopChartDef, waterfallChartDef, ganttChartDef, bulletChartDef],
         "Distributions":   [histogramDef, densityPlotDef, boxplotDef, pyramidChartDef, candlestickChartDef],
-        "Lines & Areas":   [lineChartDef, bumpChartDef, areaChartDef, streamgraphDef],
+        "Lines & Areas":   [lineChartDef, bumpChartDef, slopeChartDef, areaChartDef, streamgraphDef, rangeAreaChartDef],
         "Circular":        [pieChartDef, roseChartDef, radarChartDef],
         "Tables & Maps":   [heatmapDef, barTableDef, kpiCardDef, mapDef, choroplethDef],
         "Custom":          [customPointDef, customLineDef, customBarDef, customRectDef, customAreaDef],

@@ -10,11 +10,14 @@
 
 import { ChartTemplateDef } from '../../core/types';
 import { cjsScatterPlotDef } from './scatter';
+import { cjsConnectedScatterDef } from './connected-scatter';
 import { cjsBubbleChartDef } from './bubble';
 import { cjsBarChartDef, cjsStackedBarChartDef, cjsGroupedBarChartDef } from './bar';
 import { cjsComboChartDef } from './combo';
 import { cjsLineChartDef } from './line';
+import { cjsSlopeChartDef } from './slope';
 import { cjsAreaChartDef } from './area';
+import { cjsRangeAreaChartDef } from './range-area';
 import { cjsPieChartDef } from './pie';
 import { cjsDoughnutChartDef } from './doughnut';
 import { cjsHistogramDef } from './histogram';
@@ -27,9 +30,9 @@ import { cjsWaterfallChartDef } from './waterfall';
  * Chart.js chart template definitions, grouped by category.
  */
 export const cjsTemplateDefs: { [key: string]: ChartTemplateDef[] } = {
-    'Scatter & Point': [cjsScatterPlotDef, cjsBubbleChartDef],
+    'Scatter & Point': [cjsScatterPlotDef, cjsConnectedScatterDef, cjsBubbleChartDef],
     'Bar':             [cjsBarChartDef, cjsGroupedBarChartDef, cjsStackedBarChartDef, cjsComboChartDef, cjsHistogramDef, cjsWaterfallChartDef, cjsGanttChartDef],
-    'Line & Area':     [cjsLineChartDef, cjsAreaChartDef],
+    'Line & Area':     [cjsLineChartDef, cjsSlopeChartDef, cjsAreaChartDef, cjsRangeAreaChartDef],
     'Part-to-Whole':   [cjsPieChartDef, cjsDoughnutChartDef],
     'Polar':           [cjsRadarChartDef, cjsRoseChartDef],
 };

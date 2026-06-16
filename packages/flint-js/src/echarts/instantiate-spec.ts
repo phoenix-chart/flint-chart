@@ -352,8 +352,17 @@ export function ecApplyLayoutToSpec(
             axisObj.scale = !decision.zero; // false = include zero, true = data-fit
         }
         if (!decision.zero && decision.domainPadFraction > 0 && cs.field) {
+            // Range bands (range area) and span marks (gantt) carry a second
+            // positional bound on the SAME axis: x2 / y2. The fitted domain must
+            // cover both bounds, otherwise the upper edge of the band (or the end
+            // of a span) is clipped. Include the paired field's values when present.
+            const pairField =
+                axis === 'y' ? channelSemantics.y2?.field
+                    : axis === 'x' ? channelSemantics.x2?.field
+                        : undefined;
+            const domainFields = pairField ? [cs.field, pairField] : [cs.field];
             const numericValues = context.table
-                .map((r: any) => r[cs.field])
+                .flatMap((r: any) => domainFields.map((f) => r[f]))
                 .filter((v: any) => v != null && typeof v === 'number' && !isNaN(v));
             const padded = computePaddedDomain(numericValues, decision.domainPadFraction);
             if (padded) {

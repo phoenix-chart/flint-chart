@@ -23,12 +23,15 @@ export const channels = [
     "x", "y", "x2", "y2", "id", "color", "opacity", "size", "shape", "strokeDash", "column",
     "row", "latitude", "longitude", "radius", "detail", "group",
     "open", "high", "low", "close", "angle",
+    // Connected Scatter Plot: the sequence field that defines the line's
+    // connection order (the trajectory), independent of the x value.
+    "order",
     // KPI Card: one row per tile, no chart axes.
     "metric", "value", "goal",
 ] as const;
 
 export const channelGroups: Record<string, string[]> = {
-    "": ["x", "x2", "y", "y2", "latitude", "longitude", "id", "radius", "detail"],
+    "": ["x", "x2", "y", "y2", "latitude", "longitude", "id", "radius", "detail", "order"],
     "legends": ["color", "group", "size", "shape", "text", "opacity", "strokeDash"],
     "price": ["open", "high", "low", "close"],
     "facets": ["column", "row"],

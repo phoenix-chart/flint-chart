@@ -372,14 +372,21 @@ export function assembleVegaLite(input: ChartAssemblyInput): any {
 
     // --- Build VL encodings (abstract semantics → VL encoding objects) ---
 
-    // For static series, suppress the synthetic key column's axis title
-    // (show "Series" instead of "__flint_series_key") and map field names to display names
+    // For static series, suppress the synthetic key/value column axis titles
+    // (show "Series"/"Value" instead of "__flint_series_key"/"__flint_series_value")
+    // and map field names to display names
     let fieldDisplayNames = input.field_display_names;
     if (staticSeries) {
         fieldDisplayNames = { ...fieldDisplayNames };
         // Hide the synthetic key column name from the legend title
         if (!fieldDisplayNames[staticSeries.keyColumn]) {
             fieldDisplayNames[staticSeries.keyColumn] = 'Series';
+        }
+        // Hide the synthetic value column name from the measure axis title.
+        // The folded fields have no single intrinsic name, so default to "Value"
+        // (the host can override via field_display_names).
+        if (!fieldDisplayNames[staticSeries.valueColumn]) {
+            fieldDisplayNames[staticSeries.valueColumn] = 'Value';
         }
         // Map each series field name to its display name (if available) for legend labels
         // This uses VL's labelExpr or scale domain in the encoding

@@ -30,8 +30,26 @@ const RELEASE_PLAN: Array<[string, string, string, string]> = [
     ['Launch', '2024-06-03', '2024-06-17', 'Release'],
 ];
 
+// A denser pipeline measured on a *numeric* time axis (elapsed seconds), with
+// several overlapping stages. This exercises the quantitative x/x2 path (no zero
+// anchor) and a higher task count than the dated release plan above.
+const CI_PIPELINE: Array<[string, number, number, string]> = [
+    // stage, start (s), end (s), group
+    ['Checkout', 0, 8, 'Setup'],
+    ['Install deps', 8, 72, 'Setup'],
+    ['Lint', 72, 110, 'Check'],
+    ['Type check', 72, 128, 'Check'],
+    ['Unit tests', 128, 205, 'Test'],
+    ['Integration tests', 205, 320, 'Test'],
+    ['Build', 320, 372, 'Build'],
+    ['Bundle', 372, 410, 'Build'],
+    ['Docker image', 410, 465, 'Package'],
+    ['Deploy staging', 465, 500, 'Deploy'],
+];
+
 export function genGanttTests(): TestCase[] {
     const data = RELEASE_PLAN.map(([task, start, end, phase]) => ({ task, start, end, phase }));
+    const pipeline = CI_PIPELINE.map(([stage, start, end, group]) => ({ stage, start, end, group }));
     return [
         {
             title: 'Project schedule',
@@ -58,6 +76,30 @@ export function genGanttTests(): TestCase[] {
                 color: makeEncodingItem('phase'),
             },
         },
+        {
+            title: 'CI pipeline run',
+            description:
+                'A build pipeline on a numeric time axis (elapsed seconds) rather '
+                + 'than dates. Ten stages, several running in parallel, are coloured '
+                + 'by stage group and ordered by start time. Because start/end are '
+                + 'quantities the axis still floats off zero to frame the run.',
+            tags: ['gantt', 'timeline', 'quantitative', 'range', 'dense', 'gallery'],
+            chartType: 'Gantt Chart',
+            data: pipeline,
+            fields: [makeField('stage'), makeField('start'), makeField('end'), makeField('group')],
+            metadata: {
+                stage: { type: Type.String, semanticType: 'Category', levels: [] },
+                start: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                end: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                group: { type: Type.String, semanticType: 'Category', levels: [] },
+            },
+            encodingMap: {
+                y: makeEncodingItem('stage'),
+                x: makeEncodingItem('start'),
+                x2: makeEncodingItem('end'),
+                color: makeEncodingItem('group'),
+            },
+        },
     ];
 }
 
@@ -75,8 +117,28 @@ const SALES_VS_QUOTA: Array<[string, number, number]> = [
     ['Frank', 226, 210],
 ];
 
+// A denser bullet on a different domain and magnitude: store revenue ($K)
+// against an annual target, twelve stores, with a mix of stores above and below
+// their target so both status colours and the per-row quarter bands are visible.
+const STORE_REVENUE: Array<[string, number, number]> = [
+    // store, revenue ($K), target ($K)
+    ['Seattle', 612, 540],
+    ['Portland', 388, 420],
+    ['Denver', 470, 470],
+    ['Austin', 845, 720],
+    ['Chicago', 503, 560],
+    ['Boston', 266, 350],
+    ['Atlanta', 591, 500],
+    ['Miami', 432, 480],
+    ['Phoenix', 358, 300],
+    ['Dallas', 707, 650],
+    ['Detroit', 214, 320],
+    ['Newark', 489, 460],
+];
+
 export function genBulletTests(): TestCase[] {
     const data = SALES_VS_QUOTA.map(([rep, sales, quota]) => ({ rep, sales, quota }));
+    const stores = STORE_REVENUE.map(([store, revenue, target]) => ({ store, revenue, target }));
     return [
         {
             title: 'Sales vs quota',
@@ -98,6 +160,29 @@ export function genBulletTests(): TestCase[] {
                 y: makeEncodingItem('rep'),
                 x: makeEncodingItem('sales'),
                 goal: makeEncodingItem('quota'),
+            },
+        },
+        {
+            title: 'Store revenue vs target',
+            description:
+                'A denser bullet: twelve stores compared against an annual revenue '
+                + 'target ($K). Stores at or above target read in the meets-target '
+                + 'colour, those below in the below-target colour, and the muted '
+                + 'grey bands behind each bar mark quarters of that store\u2019s own '
+                + 'target so partial progress is easy to gauge.',
+            tags: ['bullet', 'kpi', 'target', 'dense', 'gallery'],
+            chartType: 'Bullet Chart',
+            data: stores,
+            fields: [makeField('store'), makeField('revenue'), makeField('target')],
+            metadata: {
+                store: { type: Type.String, semanticType: 'Category', levels: [] },
+                revenue: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                target: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+            },
+            encodingMap: {
+                y: makeEncodingItem('store'),
+                x: makeEncodingItem('revenue'),
+                goal: makeEncodingItem('target'),
             },
         },
     ];

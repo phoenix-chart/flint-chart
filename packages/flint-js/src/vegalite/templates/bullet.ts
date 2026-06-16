@@ -14,12 +14,12 @@ import { ChartTemplateDef } from '../../core/types';
  *   - color  optional explicit grouping for the value bar
  *
  * Following Stephen Few's design, each row carries graduated gray qualitative
- * bands whose breakpoints are derived from that row's own goal (half and three
- * quarters of target), so the comparison is per bar rather than one shared
- * block. The bands are kept light/muted so the bar and target tick stay the
- * focal elements. The value bar is colored by goal attainment using Vega-Lite's
- * default categorical scheme (below target reads blue, meets target reads
- * orange); a dark tick marks the exact target.
+ * bands whose breakpoints are derived from that row's own goal (a quarter, half
+ * and three quarters of target), so the comparison is per bar rather than one
+ * shared block. The 75%-100% target range is left as the white plot background
+ * so the bar and target tick stay the focal elements. The value bar is colored
+ * by goal attainment using an explicit muted red/green status palette; a dark
+ * tick marks the exact target.
  *
  * Layout follows the candlestick pattern: the banded category channel (y) lives
  * at the top level so every layer — bands, bar and tick — aligns to the same
@@ -27,9 +27,9 @@ import { ChartTemplateDef } from '../../core/types';
  */
 
 // Muted grays for the qualitative zones, darkest nearest zero (poorest range).
-const ZONE_GRAYS = ['#e6e6e6', '#eeeeee', '#f6f6f6'];
-// Labels for the goal-attainment color split. Domain order drives which default
-// scheme color each gets: below target → first (blue), meets → second (orange).
+const ZONE_GRAYS = ['#e2e2e2', '#ececec', '#f5f5f5'];
+// Goal-attainment colors: muted red for under target, muted green for met target.
+const STATUS_COLORS = { below: '#c44e52', met: '#2f855a' };
 const STATUS_BELOW = 'Below target';
 const STATUS_MET = 'Meets target';
 
@@ -63,38 +63,30 @@ export const bulletChartDef: ChartTemplateDef = {
         const layers: any[] = [];
 
         // --- Per-row gray qualitative bands (drawn first, behind everything) ---
-        // Breakpoints come from each row's own goal; all bands extend to the
-        // global max so the right edge stays clean across rows.
+        // Breakpoints come from each row's own goal in quarters; only the lower
+        // performance ranges are shaded, leaving 75% of target and above on the
+        // white plot background.
         if (x?.field && y?.field && goal?.field && table.length > 0) {
-            let globalMax = 0;
+            const zoneData: Array<Array<Record<string, any>>> = [[], [], []];
             for (const r of table) {
-                const v = Number(r[x.field]);
+                const cat = r[y.field];
                 const g = Number(r[goal.field]);
-                if (Number.isFinite(v)) globalMax = Math.max(globalMax, v);
-                if (Number.isFinite(g)) globalMax = Math.max(globalMax, g);
+                if (cat == null || !Number.isFinite(g) || g <= 0) continue;
+                zoneData[0].push({ [y.field]: cat, __lo: 0, __hi: 0.25 * g });
+                zoneData[1].push({ [y.field]: cat, __lo: 0.25 * g, __hi: 0.5 * g });
+                zoneData[2].push({ [y.field]: cat, __lo: 0.5 * g, __hi: 0.75 * g });
             }
-            if (globalMax > 0) {
-                const zoneData: Array<Array<Record<string, any>>> = [[], [], []];
-                for (const r of table) {
-                    const cat = r[y.field];
-                    const g = Number(r[goal.field]);
-                    if (cat == null || !Number.isFinite(g) || g <= 0) continue;
-                    zoneData[0].push({ [y.field]: cat, __lo: 0, __hi: 0.5 * g });
-                    zoneData[1].push({ [y.field]: cat, __lo: 0.5 * g, __hi: 0.75 * g });
-                    zoneData[2].push({ [y.field]: cat, __lo: 0.75 * g, __hi: globalMax });
-                }
-                zoneData.forEach((rows, i) => {
-                    if (rows.length === 0) return;
-                    layers.push({
-                        data: { values: rows },
-                        mark: { type: 'rect', color: ZONE_GRAYS[i], opacity: 1 },
-                        encoding: {
-                            x: { field: '__lo', type: 'quantitative', axis: xAxis },
-                            x2: { field: '__hi' },
-                        },
-                    });
+            zoneData.forEach((rows, i) => {
+                if (rows.length === 0) return;
+                layers.push({
+                    data: { values: rows },
+                    mark: { type: 'rect', color: ZONE_GRAYS[i], opacity: 1 },
+                    encoding: {
+                        x: { field: '__lo', type: 'quantitative', axis: xAxis },
+                        x2: { field: '__hi' },
+                    },
                 });
-            }
+            });
         }
 
         // --- Value bar — length from zero, colored by goal attainment ---
@@ -120,7 +112,10 @@ export const bulletChartDef: ChartTemplateDef = {
             barLayer.encoding.color = {
                 field: '__status',
                 type: 'nominal',
-                scale: { domain: [STATUS_BELOW, STATUS_MET] },
+                scale: {
+                    domain: [STATUS_BELOW, STATUS_MET],
+                    range: [STATUS_COLORS.below, STATUS_COLORS.met],
+                },
                 legend: { title: null },
                 title: null,
             };

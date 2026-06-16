@@ -98,13 +98,21 @@ describe('Bullet chart', () => {
   });
 
   it('derives each row band breakpoints from that row goal', () => {
-    // The darkest zone runs 0 → half the row goal; mid runs half → three
-    // quarters; so a row with goal 200 yields breakpoints 100 and 150.
+    // Three muted zones split the row goal into quarters: 0–25%, 25–50%,
+    // 50–75%; 75%→max stays white. So a row goal of 200 yields band tops at
+    // 50, 100 and 150.
+    expect(bands).toHaveLength(3);
+    const yField = spec.encoding.y.field;
     const sample = bands[0].data.values[0];
     const rowGoal = genBulletTests()[0].data.find(
-      (r: any) => r[spec.encoding.y.field] === sample[spec.encoding.y.field],
+      (r: any) => r[yField] === sample[yField],
     ).quota;
-    expect(sample.__hi).toBeCloseTo(0.5 * rowGoal);
+    const tops = bands.map(
+      (b: any) => b.data.values.find((v: any) => v[yField] === sample[yField]).__hi,
+    );
+    expect(tops[0]).toBeCloseTo(0.25 * rowGoal);
+    expect(tops[1]).toBeCloseTo(0.5 * rowGoal);
+    expect(tops[2]).toBeCloseTo(0.75 * rowGoal);
   });
 
   it('shares one banded category axis across all layers', () => {

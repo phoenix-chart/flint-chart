@@ -1,9 +1,11 @@
+<h1 align="center">Flint</h1>
+
 <p align="center">
-  <img src="docs/figs/banner.png" alt="Flint — a visualization language for the AI era. AI agents write a compact, human-editable chart spec; Flint's compiler derives sizing, scales, color, and formatting from semantic types and renders to Vega-Lite, ECharts, or Chart.js." width="100%">
+  <b>A visualization language for the AI era — one semantic chart spec → polished Vega-Lite, ECharts, or Chart.js, no per-chart tuning.</b>
 </p>
 
 <p align="center">
-  <b>One semantic chart spec → polished Vega-Lite, ECharts, or Chart.js — no per-chart tuning.</b>
+  <img src="docs/figs/chartwall.png" alt="A wall of charts produced by Flint: bar, line, scatter, heatmap, donut, radar, streamgraph, boxplot, grouped bar, rose, Sankey, and treemap, rendered across Vega-Lite, ECharts, and Chart.js." width="100%">
 </p>
 
 <p align="center">
@@ -210,21 +212,6 @@ flint-chart/
 ├── shared/test-data/      JSON fixtures shared across JS + Python
 └── docs/                  architecture and design documents
 ```
-
-### How a chart is assembled
-
-<p align="center">
-  <img src="docs/figs/overview.png" alt="Flint compiler pipeline: raw data and a Flint specification (data semantic model + chart type and encodings) feed a compiler frontend, an optimizer derives library-agnostic chart properties, and a code generator emits Vega-Lite, ECharts, or Chart.js." width="100%">
-</p>
-
-```
-semantic type → getVisCategory() → VisCategory → channel/chart rules → encoding type
-                                     ↑ fallback: inferVisCategory() inspects raw data
-```
-
-1. **Phase 0 — semantic resolution** ([`core/resolve-semantics.ts`](packages/flint-js/src/core/resolve-semantics.ts))
-2. **Phase 1 — layout** ([`core/compute-layout.ts`](packages/flint-js/src/core/compute-layout.ts))
-3. **Phase 2 — instantiation** (per-backend `assemble.ts` + declarative templates)
 
 ### Documentation
 

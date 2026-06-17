@@ -25,8 +25,7 @@ For motivation and spec examples, see [Overview](/documentation/overview). For i
 1. **Semantics first** — `semantic_types` guide parsing, aggregation, zero baseline, diverging detection, and format — not raw storage types alone.
 2. **Minimal chart surface** — `chart_spec` supplies chart type and channel bindings (~10 lines). Axes, scales, legends, and step sizes are compiler-derived.
 3. **Dynamic templates** — Each `chartType` maps to a `ChartTemplateDef` whose `instantiate()` consumes the full compilation context and adapts to cardinality and semantics (paper §5.3).
-4. **VL-free analysis** — Stages 1–2 use abstract channels (`x`, `y`, `color`, `group`, `size`), never Vega-Lite encoding objects.
-5. **No UI dependencies** — Pure TypeScript (`packages/flint-js`); Python port for Vega-Lite (`packages/flint-py`). Usable from agents, notebooks, servers, or this site.
+4. **No UI dependencies** — Pure TypeScript (`packages/flint-js`); Python port (`packages/flint-py`). Usable from agents, notebooks, servers, or this site.
 
 Roughly **90%** of design logic lives in Stages 1–2 and is identical across backends.
 
@@ -36,7 +35,7 @@ Roughly **90%** of design logic lives in Stages 1–2 and is identical across ba
 
 ![Overview of the Flint architecture](figs/overview.png)
 
-| Stage | Paper role | Implementation | Key outputs |
+| Stage | Role | Implementation | Key outputs |
 |-------|------------|----------------|-------------|
 | **1. Compiler frontend** | Resolve encoding properties | Phase 0 — `resolveChannelSemantics()` | `ChannelSemantics` per channel |
 | **2. Optimizer** | Fit layout to canvas | Phase 1 — `computeLayout()`, `filterOverflow()` | `LayoutResult`, truncated data |
@@ -140,8 +139,8 @@ New backends add Stage 3 only — frontend and optimizer unchanged. See [Adding 
 
 | Part | API | Specifies |
 |------|-----|-----------|
-| **dataSpec** | `semantic_types` | Field meaning; reused across charts on the same dataset |
 | Raw data | `data` | Row table for parsers and layout |
+| **dataSpec** | `semantic_types` | Field meaning; reused across charts on the same dataset |
 | **chartSpec** | `chart_spec` | `chartType` + `encodings`; cheap to edit during exploration |
 
 LLM agents typically infer `semantic_types` once, then iterate on `chart_spec` — matching the paper's game-market case study: line → heatmap → grouped bar → waterfall → sunburst on one semantic layer.

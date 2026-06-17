@@ -2,7 +2,7 @@
 
 JavaScript / TypeScript package: **`flint-chart`** (`packages/flint-js`). 
 
-Python package: **`flint`** — Vega-Lite assembly today; input shape mirrors the JS API.
+Python package: **`flint-py`**: input shape mirrors the JS API.
 
 Conceptual background: [Overview](/documentation/overview) · Pipeline: [Architecture](/documentation/architecture)
 
@@ -27,8 +27,8 @@ Conceptual background: [Overview](/documentation/overview) · Pipeline: [Archite
 
 | Flint | API field | Contents |
 |---------------|-----------|----------|
-| **dataSpec** | `semantic_types` | `field → string` or `field → SemanticAnnotation` |
 | Raw table | `data` | `{ values: rows[] }` or `{ url: "..." }` |
+| **dataSpec** | `semantic_types` | `field → string` or `field → SemanticAnnotation` |
 | **chartSpec** | `chart_spec` | `chartType`, `encodings`, `canvasSize`, `chartProperties` |
 
 `semantic_types` is authored once per dataset and reused across charts; only `chart_spec` changes during exploration.

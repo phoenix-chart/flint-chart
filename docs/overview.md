@@ -44,7 +44,7 @@ A Flint program has two reusable parts:
 
 | Flint term | API field | Role |
 |------------|-----------|------|
-| **dataSpec** | `semantic_types` | Per-field meaning — type string or enriched annotation |
+| **dataSpec** | `semantic_types` | Per-field meaning → type string or enriched annotation |
 | **chartSpec** | `chart_spec` | Chart type + channel → field bindings |
 
 Raw rows live in `data`. Together they form `ChartAssemblyInput`:
@@ -55,7 +55,7 @@ data  +  semantic_types  +  chart_spec  →  assemble*()  →  native spec
 
 ### dataSpec example
 
-Game-market dataset (paper). Annotations are **inline** in `semantic_types` — there is no separate `semantic_annotations` field:
+Annotations are **inline** in `semantic_types` — there is no separate `semantic_annotations` field (Game-market dataset example in paper):
 
 ```json
 {
@@ -94,7 +94,7 @@ Faceted line chart:
 
 **Exploration workflow:** change only `chart_spec` to try heatmap, grouped bar, waterfall, or sunburst — **dataSpec stays fixed**. Switch backend (e.g. Vega-Lite → ECharts) without rewriting the Flint input. See the [gallery](/wall) for template and backend coverage.
 
-Semantic types use a three-level hierarchy (paper L1/L2/L3; code T0/T1/T2). Details: [Semantic types](/documentation/semantic-types).
+Semantic types use a three-level hierarchy. Details: [Semantic types](/documentation/semantic-types).
 
 ---
 
@@ -117,7 +117,7 @@ Full input schema: [API reference](/documentation/api-reference).
 
 ![Overview of the Flint architecture](figs/overview.png)
 
-| Paper stage | Code | Module |
+| Flint stage | Code | Module |
 |-------------|------|--------|
 | **Compiler frontend** | Phase 0 — `resolveChannelSemantics()` | `core/resolve-semantics.ts` |
 | **Optimizer** | Phase 1 — `computeLayout()`, overflow filter | `core/compute-layout.ts` |
@@ -169,7 +169,7 @@ const spec = assembleVegaLite({
 
 | Page | Use for |
 |------|---------|
-| [Tutorials](/tutorials/getting-started) | Step-by-step first chart |
+| [Quick Start](/tutorials/getting-started) | Step-by-step first chart |
 | [Gallery](/wall) | Every template + multi-backend preview |
 | [Editor](/editor) | Paste JSON, switch Vega-Lite / ECharts / Chart.js |
 

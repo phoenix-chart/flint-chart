@@ -65,7 +65,7 @@ The LLM (or user) may annotate at any tier. **Graceful degradation, not failure:
 2. **Decisions are structured, not scattered.** One builder produces typed context objects; downstream code reads fields, never re-inspects the semantic type.
 3. **Per-field, then per-channel.** Format and aggregation are field-intrinsic; zero-baseline, reversal, and color scheme depend on channel and mark.
 4. **Override-friendly.** Every decision has a type-derived default; users, templates, or the agent can override individual fields explicitly.
-5. **Backend-agnostic.** Context describes abstract intent (currency format, reversed axis); Stage 4 translates to Vega-Lite, ECharts, etc.
+5. **Backend-agnostic.** Context describes abstract intent (currency format, reversed axis); then translates to Vega-Lite, ECharts, etc.
 6. **Semantic type + optional metadata.** Bounded scales, units, and custom orderings need structured annotations alongside the type string.
 
 For where semantic resolution sits in the full compile path, see [Architecture](/documentation/architecture).
@@ -431,7 +431,7 @@ function normalizeAnnotation(
 | **3. Layout** | `computeLayout()` | ChannelSemantics + data → `LayoutResult` | How big? What gets filtered? |
 | **4. Spec Generation** | `assembleVegaLite()` etc. | ChannelSemantics + template → backend spec | Backend-specific output |
 
-`ChannelSemantics` is the **IR** — a flat, target-agnostic record decoupling upstream semantics from layout and all backends (VL, ECharts, Chart.js, GoFish).
+`ChannelSemantics` is the **IR**(Intermediate Representation) — a flat, target-agnostic record decoupling upstream semantics from layout and all backends (VL, ECharts, Chart.js, GoFish).
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────┐

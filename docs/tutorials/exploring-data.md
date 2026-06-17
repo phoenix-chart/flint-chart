@@ -223,8 +223,7 @@ examples work with defaults.
 
 ## Load examples from the gallery
 
-The [gallery](/wall) links each example to the editor (`View this example in
-the online editor`). That loads a full `ChartAssemblyInput` built from real
+The [gallery](/wall) links each example to the editor (`Open in editor`). That loads a full `ChartAssemblyInput` built from real
 test cases — useful when you want to see encodings for bump charts, heatmaps,
 facets, and other templates.
 

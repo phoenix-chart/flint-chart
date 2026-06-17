@@ -1,12 +1,4 @@
-<h1 align="center">Flint</h1>
-
-<p align="center">
-  <b>A visualization language for the AI era — one semantic chart spec → polished Vega-Lite, ECharts, or Chart.js, no per-chart tuning.</b>
-</p>
-
-<p align="center">
-  <img src="docs/figs/chartwall.png" alt="A wall of charts produced by Flint: bar, line, scatter, heatmap, donut, radar, streamgraph, boxplot, grouped bar, rose, Sankey, and treemap, rendered across Vega-Lite, ECharts, and Chart.js." width="100%">
-</p>
+# Flint: A visualization language for the AI era
 
 <p align="center">
   <a href="https://microsoft.github.io/flint-chart/"><img src="https://img.shields.io/badge/%F0%9F%9A%80_Live_Demo-flint--chart-0078D4?style=for-the-badge" alt="Live demo"></a>
@@ -31,52 +23,40 @@
 
 ---
 
-## Why Flint?
+Flint is a visualization intermediate language that allows **AI agents to create
+expressive, good-looking visualizations from simple, human-editable chart specs**.
+Instead of requiring verbose low-level parameters such as scales, axes, spacing,
+and layout, the Flint compiler derives optimized chart settings from the data,
+semantic types, chart type, and encodings. The result is a compact chart
+specification that is easy for agents to create, easy for people to edit, and
+**it can be rendered in different backends (Vega-Lite, ECharts, Chart.js)**.
 
-Flint is a visualization intermediate language that lets **AI agents create
-expressive, good-looking charts from a simple, human-editable spec**. Instead of
-asking the model to write verbose low-level parameters — scales, axes, spacing,
-layout — the agent annotates each field with a **semantic type** (e.g. `Revenue`,
-`Rank`, `YearMonth`, `Delta`) and picks a chart type. A deterministic compiler
-then derives everything else — sizing, zero-baseline, formatting, color schemes,
-and mark templates — so charts look good *and* stay editable without another
-model call.
+<p align="center">
+  <img src="docs/figs/chartwall.png" alt="A wall of charts produced by Flint: bar, line, scatter, heatmap, donut, radar, streamgraph, boxplot, grouped bar, rose, Sankey, and treemap, rendered across Vega-Lite, ECharts, and Chart.js." width="100%">
+</p>
 
-The output is native library code (Vega-Lite, ECharts, or Chart.js), so you keep
-full control over aesthetic fine-tuning using each library's own API. There is no
-abstraction tax.
+## Features
 
-|                  | Looks good | Editable | Bespoke charts | Cost to re-encode |
-|------------------|:----------:|:--------:|:--------------:|:-----------------:|
-| Library defaults |     ✗      |    ✓     |       ✗        |         0         |
-| LLM-tuned spec   |     ✓      |    ✗     |   sometimes    |    1 model call   |
-| **Flint**        |   **✓**    |  **✓**   |     **✓**      |       **0**       |
-
-When the user swaps a field, changes the chart type, or adds facets, the compiler
-re-derives all parameters automatically — no hard-coded constant goes stale, and
-no model call is needed.
-
-### What you get
-
-- 🧠 **Specify with semantic types.** Capture what a field *means* (`Rank`,
-  `Temperature`, `Delta`, …) and let Flint infer parsing, scales, axes,
-  formatting, and color from ~70 built-in semantic types.
-- 📐 **Automatic layout optimization.** An elastic layout model sizes, spaces, and
-  arranges marks to fit the canvas with principled decisions — no more 6400 px
-  charts from an 80 × 4 facet grid.
-- ✏️ **Easy to generate and adapt.** Switch chart type or rebind an encoding and
-  the compiler cascades the change. Specs are compact enough for agents to write
-  and people to edit by hand.
-- 🔌 **Render with multiple backends.** Compile the same spec to **30+ chart
+- **Specify with semantic types.** Flint captures what each field *means* using 70+ fine-grained semantic types (e.g., `Rank`, `Temperature`, or `Delta`).
+  They guide parsing, scales, axes, formatting, and color decisions.
+- **Optimize layout automatically.** Flint adapts sizing, spacing, and mark
+  arrangement to the data cardinality, chart design, and canvas constraints
+  using an elastic layout model.
+- **Generate simple editable specs.** Flint specs are short enough for agents
+  to write reliably and clear enough for people to refine by hand. Switch chart
+  types or rebind encodings, and the compiler cascades the change. The [agent skill](agent-skills/SKILL.md) helps agents generate reliable, good-looking
+  charts without last-mile low-level refinement issues.
+- **Render across multiple backends.** Compile the same spec to **30+ chart
   types** across **Vega-Lite, ECharts, and Chart.js** through one unified
   interface (an experimental GoFish backend is also included).
+
+<br/>
 
 <p align="center">
   <img src="docs/figs/workflow.png" alt="One workflow end to end: an agent infers a data spec (semantic types) from a raw table, you write a short chart spec, and Flint compiles it to a faceted line chart — then to a grouped bar, waterfall, heatmap, and sunburst as the spec is edited." width="100%">
 </p>
-<p align="center"><sub>One workflow, end to end: an agent infers the semantic types, you write a short chart spec, and Flint compiles it — change one line to move between a faceted line chart, grouped bar, waterfall, heatmap, or sunburst, or switch the rendering engine.</sub></p>
+<p align="center"><sub>Flint compiles and optimizes high-level data and chart specs into polished visualizations. Because the compiler manages low-level design details, users can move from a faceted line chart to a grouped bar, waterfall, heatmap, or sunburst, or switch rendering engines easily.</sub></p>
 
----
 
 ## Install
 
@@ -149,11 +129,11 @@ spec = assemble_vegalite({
 ```ts
 interface ChartAssemblyInput {
   data: { values: any[] } | { url: string };   // inline rows or a JSON/CSV URL
-  semantic_types?: Record<string, string>;      // field → semantic type
+  semantic_types?: Record<string, string>;      // field -> semantic type
   chart_spec: {
     chartType: string;                          // e.g. "Scatter Plot"
-    encodings: Record<string, ChartEncoding>;   // channel → encoding
-    canvasSize?: { width: number; height: number }; // default 400×320
+    encodings: Record<string, ChartEncoding>;   // channel -> encoding
+    canvasSize?: { width: number; height: number }; // default 400x320
     chartProperties?: Record<string, any>;      // per-chart tuning (optional)
   };
   options?: AssembleOptions;                     // global layout tuning (rarely needed)

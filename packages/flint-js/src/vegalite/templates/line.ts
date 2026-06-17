@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-import { ChartTemplateDef, ChartPropertyDef } from '../../core/types';
+import { ChartTemplateDef, ChartPropertyDef, type InstantiateContext } from '../../core/types';
 import { defaultBuildEncodings, setMarkProp } from './utils';
 
 const interpolateConfigProperty: ChartPropertyDef = {
@@ -22,14 +22,67 @@ const showPointsProperty: ChartPropertyDef = {
     key: "showPoints", label: "Show points", type: "binary", defaultValue: false,
 };
 
-function applyInterpolate(vgSpec: any, config?: Record<string, any>): void {
-    if (!config?.interpolate) return;
-    vgSpec.mark = setMarkProp(vgSpec.mark, 'interpolate', config.interpolate);
+function applyInterpolate(mark: any, config?: Record<string, any>): any {
+    if (!config?.interpolate) return mark;
+    return setMarkProp(mark, 'interpolate', config.interpolate);
 }
 
-function applyShowPoints(vgSpec: any, config?: Record<string, any>): void {
-    if (!config?.showPoints) return;
-    vgSpec.mark = setMarkProp(vgSpec.mark, 'point', true);
+function applyShowPoints(mark: any, config?: Record<string, any>): any {
+    if (!config?.showPoints) return mark;
+    return setMarkProp(mark, 'point', true);
+}
+
+function isContinuousColor(ctx: InstantiateContext): boolean {
+    const color = ctx.resolvedEncodings.color;
+    if (!color?.field) return false;
+    const type = color.type ?? ctx.channelSemantics.color?.type;
+    return type === 'quantitative' || type === 'temporal';
+}
+
+/**
+ * Vega-Lite splits a line into one segment per datum when color is quantitative,
+ * so nothing visible connects. Mirror ECharts: a neutral line + colored points.
+ */
+function buildContinuousColorLayers(
+    spec: any,
+    resolvedEncodings: Record<string, any>,
+    chartProperties?: Record<string, any>,
+): void {
+    const { color, column, row, x, y, strokeDash, detail, opacity, order, ...rest } = resolvedEncodings;
+
+    const lineEncoding: Record<string, any> = {};
+    for (const [ch, enc] of Object.entries({ x, y, strokeDash, detail, opacity, order, ...rest })) {
+        if (enc && typeof enc === 'object' && Object.keys(enc).length > 0) {
+            lineEncoding[ch] = enc;
+        }
+    }
+
+    const pointEncoding: Record<string, any> = {};
+    if (x) pointEncoding.x = x;
+    if (y) pointEncoding.y = y;
+    if (color) pointEncoding.color = color;
+    if (detail) pointEncoding.detail = detail;
+    if (opacity) pointEncoding.opacity = opacity;
+
+    spec.layer = [
+        {
+            mark: applyInterpolate({ type: 'line', color: '#cccccc' }, chartProperties),
+            encoding: lineEncoding,
+        },
+        {
+            mark: { type: 'point', filled: true, size: 80 },
+            encoding: pointEncoding,
+        },
+    ];
+    delete spec.mark;
+
+    if (column || row) {
+        if (!spec.encoding) spec.encoding = {};
+        if (column) spec.encoding.column = column;
+        if (row) spec.encoding.row = row;
+    } else {
+        delete spec.encoding;
+    }
 }
 
 export const lineChartDef: ChartTemplateDef = {
@@ -41,9 +94,13 @@ export const lineChartDef: ChartTemplateDef = {
         paramOverrides: { continuousMarkCrossSection: { x: 100, y: 20, seriesCountAxis: 'auto' }, facetAspectRatioResistance: 0.5 },
     }),
     instantiate: (spec, ctx) => {
+        if (isContinuousColor(ctx)) {
+            buildContinuousColorLayers(spec, ctx.resolvedEncodings, ctx.chartProperties);
+            return;
+        }
         defaultBuildEncodings(spec, ctx.resolvedEncodings);
-        applyInterpolate(spec, ctx.chartProperties);
-        applyShowPoints(spec, ctx.chartProperties);
+        applyInterpolate(spec.mark, ctx.chartProperties);
+        spec.mark = applyShowPoints(spec.mark, ctx.chartProperties);
     },
     properties: [interpolateConfigProperty, showPointsProperty],
 };

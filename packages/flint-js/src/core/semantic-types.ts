@@ -458,6 +458,7 @@ export function computeZeroDecision(
     values?: number[],
 ): ZeroDecision {
     const isBarLike = ['bar', 'area', 'rect'].includes(markType);
+    const isScatterMark = markType === 'circle' || markType === 'point';
     const isPositional = ['x', 'y'].includes(channel);
     const entry = getRegistryEntry(semanticType);
     const zeroClass = getZeroClass(semanticType);
@@ -469,7 +470,22 @@ export function computeZeroDecision(
         if (isBarLike) {
             return { zero: true, domainPadFraction: 0, zeroClass, forced: true, uncertain: false };
         }
-        // Position marks (line/point/strip): zero is the conventional reference,
+        // Scatter (circle/point position): the read is correlation / cloud shape,
+        // not distance from zero — data-fit is the conventional default. Offer
+        // Zero X/Y as an opt-in toggle when the user wants a zero reference.
+        if (isPositional && isScatterMark) {
+            if (values && values.length > 0 && Math.min(...values) <= 0) {
+                return { zero: true, domainPadFraction: 0, zeroClass, forced: true, uncertain: false };
+            }
+            return {
+                zero: false,
+                domainPadFraction: entry.zeroPad || 0.05,
+                zeroClass,
+                forced: false,
+                uncertain: true,
+            };
+        }
+        // Position marks (line/strip): zero is the conventional reference,
         // so the recommended default is ON. We only *offer* the toggle when the
         // data sits far enough from zero that anchoring at zero would noticeably
         // compress the view — a genuine zoom-in-vs-keep-the-reference toss-up.

@@ -53,7 +53,7 @@ describe('public API smoke', () => {
     expect(spec).toBeDefined();
   });
 
-  it('line chart with quantitative color uses color encoding on a single mark', () => {
+  it('line chart with quantitative color uses a line layer plus colored points', () => {
     const spec = assembleVegaLite({
       data: {
         values: [
@@ -73,11 +73,12 @@ describe('public API smoke', () => {
       },
     }) as any;
 
-    expect(spec.mark).toBe('line');
-    expect(spec.encoding.x?.field).toBe('Date');
-    expect(spec.encoding.y?.field).toBe('Value');
-    expect(spec.encoding.color?.field).toBe('ColorVal');
-    expect(spec.encoding.color?.type).toBe('quantitative');
+    expect(spec.layer).toHaveLength(2);
+    expect(spec.layer[0].mark.type).toBe('line');
+    expect(spec.layer[0].encoding.x?.field).toBe('Date');
+    expect(spec.layer[0].encoding.y?.field).toBe('Value');
+    expect(spec.layer[1].encoding.color?.field).toBe('ColorVal');
+    expect(spec.layer[1].encoding.color?.type).toBe('quantitative');
   });
 
   it('chart.js line with quantitative color uses separate datasets per color value', () => {

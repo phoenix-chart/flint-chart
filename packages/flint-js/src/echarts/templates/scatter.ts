@@ -342,11 +342,12 @@ export const ecScatterPlotDef: ChartTemplateDef = {
         // Apply zero-baseline decisions (only for value axes)
         // ECharts: scale=true means "data-fit, don't force zero"
         //          scale=false (default) means "include zero"
-        if (!xIsCategorical && channelSemantics.x?.zero) {
-            option.xAxis.scale = !channelSemantics.x.zero.zero;
+        // Scatter reads position/correlation — data-fit unless zero is on.
+        if (!xIsCategorical) {
+            option.xAxis.scale = channelSemantics.x?.zero ? !channelSemantics.x.zero.zero : true;
         }
-        if (!yIsCategorical && channelSemantics.y?.zero) {
-            option.yAxis.scale = !channelSemantics.y.zero.zero;
+        if (!yIsCategorical) {
+            option.yAxis.scale = channelSemantics.y?.zero ? !channelSemantics.y.zero.zero : true;
         }
 
         // Opacity from chart properties

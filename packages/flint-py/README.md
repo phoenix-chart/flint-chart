@@ -28,7 +28,7 @@ flint_chart/
 ## Usage
 
 ```python
-from flint_chart.vegalite import assemble_vegalite
+from flint.vegalite import assemble_vegalite
 
 spec = assemble_vegalite({
     "data": {"values": rows},

@@ -165,6 +165,20 @@ backend spec — the model never hand-tunes sizing, color, or formatting.
 Point your agent at [`agent-skills/SKILL.md`](agent-skills/SKILL.md) (chart-type
 catalog, channels, and worked examples) to get started.
 
+#### MCP server
+
+For agents that speak the **Model Context Protocol**, the
+[`flint-chart-mcp`](packages/flint-mcp/README.md) server turns a spec into a
+rendered artifact (PNG/SVG) — `data + spec → image` — entirely in-process, with
+no data upload. Add it to any MCP client (Claude Desktop, Cursor, VS Code):
+
+```json
+{ "mcpServers": { "flint": { "command": "npx", "args": ["-y", "flint-chart-mcp"] } } }
+```
+
+It exposes four verb tools: `render_chart`, `compile_chart`, `validate_chart`,
+and `list_chart_types`.
+
 ---
 
 ## Repository overview
@@ -180,7 +194,8 @@ flint-chart/
 │   │       ├── chartjs/   Chart.js backend
 │   │       ├── gofish/    GoFish backend (experimental)
 │   │       └── test-data/ fixtures + generators (drive tests and the gallery)
-│   └── flint-py/          PyPI package `flint` (Python port, Vega-Lite backend)
+│   ├── flint-py/          PyPI package `flint` (Python port, Vega-Lite backend)
+│   └── flint-mcp/         npm package `flint-chart-mcp` (MCP render server)
 ├── site/                  Vite + React demo: landing, gallery, editor, docs
 ├── agent-skills/          AI agent skill (SKILL.md)
 ├── shared/test-data/      JSON fixtures shared across JS + Python

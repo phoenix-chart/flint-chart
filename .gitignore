@@ -68,6 +68,9 @@ df-reference/
 docs/HANDOFF.md
 docs/flint-spinout-plan.md
 
+# Local-only working decision sessions (design docs, not shipped)
+design-docs/
+
 # Loops: commit only the top-level method docs (README.md, log.md).
 # Per-loop work artifacts (datasets, test cases, render scripts, rendered
 # images, scratch) live under work/ and are kept local, not committed.

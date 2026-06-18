@@ -1,27 +1,12 @@
 # Flint: A visualization language for the AI era
 
-<p align="center">
-  <a href="https://microsoft.github.io/flint-chart/"><img src="https://img.shields.io/badge/%F0%9F%9A%80_Live_Demo-flint--chart-0078D4?style=for-the-badge" alt="Live demo"></a>
-  &nbsp;
-  <a href="#install"><img src="https://img.shields.io/badge/%F0%9F%92%BB_Install-npm_%7C_pip-3776AB?style=for-the-badge" alt="Install"></a>
-</p>
+[![Install](https://img.shields.io/badge/Install-npm_%7C_pip-3776AB)](#install)
+[![npm](https://img.shields.io/npm/v/flint-chart.svg?label=npm%3A%20flint-chart)](https://www.npmjs.com/package/flint-chart)
+[![CI](https://github.com/microsoft/flint-chart/actions/workflows/ci.yml/badge.svg)](https://github.com/microsoft/flint-chart/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-<p align="center">
-  <a href="https://www.npmjs.com/package/flint-chart"><img src="https://img.shields.io/npm/v/flint-chart.svg?label=npm%3A%20flint-chart" alt="npm"></a>&ensp;
-  <a href="https://github.com/microsoft/flint-chart/actions/workflows/ci.yml"><img src="https://github.com/microsoft/flint-chart/actions/workflows/ci.yml/badge.svg" alt="CI"></a>&ensp;
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>&ensp;
-  <a href="agent-skills/SKILL.md"><img src="https://img.shields.io/badge/AI_agents-SKILL.md-8A2BE2.svg" alt="Agent skill"></a>
-</p>
-
-<p align="center">
-  <a href="https://microsoft.github.io/flint-chart/">Demo site</a> ·
-  <a href="https://microsoft.github.io/flint-chart/#/gallery">Gallery</a> ·
-  <a href="https://microsoft.github.io/flint-chart/#/editor">Live editor</a> ·
-  <a href="https://microsoft.github.io/flint-chart/#/documentation/overview">Docs</a> ·
-  <a href="agent-skills/SKILL.md">Skill.md</a>
-</p>
-
----
+[![Project site](https://img.shields.io/badge/Project_site-gallery_%2B_live_editor-0078D4?style=for-the-badge)](https://microsoft.github.io/flint-chart/)
+[![Agent skill](https://img.shields.io/badge/Agent_skill-SKILL.md-8A2BE2?style=for-the-badge)](agent-skills/SKILL.md)
 
 Flint is a visualization intermediate language that allows **AI agents to create
 expressive, good-looking visualizations from simple, human-editable chart specs**.
@@ -55,7 +40,7 @@ specification that is easy for agents to create, easy for people to edit, and
 <p align="center">
   <img src="docs/figs/workflow.png" alt="One workflow end to end: an agent infers a data spec (semantic types) from a raw table, you write a short chart spec, and Flint compiles it to a faceted line chart — then to a grouped bar, waterfall, heatmap, and sunburst as the spec is edited." width="100%">
 </p>
-<p align="center"><sub>Flint compiles and optimizes high-level data and chart specs into polished visualizations. Because the compiler manages low-level design details, users can move from a faceted line chart to a grouped bar, waterfall, heatmap, or sunburst, or switch rendering engines easily.</sub></p>
+<p align="left"><sub>Flint compiles and optimizes high-level data and chart specs into polished visualizations. Because the compiler manages low-level design details, users can move from a faceted line chart to a grouped bar, waterfall, heatmap, or sunburst, or switch rendering engines easily.</sub></p>
 
 
 ## Install
@@ -86,6 +71,7 @@ const spec = assembleVegaLite({
     encodings: { x: { field: 'weight' }, y: { field: 'mpg' }, color: { field: 'origin' } },
     canvasSize: { width: 400, height: 300 },
   },
+  options: { maxStretch: 1.5 }, // cap automatic layout growth at 1.5x
 });
 // → a ready-to-render Vega-Lite spec
 ```
@@ -146,6 +132,14 @@ interface ChartAssemblyInput {
 | `semantic_types` | Per-field meaning, e.g. `{ revenue: "Price", country: "Country" }` — drives all derived config |
 | `chart_spec` | What to draw: chart type, channel→field encodings, canvas size, properties |
 | `options` | Layout tuning (stretch elasticity, step sizes, tooltips, …) |
+
+**Note on stretch.** `canvasSize` is the target starting size, but Flint may
+stretch the effective width or height when a chart has many categories, dense
+facets, or labels that would otherwise become unreadable. The default
+`maxStretch` is `2`, so an axis can grow up to 2× before Flint starts making
+harder tradeoffs such as smaller steps or truncation. Tune this with
+`options.maxStretch` (as shown above) and related elasticity options when you
+need stricter fixed-size output.
 
 Semantic types span temporal (`DateTime`, `Year`, `Month`), measures (`Quantity`,
 `Price`, `Percentage`), discrete numerics (`Rank`, `Score`, `ID`), geographic

@@ -21,20 +21,9 @@ watch the preview update.
 
 ## The data
 
-Suppose you have a small table with a categorical column `a` and a numeric
-column `b`:
-
-| a | b |
-|---|---|
-| C | 2 |
-| C | 7 |
-| C | 4 |
-| D | 1 |
-| D | 2 |
-| D | 6 |
-| E | 8 |
-| E | 4 |
-| E | 7 |
+Suppose you have a small monthly table with a `month` column and a numeric
+`value` column. Some months have multiple records, which lets us show both
+temporal parsing and aggregation later.
 
 In flint-chart, inline data is a JSON array of row objects under `data.values`:
 
@@ -42,15 +31,15 @@ In flint-chart, inline data is a JSON array of row objects under `data.values`:
 {
   "data": {
     "values": [
-      { "a": "C", "b": 2 },
-      { "a": "C", "b": 7 },
-      { "a": "C", "b": 4 },
-      { "a": "D", "b": 1 },
-      { "a": "D", "b": 2 },
-      { "a": "D", "b": 6 },
-      { "a": "E", "b": 8 },
-      { "a": "E", "b": 4 },
-      { "a": "E", "b": 7 }
+      { "month": "2024-01", "value": 120 },
+      { "month": "2024-01", "value": 135 },
+      { "month": "2024-02", "value": 142 },
+      { "month": "2024-02", "value": 150 },
+      { "month": "2024-03", "value": 165 },
+      { "month": "2024-03", "value": 172 },
+      { "month": "2024-04", "value": 160 },
+      { "month": "2024-04", "value": 168 },
+      { "month": "2024-05", "value": 181 }
     ]
   }
 }
@@ -77,30 +66,30 @@ Add a `semantic_types` map — one semantic label per field:
 {
   "data": {
     "values": [
-      { "a": "C", "b": 2 },
-      { "a": "C", "b": 7 },
-      { "a": "C", "b": 4 },
-      { "a": "D", "b": 1 },
-      { "a": "D", "b": 2 },
-      { "a": "D", "b": 6 },
-      { "a": "E", "b": 8 },
-      { "a": "E", "b": 4 },
-      { "a": "E", "b": 7 }
+      { "month": "2024-01", "value": 120 },
+      { "month": "2024-01", "value": 135 },
+      { "month": "2024-02", "value": 142 },
+      { "month": "2024-02", "value": 150 },
+      { "month": "2024-03", "value": 165 },
+      { "month": "2024-03", "value": 172 },
+      { "month": "2024-04", "value": 160 },
+      { "month": "2024-04", "value": 168 },
+      { "month": "2024-05", "value": 181 }
     ]
   },
   "semantic_types": {
-    "a": "Category",
-    "b": "Quantity"
+    "month": "YearMonth",
+    "value": "Quantity"
   }
 }
 ```
 
 | Field | Semantic type | What the compiler derives |
 |-------|-----------------|---------------------------|
-| `a`   | `Category`      | Discrete axis, categorical color defaults |
-| `b`   | `Quantity`      | Continuous axis, zero baseline for bar-length marks |
+| `month` | `YearMonth`  | Parses `YYYY-MM` strings as temporal values, formats month ticks |
+| `value` | `Quantity`   | Continuous value axis, numeric ticks and grid lines |
 
-You do **not** set `type`, `axis.title`, `format`, or `scale.zero` here — the
+You do **not** set `type`, `timeUnit`, `axis.format`, or `scale.zero` here — the
 compiler reads the semantic type registry and fills those in when it builds the
 backend spec. See [Semantic types](/documentation/semantic-types) for the full
 T0 → T1 → T2 system.
@@ -115,34 +104,34 @@ A Vega-Lite spec uses `mark` plus `encoding`. Flint uses **`chart_spec`**:
 - `encodings` — map visual channels (`x`, `y`, `color`, …) to fields
 - `canvasSize` — optional pixel budget (default 400×320)
 
-### Scatter plot — position encodings
+### Scatter plot — temporal x value
 
-Map `a` to the x-channel and `b` to the y-channel:
+Map `month` to the x-channel and `value` to the y-channel:
 
 ```json
 {
   "data": {
     "values": [
-      { "a": "C", "b": 2 },
-      { "a": "C", "b": 7 },
-      { "a": "C", "b": 4 },
-      { "a": "D", "b": 1 },
-      { "a": "D", "b": 2 },
-      { "a": "D", "b": 6 },
-      { "a": "E", "b": 8 },
-      { "a": "E", "b": 4 },
-      { "a": "E", "b": 7 }
+      { "month": "2024-01", "value": 120 },
+      { "month": "2024-01", "value": 135 },
+      { "month": "2024-02", "value": 142 },
+      { "month": "2024-02", "value": 150 },
+      { "month": "2024-03", "value": 165 },
+      { "month": "2024-03", "value": 172 },
+      { "month": "2024-04", "value": 160 },
+      { "month": "2024-04", "value": 168 },
+      { "month": "2024-05", "value": 181 }
     ]
   },
   "semantic_types": {
-    "a": "Category",
-    "b": "Quantity"
+    "month": "YearMonth",
+    "value": "Quantity"
   },
   "chart_spec": {
     "chartType": "Scatter Plot",
     "encodings": {
-      "x": { "field": "a" },
-      "y": { "field": "b" }
+      "x": { "field": "month" },
+      "y": { "field": "value" }
     },
     "canvasSize": { "width": 400, "height": 300 }
   }
@@ -150,13 +139,22 @@ Map `a` to the x-channel and `b` to the y-channel:
 ```
 
 Paste this into the [editor](/editor) and open the **Vega-Lite** preview tab.
-You should see one point per row. Categories appear on the x-axis; numeric
-values on the y-axis. The compiler chose axis types, ticks, and grid lines from
-`Category` and `Quantity`.
+You should see one point per row arranged along a time axis. Flint treats values
+like `2024-01` as year-month dates rather than arbitrary string labels. The
+compiler chose temporal parsing, month tick formatting, numeric ticks, and grid
+lines from `YearMonth` and `Quantity`.
+
+`canvasSize` is Flint's target layout budget, not always a hard final bounding
+box. For dense temporal axes, many facets, or long labels, the compiler may
+stretch the effective width or height to keep marks readable. By default,
+`maxStretch` is `2`, so a 400 px axis may grow up to 800 px before Flint makes
+harder tradeoffs such as smaller steps or truncation. Set
+`options.maxStretch` when you need stricter fixed-size output; see the
+[layout model](/documentation/layout-model) for the full explanation.
 
 Three observations compared to raw Vega-Lite:
 
-1. You never wrote `"type": "nominal"` or `"type": "quantitative"`.
+1. You never wrote `"type": "temporal"` or a date parser for `YYYY-MM` strings.
 2. Axis labels and grid behavior came from semantics, not manual `axis` blocks.
 3. The same input can be compiled to **ECharts** or **Chart.js** from the
    preview tabs (when that chart type exists in that backend).
@@ -165,57 +163,58 @@ Three observations compared to raw Vega-Lite:
 
 ## Aggregation
 
-With multiple rows per category, a bar chart usually shows a **summary** per
-category — not every raw point. In Vega-Lite you add `"aggregate": "average"`
+With multiple rows per month, a bar or line chart usually shows a **summary**
+per month — not every raw point. In Vega-Lite you add `"aggregate": "average"`
 on a channel. Flint uses the same knob on encodings:
 
 ```json
 {
   "data": {
     "values": [
-      { "a": "C", "b": 2 },
-      { "a": "C", "b": 7 },
-      { "a": "C", "b": 4 },
-      { "a": "D", "b": 1 },
-      { "a": "D", "b": 2 },
-      { "a": "D", "b": 6 },
-      { "a": "E", "b": 8 },
-      { "a": "E", "b": 4 },
-      { "a": "E", "b": 7 }
+      { "month": "2024-01", "value": 120 },
+      { "month": "2024-01", "value": 135 },
+      { "month": "2024-02", "value": 142 },
+      { "month": "2024-02", "value": 150 },
+      { "month": "2024-03", "value": 165 },
+      { "month": "2024-03", "value": 172 },
+      { "month": "2024-04", "value": 160 },
+      { "month": "2024-04", "value": 168 },
+      { "month": "2024-05", "value": 181 }
     ]
   },
   "semantic_types": {
-    "a": "Category",
-    "b": "Quantity"
+    "month": "YearMonth",
+    "value": "Quantity"
   },
   "chart_spec": {
     "chartType": "Bar Chart",
     "encodings": {
-      "x": { "field": "a" },
-      "y": { "field": "b", "aggregate": "average" }
+      "x": { "field": "month" },
+      "y": { "field": "value", "aggregate": "average" }
     },
     "canvasSize": { "width": 400, "height": 300 }
   }
 }
 ```
 
-Category **D** averages to `(1 + 2 + 6) / 3 = 3`. Switch the preview to
-**Bar Chart** semantics: vertical bars, one per category, height = mean of `b`.
+February averages to `(142 + 150) / 2 = 146`. Switch the preview to **Bar Chart**
+semantics: one bar per month, height = average `value`, with the x-axis still
+formatted as year-month time.
 
-### Horizontal bars
+### Line chart trend
 
-Swap the x and y encodings (same idea as swapping channels in Vega-Lite):
+Switch the chart type while keeping the same temporal x/value y encodings:
 
 ```json
-"chartType": "Bar Chart",
+"chartType": "Line Chart",
 "encodings": {
-  "x": { "field": "b", "aggregate": "average" },
-  "y": { "field": "a" }
+  "x": { "field": "month" },
+  "y": { "field": "value", "aggregate": "average" }
 }
 ```
 
-Flint picks the bar orientation from which axis is categorical. You still only
-name fields and aggregates — not `orient`, `size`, or band padding.
+Flint keeps the same `YearMonth` parsing and axis formatting, but changes the
+visual template from monthly bars to a monthly trend line.
 
 ### When aggregation is optional
 
@@ -235,15 +234,16 @@ import { assembleVegaLite, assembleECharts, assembleChartjs } from 'flint-chart'
 
 const input = {
   data: { values: [/* … */] },
-  semantic_types: { a: 'Category', b: 'Quantity' },
+  semantic_types: { month: 'YearMonth', value: 'Quantity' },
   chart_spec: {
-    chartType: 'Bar Chart',
+    chartType: 'Line Chart',
     encodings: {
-      x: { field: 'a' },
-      y: { field: 'b', aggregate: 'average' },
+      x: { field: 'month' },
+      y: { field: 'value', aggregate: 'average' },
     },
     canvasSize: { width: 400, height: 300 },
   },
+  options: { maxStretch: 1.5 }, // cap automatic layout growth at 1.5x
 };
 
 const vlSpec  = assembleVegaLite(input);   // → Vega-Lite JSON

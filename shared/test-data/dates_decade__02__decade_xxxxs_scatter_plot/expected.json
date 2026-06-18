@@ -10,7 +10,7 @@
       "field": "Value",
       "type": "quantitative",
       "scale": {
-        "zero": true
+        "zero": false
       },
       "axis": {
         "format": ",.12~g"
@@ -122,8 +122,8 @@
       "key": "includeZero_y",
       "label": "Zero Y",
       "type": "binary",
-      "applicable": false,
-      "value": true
+      "applicable": true,
+      "value": false
     }
   ]
 }

@@ -5,7 +5,7 @@
       "field": "reviews",
       "type": "quantitative",
       "scale": {
-        "zero": true
+        "zero": false
       },
       "axis": {
         "tickMinStep": 1,
@@ -38,8 +38,8 @@
   },
   "config": {
     "view": {
-      "continuousWidth": 371,
-      "continuousHeight": 323
+      "continuousWidth": 376,
+      "continuousHeight": 319
     },
     "axisX": {
       "labelLimit": 100,
@@ -99,8 +99,8 @@
       }
     ]
   },
-  "_width": 371,
-  "_height": 323,
+  "_width": 376,
+  "_height": 319,
   "_options": [
     {
       "key": "opacity",
@@ -140,8 +140,8 @@
       "key": "includeZero_x",
       "label": "Zero X",
       "type": "binary",
-      "applicable": false,
-      "value": true
+      "applicable": true,
+      "value": false
     },
     {
       "key": "includeZero_y",

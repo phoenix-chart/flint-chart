@@ -80,17 +80,21 @@ def test_does_not_offer_zero_y_for_contextual_type_close_to_zero():
 
 
 def test_does_not_offer_zero_y_for_meaningful_type_close_enough_to_zero():
+    # Scatter reads as cloud shape, not distance-from-zero, so zero is now an
+    # opt-in toggle (default off) regardless of distance. Mirrors current JS.
     spec = _scatter_y("Price", [10, 20, 30, 40])
-    assert "includeZero_y" not in _applicable_keys(spec)
-    assert _y_includes_zero(spec) is True
+    assert "includeZero_y" in _applicable_keys(spec)
+    opt = _option_for(spec, "includeZero_y")
+    assert opt is not None and opt.get("value") is False
+    assert _y_includes_zero(spec) is False
 
 
 def test_offers_zero_y_for_meaningful_type_far_from_zero():
     spec = _scatter_y("Price", [1000, 1050, 1100, 1150, 1200])
     assert "includeZero_y" in _applicable_keys(spec)
     opt = _option_for(spec, "includeZero_y")
-    assert opt is not None and opt.get("value") is True
-    assert _y_includes_zero(spec) is True
+    assert opt is not None and opt.get("value") is False
+    assert _y_includes_zero(spec) is False
 
 
 def test_does_not_offer_zero_y_for_unknown_type():

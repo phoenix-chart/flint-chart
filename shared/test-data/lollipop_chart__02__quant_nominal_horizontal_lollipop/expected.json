@@ -11,7 +11,7 @@
           "field": "Score",
           "type": "quantitative",
           "scale": {
-            "zero": true
+            "zero": false
           },
           "axis": {
             "format": ",.12~g"
@@ -37,7 +37,7 @@
           "field": "Score",
           "type": "quantitative",
           "scale": {
-            "zero": true
+            "zero": false
           },
           "axis": {
             "format": ",.12~g"

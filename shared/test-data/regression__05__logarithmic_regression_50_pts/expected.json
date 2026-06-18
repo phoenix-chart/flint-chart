@@ -7,7 +7,7 @@
           "field": "Investment",
           "type": "quantitative",
           "scale": {
-            "zero": true
+            "zero": false
           },
           "axis": {
             "format": ",.12~g"
@@ -17,7 +17,7 @@
           "field": "Returns",
           "type": "quantitative",
           "scale": {
-            "zero": true
+            "zero": false
           },
           "axis": {
             "format": ",.12~g"
@@ -44,7 +44,7 @@
           "field": "Investment",
           "type": "quantitative",
           "scale": {
-            "zero": true
+            "zero": false
           },
           "axis": {
             "format": ",.12~g"
@@ -54,7 +54,7 @@
           "field": "Returns",
           "type": "quantitative",
           "scale": {
-            "zero": true
+            "zero": false
           },
           "axis": {
             "format": ",.12~g"
@@ -66,8 +66,8 @@
   "encoding": {},
   "config": {
     "view": {
-      "continuousWidth": 389,
-      "continuousHeight": 309
+      "continuousWidth": 382,
+      "continuousHeight": 314
     },
     "axisX": {
       "labelLimit": 100,
@@ -287,8 +287,8 @@
       }
     ]
   },
-  "_width": 389,
-  "_height": 309,
+  "_width": 382,
+  "_height": 314,
   "_options": [
     {
       "key": "regressionMethod",
@@ -362,15 +362,15 @@
       "key": "includeZero_x",
       "label": "Zero X",
       "type": "binary",
-      "applicable": false,
-      "value": true
+      "applicable": true,
+      "value": false
     },
     {
       "key": "includeZero_y",
       "label": "Zero Y",
       "type": "binary",
-      "applicable": false,
-      "value": true
+      "applicable": true,
+      "value": false
     }
   ]
 }

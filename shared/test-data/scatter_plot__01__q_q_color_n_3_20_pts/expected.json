@@ -5,7 +5,7 @@
       "field": "X",
       "type": "quantitative",
       "scale": {
-        "zero": true
+        "zero": false
       },
       "axis": {
         "format": ",.12~g"
@@ -15,7 +15,7 @@
       "field": "Y",
       "type": "quantitative",
       "scale": {
-        "zero": true
+        "zero": false
       },
       "axis": {
         "format": ",.12~g"
@@ -32,7 +32,7 @@
   },
   "config": {
     "view": {
-      "continuousWidth": 374,
+      "continuousWidth": 373,
       "continuousHeight": 321
     },
     "axisX": {
@@ -153,7 +153,7 @@
       }
     ]
   },
-  "_width": 374,
+  "_width": 373,
   "_height": 321,
   "_options": [
     {
@@ -194,15 +194,15 @@
       "key": "includeZero_x",
       "label": "Zero X",
       "type": "binary",
-      "applicable": false,
-      "value": true
+      "applicable": true,
+      "value": false
     },
     {
       "key": "includeZero_y",
       "label": "Zero Y",
       "type": "binary",
-      "applicable": false,
-      "value": true
+      "applicable": true,
+      "value": false
     }
   ]
 }

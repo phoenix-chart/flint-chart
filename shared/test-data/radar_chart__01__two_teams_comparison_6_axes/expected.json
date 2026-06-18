@@ -1054,7 +1054,7 @@
       "label": "Zero Y",
       "type": "binary",
       "applicable": true,
-      "value": true
+      "value": false
     }
   ]
 }

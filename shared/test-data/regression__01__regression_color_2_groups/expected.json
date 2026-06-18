@@ -7,7 +7,7 @@
           "field": "Experience",
           "type": "quantitative",
           "scale": {
-            "zero": true
+            "zero": false
           },
           "axis": {
             "format": ",.12~g"
@@ -17,7 +17,7 @@
           "field": "Salary",
           "type": "quantitative",
           "scale": {
-            "zero": true
+            "zero": false
           },
           "axis": {
             "format": ",.12~g"
@@ -52,7 +52,7 @@
           "field": "Experience",
           "type": "quantitative",
           "scale": {
-            "zero": true
+            "zero": false
           },
           "axis": {
             "format": ",.12~g"
@@ -62,7 +62,7 @@
           "field": "Salary",
           "type": "quantitative",
           "scale": {
-            "zero": true
+            "zero": false
           },
           "axis": {
             "format": ",.12~g"
@@ -82,8 +82,8 @@
   "encoding": {},
   "config": {
     "view": {
-      "continuousWidth": 384,
-      "continuousHeight": 312
+      "continuousWidth": 378,
+      "continuousHeight": 317
     },
     "axisX": {
       "labelLimit": 100,
@@ -93,7 +93,7 @@
       "labelFontSize": 10
     },
     "facet": {
-      "spacing": 31
+      "spacing": 32
     },
     "mark": {
       "tooltip": true
@@ -403,8 +403,8 @@
       }
     ]
   },
-  "_width": 384,
-  "_height": 312,
+  "_width": 378,
+  "_height": 317,
   "_options": [
     {
       "key": "regressionMethod",
@@ -478,15 +478,15 @@
       "key": "includeZero_x",
       "label": "Zero X",
       "type": "binary",
-      "applicable": false,
-      "value": true
+      "applicable": true,
+      "value": false
     },
     {
       "key": "includeZero_y",
       "label": "Zero Y",
       "type": "binary",
-      "applicable": false,
-      "value": true
+      "applicable": true,
+      "value": false
     }
   ]
 }

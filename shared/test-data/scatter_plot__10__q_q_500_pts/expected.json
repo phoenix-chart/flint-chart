@@ -5,7 +5,7 @@
       "field": "X",
       "type": "quantitative",
       "scale": {
-        "zero": true
+        "zero": false
       },
       "axis": {
         "format": ",.12~g"
@@ -25,7 +25,7 @@
   "config": {
     "view": {
       "continuousWidth": 521,
-      "continuousHeight": 460
+      "continuousHeight": 461
     },
     "axisX": {
       "labelLimit": 100,
@@ -2046,7 +2046,7 @@
     ]
   },
   "_width": 521,
-  "_height": 460,
+  "_height": 461,
   "_options": [
     {
       "key": "opacity",
@@ -2086,8 +2086,8 @@
       "key": "includeZero_x",
       "label": "Zero X",
       "type": "binary",
-      "applicable": false,
-      "value": true
+      "applicable": true,
+      "value": false
     },
     {
       "key": "includeZero_y",

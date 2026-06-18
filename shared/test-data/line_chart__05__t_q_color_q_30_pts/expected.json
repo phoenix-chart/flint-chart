@@ -1,32 +1,63 @@
 {
-  "mark": "line",
-  "encoding": {
-    "x": {
-      "field": "Date",
-      "type": "temporal"
-    },
-    "y": {
-      "field": "Value",
-      "type": "quantitative",
-      "scale": {
-        "zero": true
+  "layer": [
+    {
+      "mark": {
+        "type": "line",
+        "color": "#cccccc"
       },
-      "axis": {
-        "format": ",.12~g"
+      "encoding": {
+        "x": {
+          "field": "Date",
+          "type": "temporal"
+        },
+        "y": {
+          "field": "Value",
+          "type": "quantitative",
+          "scale": {
+            "zero": true
+          },
+          "axis": {
+            "format": ",.12~g"
+          }
+        }
       }
     },
-    "color": {
-      "field": "ColorVal",
-      "type": "quantitative",
-      "scale": {
-        "scheme": "greens"
+    {
+      "mark": {
+        "type": "point",
+        "filled": true,
+        "size": 80
+      },
+      "encoding": {
+        "x": {
+          "field": "Date",
+          "type": "temporal"
+        },
+        "y": {
+          "field": "Value",
+          "type": "quantitative",
+          "scale": {
+            "zero": true
+          },
+          "axis": {
+            "format": ",.12~g"
+          }
+        },
+        "color": {
+          "field": "ColorVal",
+          "type": "quantitative",
+          "scale": {
+            "scheme": "greens"
+          }
+        }
       }
     }
-  },
+  ],
   "config": {
     "view": {
       "continuousWidth": 390,
-      "continuousHeight": 371
+      "continuousHeight": 371,
+      "stroke": null
     },
     "axisX": {
       "labelLimit": 100,

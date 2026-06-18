@@ -7,7 +7,7 @@
           "field": "EngineSize",
           "type": "quantitative",
           "scale": {
-            "zero": true
+            "zero": false
           },
           "axis": {
             "format": ",.12~g"
@@ -17,7 +17,7 @@
           "field": "Horsepower",
           "type": "quantitative",
           "scale": {
-            "zero": true
+            "zero": false
           },
           "axis": {
             "format": ",.12~g"
@@ -63,7 +63,7 @@
           "field": "EngineSize",
           "type": "quantitative",
           "scale": {
-            "zero": true
+            "zero": false
           },
           "axis": {
             "format": ",.12~g"
@@ -73,7 +73,7 @@
           "field": "Horsepower",
           "type": "quantitative",
           "scale": {
-            "zero": true
+            "zero": false
           },
           "axis": {
             "format": ",.12~g"
@@ -93,8 +93,8 @@
   "encoding": {},
   "config": {
     "view": {
-      "continuousWidth": 384,
-      "continuousHeight": 328
+      "continuousWidth": 391,
+      "continuousHeight": 327
     },
     "axisX": {
       "labelLimit": 100,
@@ -654,8 +654,8 @@
       }
     ]
   },
-  "_width": 384,
-  "_height": 328,
+  "_width": 391,
+  "_height": 327,
   "_options": [
     {
       "key": "regressionMethod",
@@ -729,15 +729,15 @@
       "key": "includeZero_x",
       "label": "Zero X",
       "type": "binary",
-      "applicable": false,
-      "value": true
+      "applicable": true,
+      "value": false
     },
     {
       "key": "includeZero_y",
       "label": "Zero Y",
       "type": "binary",
-      "applicable": false,
-      "value": true
+      "applicable": true,
+      "value": false
     }
   ]
 }

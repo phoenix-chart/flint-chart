@@ -8,7 +8,7 @@
       "field": "X",
       "type": "quantitative",
       "scale": {
-        "zero": true
+        "zero": false
       },
       "axis": {
         "format": ",.12~g"
@@ -18,7 +18,7 @@
       "field": "Y",
       "type": "quantitative",
       "scale": {
-        "zero": true
+        "zero": false
       },
       "axis": {
         "format": ",.12~g"
@@ -27,8 +27,8 @@
   },
   "config": {
     "view": {
-      "continuousWidth": 424,
-      "continuousHeight": 512
+      "continuousWidth": 474,
+      "continuousHeight": 505
     },
     "axisX": {
       "labelLimit": 100,
@@ -38,7 +38,7 @@
       "labelFontSize": 10
     },
     "facet": {
-      "spacing": 42
+      "spacing": 47
     },
     "mark": {
       "tooltip": true
@@ -3248,8 +3248,8 @@
       }
     ]
   },
-  "_width": 424,
-  "_height": 512,
+  "_width": 474,
+  "_height": 505,
   "_options": [
     {
       "key": "opacity",
@@ -3290,14 +3290,14 @@
       "label": "Zero X",
       "type": "binary",
       "applicable": true,
-      "value": true
+      "value": false
     },
     {
       "key": "includeZero_y",
       "label": "Zero Y",
       "type": "binary",
-      "applicable": false,
-      "value": true
+      "applicable": true,
+      "value": false
     }
   ]
 }

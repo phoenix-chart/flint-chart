@@ -7,7 +7,7 @@
           "field": "Hours",
           "type": "quantitative",
           "scale": {
-            "zero": true
+            "zero": false
           },
           "axis": {
             "format": ",.12~g"
@@ -17,7 +17,7 @@
           "field": "Score",
           "type": "quantitative",
           "scale": {
-            "zero": true
+            "zero": false
           },
           "axis": {
             "format": ",.12~g"
@@ -43,7 +43,7 @@
           "field": "Hours",
           "type": "quantitative",
           "scale": {
-            "zero": true
+            "zero": false
           },
           "axis": {
             "format": ",.12~g"
@@ -53,7 +53,7 @@
           "field": "Score",
           "type": "quantitative",
           "scale": {
-            "zero": true
+            "zero": false
           },
           "axis": {
             "format": ",.12~g"
@@ -65,8 +65,8 @@
   "encoding": {},
   "config": {
     "view": {
-      "continuousWidth": 377,
-      "continuousHeight": 318
+      "continuousWidth": 374,
+      "continuousHeight": 321
     },
     "axisX": {
       "labelLimit": 100,
@@ -246,8 +246,8 @@
       }
     ]
   },
-  "_width": 377,
-  "_height": 318,
+  "_width": 374,
+  "_height": 321,
   "_options": [
     {
       "key": "regressionMethod",
@@ -321,15 +321,15 @@
       "key": "includeZero_x",
       "label": "Zero X",
       "type": "binary",
-      "applicable": false,
-      "value": true
+      "applicable": true,
+      "value": false
     },
     {
       "key": "includeZero_y",
       "label": "Zero Y",
       "type": "binary",
-      "applicable": false,
-      "value": true
+      "applicable": true,
+      "value": false
     }
   ]
 }

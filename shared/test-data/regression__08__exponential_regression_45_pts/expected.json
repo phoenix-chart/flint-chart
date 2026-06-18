@@ -7,7 +7,7 @@
           "field": "Time",
           "type": "quantitative",
           "scale": {
-            "zero": true
+            "zero": false
           },
           "axis": {
             "format": ",.12~g"
@@ -17,7 +17,7 @@
           "field": "Growth",
           "type": "quantitative",
           "scale": {
-            "zero": true
+            "zero": false
           },
           "axis": {
             "format": ",.12~g"
@@ -44,7 +44,7 @@
           "field": "Time",
           "type": "quantitative",
           "scale": {
-            "zero": true
+            "zero": false
           },
           "axis": {
             "format": ",.12~g"
@@ -54,7 +54,7 @@
           "field": "Growth",
           "type": "quantitative",
           "scale": {
-            "zero": true
+            "zero": false
           },
           "axis": {
             "format": ",.12~g"
@@ -66,8 +66,8 @@
   "encoding": {},
   "config": {
     "view": {
-      "continuousWidth": 379,
-      "continuousHeight": 317
+      "continuousWidth": 377,
+      "continuousHeight": 318
     },
     "axisX": {
       "labelLimit": 100,
@@ -267,8 +267,8 @@
       }
     ]
   },
-  "_width": 379,
-  "_height": 317,
+  "_width": 377,
+  "_height": 318,
   "_options": [
     {
       "key": "regressionMethod",
@@ -342,15 +342,15 @@
       "key": "includeZero_x",
       "label": "Zero X",
       "type": "binary",
-      "applicable": false,
-      "value": true
+      "applicable": true,
+      "value": false
     },
     {
       "key": "includeZero_y",
       "label": "Zero Y",
       "type": "binary",
-      "applicable": false,
-      "value": true
+      "applicable": true,
+      "value": false
     }
   ]
 }

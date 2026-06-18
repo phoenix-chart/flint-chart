@@ -5,7 +5,7 @@
       "field": "gdp_per_capita",
       "type": "quantitative",
       "scale": {
-        "zero": true
+        "zero": false
       },
       "axis": {
         "format": ",.12~g"
@@ -30,8 +30,8 @@
   },
   "config": {
     "view": {
-      "continuousWidth": 378,
-      "continuousHeight": 318
+      "continuousWidth": 380,
+      "continuousHeight": 316
     },
     "axisX": {
       "labelLimit": 100,
@@ -101,8 +101,8 @@
       }
     ]
   },
-  "_width": 378,
-  "_height": 318,
+  "_width": 380,
+  "_height": 316,
   "_options": [
     {
       "key": "opacity",
@@ -142,8 +142,8 @@
       "key": "includeZero_x",
       "label": "Zero X",
       "type": "binary",
-      "applicable": false,
-      "value": true
+      "applicable": true,
+      "value": false
     },
     {
       "key": "includeZero_y",

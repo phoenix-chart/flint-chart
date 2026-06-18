@@ -9,7 +9,7 @@
       "field": "Value",
       "type": "quantitative",
       "scale": {
-        "zero": true
+        "zero": false
       },
       "axis": {
         "format": ",.12~g"
@@ -18,8 +18,8 @@
   },
   "config": {
     "view": {
-      "continuousWidth": 377,
-      "continuousHeight": 318
+      "continuousWidth": 373,
+      "continuousHeight": 322
     },
     "axisX": {
       "labelLimit": 100,
@@ -159,8 +159,8 @@
       }
     ]
   },
-  "_width": 377,
-  "_height": 318,
+  "_width": 373,
+  "_height": 322,
   "_options": [
     {
       "key": "opacity",
@@ -206,8 +206,8 @@
       "key": "includeZero_y",
       "label": "Zero Y",
       "type": "binary",
-      "applicable": false,
-      "value": true
+      "applicable": true,
+      "value": false
     }
   ]
 }

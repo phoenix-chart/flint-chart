@@ -8,6 +8,13 @@ from .bar import (
 from .line import line_chart_def
 from .area import area_chart_def, streamgraph_def
 from .scatter import scatter_plot_def, regression_def, ranged_dot_plot_def, boxplot_def
+from .connected_scatter import connected_scatter_def
+from .gantt import gantt_chart_def
+from .bullet import bullet_chart_def
+from .ecdf import ecdf_plot_def
+from .violin import violin_plot_def
+from .slope import slope_chart_def
+from .range_area import range_area_chart_def
 from .pie import pie_chart_def
 from .radar import radar_chart_def
 from .rose import rose_chart_def
@@ -205,10 +212,13 @@ def with_injected_properties(def_: dict) -> dict:
 
 
 vl_template_defs = {
-    "Points": [scatter_plot_def, regression_def, ranged_dot_plot_def, strip_plot_def],
-    "Bars": [bar_chart_def, grouped_bar_chart_def, stacked_bar_chart_def, lollipop_chart_def, waterfall_chart_def],
-    "Distributions": [histogram_def, density_plot_def, boxplot_def, pyramid_chart_def, candlestick_chart_def],
-    "Lines & Areas": [line_chart_def, bump_chart_def, area_chart_def, streamgraph_def],
+    "Points": [scatter_plot_def, regression_def, connected_scatter_def, ranged_dot_plot_def, strip_plot_def],
+    "Bars": [bar_chart_def, grouped_bar_chart_def, stacked_bar_chart_def, lollipop_chart_def,
+             waterfall_chart_def, gantt_chart_def, bullet_chart_def],
+    "Distributions": [histogram_def, density_plot_def, ecdf_plot_def, violin_plot_def,
+                      boxplot_def, pyramid_chart_def, candlestick_chart_def],
+    "Lines & Areas": [line_chart_def, bump_chart_def, slope_chart_def, area_chart_def,
+                      streamgraph_def, range_area_chart_def],
     "Circular": [pie_chart_def, rose_chart_def, radar_chart_def],
     "Tables & Maps": [heatmap_def, bar_table_def, kpi_card_def],
     "Custom": [custom_point_def, custom_line_def, custom_bar_def, custom_rect_def, custom_area_def],

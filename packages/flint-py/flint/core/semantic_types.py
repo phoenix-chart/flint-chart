@@ -248,6 +248,7 @@ def compute_zero_decision(
     values: Optional[list[float]] = None,
 ) -> dict[str, Any]:
     is_bar_like = mark_type in ("bar", "area", "rect")
+    is_scatter_mark = mark_type in ("circle", "point")
     is_positional = channel in ("x", "y")
     entry = get_registry_entry(semantic_type)
     zero_class = get_zero_class(semantic_type)
@@ -258,9 +259,18 @@ def compute_zero_decision(
         if is_bar_like:
             return {"zero": True, "domainPadFraction": 0, "zeroClass": zero_class,
                     "forced": True, "uncertain": False}
-        # Position marks: zero is the conventional reference, so default ON.
-        # Only offer a toggle when the data sits far enough from zero that
-        # anchoring at zero would noticeably compress the view.
+        # Scatter (circle/point position): the read is correlation / cloud shape,
+        # not distance from zero — data-fit is the conventional default. Offer
+        # Zero X/Y as an opt-in toggle when the user wants a zero reference.
+        if is_positional and is_scatter_mark:
+            if values is not None and len(values) > 0 and min(values) <= 0:
+                return {"zero": True, "domainPadFraction": 0, "zeroClass": zero_class,
+                        "forced": True, "uncertain": False}
+            return {"zero": False, "domainPadFraction": entry.get("zeroPad") or 0.05,
+                    "zeroClass": zero_class, "forced": False, "uncertain": True}
+        # Position marks (line/strip): zero is the conventional reference, so
+        # default ON. Only offer a toggle when the data sits far enough from zero
+        # that anchoring at zero would noticeably compress the view.
         return {"zero": True, "domainPadFraction": 0, "zeroClass": zero_class,
                 "forced": False, "uncertain": _data_far_from_zero(values)}
 

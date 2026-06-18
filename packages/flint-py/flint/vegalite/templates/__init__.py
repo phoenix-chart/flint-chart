@@ -15,6 +15,7 @@ from .ecdf import ecdf_plot_def
 from .violin import violin_plot_def
 from .slope import slope_chart_def
 from .range_area import range_area_chart_def
+from .map import map_def, choropleth_def
 from .pie import pie_chart_def
 from .radar import radar_chart_def
 from .rose import rose_chart_def
@@ -220,7 +221,7 @@ vl_template_defs = {
     "Lines & Areas": [line_chart_def, bump_chart_def, slope_chart_def, area_chart_def,
                       streamgraph_def, range_area_chart_def],
     "Circular": [pie_chart_def, rose_chart_def, radar_chart_def],
-    "Tables & Maps": [heatmap_def, bar_table_def, kpi_card_def],
+    "Tables & Maps": [heatmap_def, bar_table_def, kpi_card_def, map_def, choropleth_def],
     "Custom": [custom_point_def, custom_line_def, custom_bar_def, custom_rect_def, custom_area_def],
 }
 

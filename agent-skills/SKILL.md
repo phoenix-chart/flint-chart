@@ -10,7 +10,7 @@ description: Author a flint-chart ChartAssemblyInput — pick a chart type, map 
 Your output is the **spec**: the `chart_spec` and `semantic_types` of a
 `ChartAssemblyInput`. You reference data columns **by name**. The host
 passes the resulting input to `assembleVegaLite`, `assembleECharts`,
-`assembleChartjs`, or `assembleGoFish` to get a backend spec.
+or `assembleChartjs` to get a backend spec.
 
 **You write the input spec, not the output spec.** And critically:
 
@@ -123,8 +123,6 @@ support a subset (verify if targeting a non-VL backend):
 - **Chart.js** supports: Scatter, Bubble, Bar, Grouped Bar, Stacked Bar,
   Combo, Line, Area, Range Area, Pie, Doughnut, Histogram, Radar, Rose, Slope,
   Connected Scatter.
-- **GoFish** supports: Scatter, Bar, Grouped Bar, Stacked Bar, Line, Area,
-  Pie, ScatterPie.
 
 You do not need to call the library or inspect its source to author the
 input — pick from this table.

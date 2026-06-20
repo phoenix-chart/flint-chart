@@ -1,6 +1,6 @@
 ---
 name: "Add Chart Type"
-description: "Use when: adding a new chart type to flint-chart, implementing chart templates across Vega-Lite, ECharts, Chart.js, GoFish, gallery examples, test cases, or VLM rendering verification."
+description: "Use when: adding a new chart type to flint-chart, implementing chart templates across Vega-Lite, ECharts, Chart.js, gallery examples, test cases, or VLM rendering verification."
 argument-hint: "Chart type name and target backend(s)"
 tools: [read, search, edit, execute, todo]
 user-invocable: true

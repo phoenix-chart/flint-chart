@@ -33,6 +33,13 @@ export const DOCUMENTATION_GROUPS: DocGroup[] = [
           'Swap fields, change chart types, and compare Vega-Lite, ECharts, and Chart.js.',
         file: '../../../docs/tutorials/exploring-data.md',
       },
+      {
+        slug: 'chart-sizing',
+        title: 'Chart sizing demo',
+        description:
+          'See how canvasSize, stretch, and data density affect chart dimensions.',
+        file: '../../../docs/tutorials/chart-sizing.md',
+      },
     ],
   },
   {
@@ -52,28 +59,22 @@ export const DOCUMENTATION_GROUPS: DocGroup[] = [
         file: '../../../docs/architecture.md',
       },
       {
-        slug: 'api-reference',
-        title: 'API reference',
-        description: 'ChartAssemblyInput, assemblers, encodings, options, and exports.',
-        file: '../../../docs/api-reference.md',
-      },
-    ],
-  },
-  {
-    id: 'concepts',
-    label: 'Core concepts',
-    docs: [
-      {
         slug: 'semantic-types',
-        title: 'Semantic types',
+        title: 'Semantic Type',
         description: 'Type hierarchy, annotations, compilation pipeline, and resolution rules.',
         file: '../../../docs/design-semantics.md',
       },
       {
         slug: 'layout-model',
-        title: 'Layout model',
+        title: 'Auto Layout Algorithm',
         description: 'Spring, gas-pressure, radial, and area sizing models.',
         file: '../../../docs/design-stretch-model.md',
+      },
+      {
+        slug: 'api-reference',
+        title: 'API reference',
+        description: 'ChartAssemblyInput, assemblers, encodings, options, and exports.',
+        file: '../../../docs/api-reference.md',
       },
       // {
       //   slug: 'color-decisions',
@@ -84,45 +85,60 @@ export const DOCUMENTATION_GROUPS: DocGroup[] = [
     ],
   },
   {
-    id: 'extending',
-    label: 'Extending',
+    id: 'reference',
+    label: 'Chart reference',
     docs: [
       {
+        slug: 'reference-vegalite',
+        title: 'Vega-Lite charts',
+        description: 'Every Vega-Lite chart type, its channels, and configurable parameters.',
+        file: '../../../docs/reference-vegalite.md',
+      },
+      {
+        slug: 'reference-echarts',
+        title: 'ECharts charts',
+        description: 'Every ECharts chart type, its channels, and configurable parameters.',
+        file: '../../../docs/reference-echarts.md',
+      },
+      {
+        slug: 'reference-chartjs',
+        title: 'Chart.js charts',
+        description: 'Every Chart.js chart type, its channels, and configurable parameters.',
+        file: '../../../docs/reference-chartjs.md',
+      },
+    ],
+  },
+  {
+    id: 'extending',
+    label: 'Development',
+    docs: [
+      {
+        slug: 'development',
+        title: 'Development guide',
+        description: 'Monorepo setup, daily commands, and test strategy.',
+        file: '../../../docs/DEVELOPMENT.md',
+      },
+      {
         slug: 'adding-a-semantic-type',
-        title: 'Adding a semantic type',
+        title: 'Extending semantic types',
         description: 'Register in type-registry.ts, sync constants, and verify in the gallery.',
         file: '../../../docs/adding-a-semantic-type.md',
       },
       {
         slug: 'adding-a-backend',
-        title: 'Adding a backend',
+        title: 'Extending backends',
         description: 'Assembler skeleton, core pipeline contract, packaging, and gallery wiring.',
         file: '../../../docs/adding-a-backend.md',
       },
       {
         slug: 'adding-a-chart-template',
-        title: 'Adding a chart template',
+        title: 'Extending chart templates',
         description: 'ChartTemplateDef, instantiate hook, registry, and test generators.',
         file: '../../../docs/adding-a-chart-template.md',
       },
     ],
   },
-  {
-    id: 'contributing',
-    label: 'Contributing',
-    docs: [
-      {
-        slug: 'development',
-        title: 'Development',
-        description: 'Monorepo setup, daily commands, and test strategy.',
-        file: '../../../docs/DEVELOPMENT.md',
-      },
-    ],
-  },
 ];
-
-/** @deprecated Use DOCUMENTATION_GROUPS — flat list for link resolution. */
-export const DOCUMENTATION_DOCS: DocEntry[] = DOCUMENTATION_GROUPS.flatMap((g) => g.docs);
 
 export function getDocGroups(_section: DocSection): DocGroup[] {
   return DOCUMENTATION_GROUPS;

@@ -35,7 +35,6 @@ import { barTableDef } from './bar-table';
 import { radarChartDef } from './radar';
 import { roseChartDef } from './rose';
 import { mapDef, choroplethDef } from './map';
-import { customPointDef, customLineDef, customBarDef, customRectDef, customAreaDef } from './custom';
 import { kpiCardDef } from './kpi-card';
 
 /**
@@ -251,7 +250,6 @@ export const vlTemplateDefs: { [key: string]: ChartTemplateDef[] } = Object.from
         "Lines & Areas":   [lineChartDef, bumpChartDef, slopeChartDef, areaChartDef, streamgraphDef, rangeAreaChartDef],
         "Circular":        [pieChartDef, roseChartDef, radarChartDef],
         "Tables & Maps":   [heatmapDef, barTableDef, kpiCardDef, mapDef, choroplethDef],
-        "Custom":          [customPointDef, customLineDef, customBarDef, customRectDef, customAreaDef],
     }).map(([category, defs]) => [category, defs.map(withInjectedProperties)]),
 );
 

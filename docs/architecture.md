@@ -39,10 +39,10 @@ Roughly **90%** of design logic lives in Stages 1–2 and is identical across ba
 |-------|------------|----------------|-------------|
 | **1. Compiler frontend** | Resolve encoding properties | Phase 0 — `resolveChannelSemantics()` | `ChannelSemantics` per channel |
 | **2. Optimizer** | Fit layout to canvas | Phase 1 — `computeLayout()`, `filterOverflow()` | `LayoutResult`, truncated data |
-| **3. Code generator** | Emit library-native spec | Phase 2 — `build*Encodings()`, `template.instantiate()` | VL / EC / CJS / GoFish spec |
+| **3. Code generator** | Emit library-native spec | Phase 2 — `build*Encodings()`, `template.instantiate()` | VL / EC / CJS spec |
 
 ```text
-assembleVegaLite(input)   // or assembleECharts, assembleChartjs, assembleGoFish
+assembleVegaLite(input)   // or assembleECharts, assembleChartjs
        │
        ▼
 ══ STAGE 1 — COMPILER FRONTEND (core/) ═════════════════════════
@@ -79,7 +79,7 @@ Canonical orchestration: `packages/flint-js/src/vegalite/assemble.ts`.
 
 # §3 Stage 1 — Compiler frontend
 
-Resolution happens in two layers (detail: [Semantic types §4](/documentation/semantic-types#4-compilation-pipeline)):
+Resolution happens in two layers (detail: [Semantic Type §4](/documentation/semantic-types#4-compilation-pipeline)):
 
 ### Field properties
 
@@ -112,7 +112,7 @@ Each layout dimension (x, y, group, facet column/row, radius) is a flexible cont
 
 Aspect ratio (banking-to-45° for connected marks), facet row/column wrapping, and non-Cartesian charts (treemap, gauge, pie) sized from component counts.
 
-Implementation models: [Layout model](/documentation/layout-model) — §2 elastic budget, §3 gas pressure, §4 circumference, §5 area.
+Implementation models: [Auto Layout Algorithm](/documentation/layout-model) — §2 elastic budget, §3 gas pressure, §4 circumference, §5 area.
 
 ---
 
@@ -129,7 +129,7 @@ Backend generators translate optimized context into library-native syntax. Each 
 | `declareLayoutMode?` | Axis flags before layout |
 | `instantiate()` | Emit spec from `InstantiateContext` |
 
-Registries: `vlTemplateDefs`, `ecTemplateDefs`, `cjsTemplateDefs`, `gfTemplateDefs`. Lookup: `vlGetTemplateDef(name)`, etc.
+Registries: `vlTemplateDefs`, `ecTemplateDefs`, `cjsTemplateDefs`. Lookup: `vlGetTemplateDef(name)`, etc.
 
 New backends add Stage 3 only — frontend and optimizer unchanged. See [Adding a backend](/documentation/adding-a-backend).
 
@@ -161,7 +161,6 @@ packages/flint-js/src/
 ├── vegalite/       Stage 3 — Vega-Lite templates + assembleVegaLite
 ├── echarts/        Stage 3 — ECharts templates + assembleECharts
 ├── chartjs/        Stage 3 — Chart.js templates + assembleChartjs
-├── gofish/         Stage 3 — GoFish templates + assembleGoFish
 └── test-data/      gallery fixtures (TEST_GENERATORS)
 
 packages/flint-py/  Python port (Vega-Lite backend today)
@@ -174,7 +173,7 @@ site/               demo site (gallery, editor, documentation)
 
 - [Overview](/documentation/overview) — motivation and spec examples
 - [API reference](/documentation/api-reference) — `ChartAssemblyInput`, assemblers, options
-- [Semantic types](/documentation/semantic-types) — type hierarchy and resolution rules
-- [Layout model](/documentation/layout-model) — stretch and facet models
+- [Semantic Type](/documentation/semantic-types) — type hierarchy and resolution rules
+- [Auto Layout Algorithm](/documentation/layout-model) — stretch and facet models
 - [Paper (PDF)](https://github.com/microsoft/flint-chart/blob/main/docs/figs/AgChart.pdf)
 - [Adding a chart template](/documentation/adding-a-chart-template) — extend Stage 3

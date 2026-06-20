@@ -6,7 +6,6 @@ import {
   assembleVegaLite,
   assembleECharts,
   assembleChartjs,
-  assembleGoFish,
 } from '../src';
 
 const DATA = [
@@ -46,11 +45,6 @@ describe('public API smoke', () => {
     const config = assembleChartjs(INPUT) as any;
     expect(config).toBeDefined();
     expect(config.type ?? config.data ?? config.options).toBeDefined();
-  });
-
-  it('assembleGoFish returns a spec object', () => {
-    const spec = assembleGoFish(INPUT) as any;
-    expect(spec).toBeDefined();
   });
 
   it('line chart with quantitative color uses a line layer plus colored points', () => {

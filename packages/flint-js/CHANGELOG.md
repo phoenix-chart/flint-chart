@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modern repo layout: `src/`, `tests/`, `examples/`, `agent-skills/`, `docs/`.
 - Dual ESM + CJS build via `tsup`.
 - Vitest test runner, ESLint flat config, Prettier, EditorConfig.
-- Vega-Lite, ECharts, Chart.js, and GoFish backends behind a single
+- Vega-Lite, ECharts, and Chart.js backends behind a single
   `ChartAssemblyInput` contract.
 - Demo gallery and live-editor scaffolds under `examples/`.
 - Agent skill bundle and MCP server stub under `agent-skills/`.

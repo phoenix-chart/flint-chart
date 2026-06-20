@@ -1,5 +1,5 @@
 import type { DocEntry, DocSection } from './docs-catalog';
-import { DOCUMENTATION_DOCS, getDocEntry } from './docs-catalog';
+import { getDocsForSection, getDocEntry } from './docs-catalog';
 
 /** Eager raw imports of markdown files from the repo root and docs/. */
 const RAW_MODULES = import.meta.glob<string>(
@@ -12,13 +12,20 @@ const RAW_MODULES = import.meta.glob<string>(
 );
 
 /** Doc figures under docs/figs/ — resolved to bundled asset URLs. */
-const FIGURE_MODULES = import.meta.glob<string>(['../../../docs/figs/*'], {
+const FIGURE_MODULES = import.meta.glob<string>(['../../../docs/figs/**/*'], {
   query: '?url',
   import: 'default',
   eager: true,
 });
 
-const ALL_ENTRIES = DOCUMENTATION_DOCS;
+/** Chart icons under site/src/assets/chart-icons/ — used by the reference docs. */
+const ICON_MODULES = import.meta.glob<string>(['../assets/chart-icons/*.svg'], {
+  query: '?url',
+  import: 'default',
+  eager: true,
+});
+
+const ALL_ENTRIES = getDocsForSection('documentation');
 
 export function getDocMarkdown(entry: DocEntry): string | null {
   return RAW_MODULES[entry.file] ?? null;
@@ -34,6 +41,11 @@ export function getDocMarkdownBySlug(section: DocSection, slug: string): string 
 export function resolveMarkdownImageSrc(src: string): string | null {
   const normalized = src.replace(/^\.\//, '');
   for (const [path, url] of Object.entries(FIGURE_MODULES)) {
+    if (path.endsWith(`/${normalized}`) || path.endsWith(normalized)) {
+      return url;
+    }
+  }
+  for (const [path, url] of Object.entries(ICON_MODULES)) {
     if (path.endsWith(`/${normalized}`) || path.endsWith(normalized)) {
       return url;
     }

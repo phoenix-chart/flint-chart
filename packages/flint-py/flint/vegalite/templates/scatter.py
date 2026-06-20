@@ -13,6 +13,10 @@ from .utils import (
 
 def _scatter_instantiate(spec, ctx):
     default_build_encodings(spec, ctx["resolvedEncodings"])
+    # A `shape` encoding only renders distinct glyphs on the `point` mark;
+    # `circle` ignores it. Promote the mark when shape is in play.
+    if (spec.get("encoding") or {}).get("shape", {}).get("field"):
+        spec["mark"] = set_mark_prop(spec.get("mark"), "type", "point")
     canvas = ctx.get("canvasSize") or {}
     apply_point_size_scaling(spec, ctx["table"], canvas.get("width"), canvas.get("height"))
     config = ctx.get("chartProperties")
@@ -23,7 +27,7 @@ def _scatter_instantiate(spec, ctx):
 scatter_plot_def = {
     "chart": "Scatter Plot",
     "template": {"mark": "circle", "encoding": {}},
-    "channels": ["x", "y", "color", "size", "opacity", "column", "row"],
+    "channels": ["x", "y", "color", "size", "shape", "opacity", "column", "row"],
     "markCognitiveChannel": "position",
     "instantiate": _scatter_instantiate,
     "properties": [

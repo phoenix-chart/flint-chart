@@ -57,13 +57,11 @@ import {
   assembleVegaLite,
   assembleECharts,
   assembleChartjs,
-  assembleGoFish,
 } from 'flint-chart';
 
 const vlSpec  = assembleVegaLite(input);
 const ecSpec  = assembleECharts(input);
 const cjsSpec = assembleChartjs(input);
-const gfSpec  = assembleGoFish(input);
 ```
 
 | Export | Returns |
@@ -71,7 +69,6 @@ const gfSpec  = assembleGoFish(input);
 | `assembleVegaLite` | Vega-Lite JSON spec |
 | `assembleECharts` | ECharts `option` object |
 | `assembleChartjs` | Chart.js configuration |
-| `assembleGoFish` | GoFish imperative spec |
 
 Unknown `chartType` for a backend throws before render. Check support with `vlGetTemplateDef`, `ecGetTemplateDef`, or `cjsGetTemplateDef`.
 
@@ -103,7 +100,7 @@ interface ChartAssemblyInput {
 
 ### `semantic_types`
 
-Maps column name → semantic type. Drives encoding type, formatting, aggregation defaults, color class, and layout. See [Semantic types](/documentation/semantic-types).
+Maps column name → semantic type. Drives encoding type, formatting, aggregation defaults, color class, and layout. See [Semantic Type](/documentation/semantic-types).
 
 ### `chart_spec`
 
@@ -151,7 +148,7 @@ interface AssembleOptions {
 }
 ```
 
-Full list: `packages/flint-js/src/core/types.ts` (`AssembleOptions`). Behavior: [Layout model](/documentation/layout-model).
+Full list: `packages/flint-js/src/core/types.ts` (`AssembleOptions`). Behavior: [Auto Layout Algorithm](/documentation/layout-model).
 
 ---
 
@@ -222,7 +219,7 @@ Key types: `ChartAssemblyInput`, `ChartEncoding`, `ChartTemplateDef`, `AssembleO
 
 When a discrete channel exceeds the layout budget, the compiler:
 
-1. Computes how many items fit ([Layout model §2](/documentation/layout-model#2-discrete-axis-elastic-budget-model))
+1. Computes how many items fit ([Auto Layout Algorithm §2](/documentation/layout-model#2-discrete-axis-elastic-budget-model))
 2. Applies the template overflow strategy
 3. Filters data to kept values
 4. Attaches warnings to the result
@@ -249,7 +246,6 @@ Inspect `_warnings` or `ChartWarning` arrays in integration code to surface trun
 | `flint-chart/vegalite` | VL templates and `assembleVegaLite` |
 | `flint-chart/echarts` | ECharts templates and `assembleECharts` |
 | `flint-chart/chartjs` | Chart.js templates and `assembleChartjs` |
-| `flint-chart/gofish` | GoFish templates and `assembleGoFish` |
 | `flint-chart/test-data` | Gallery generators (`TEST_GENERATORS`) |
 
 ---
@@ -258,7 +254,7 @@ Inspect `_warnings` or `ChartWarning` arrays in integration code to surface trun
 
 - [Overview](/documentation/overview) — dataSpec + chartSpec motivation
 - [Architecture](/documentation/architecture) — three-stage pipeline
-- [Semantic types](/documentation/semantic-types) — type hierarchy and resolution
+- [Semantic Type](/documentation/semantic-types) — type hierarchy and resolution
 - [Getting started](/tutorials/getting-started) — hands-on walkthrough
 - [Adding a backend](/documentation/adding-a-backend) — new `assemble*()` target
 - [Paper (PDF)](https://github.com/microsoft/flint-chart/blob/main/docs/figs/AgChart.pdf)

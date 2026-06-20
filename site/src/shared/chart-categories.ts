@@ -43,6 +43,8 @@ import usMapIcon from '../assets/chart-icons/chart-icon-us-map.svg';
 import worldMapIcon from '../assets/chart-icons/chart-icon-world-map.svg';
 import ganttIcon from '../assets/chart-icons/chart-icon-gantt.svg';
 import bulletIcon from '../assets/chart-icons/chart-icon-bullet.svg';
+import barTableIcon from '../assets/chart-icons/chart-icon-bar-table.svg';
+import kpiCardIcon from '../assets/chart-icons/chart-icon-kpi-card.svg';
 
 export interface ChartEntry {
   id: string;
@@ -141,6 +143,8 @@ const spec = assembleVegaLite(input);`,
       createChart('vegalite', 'radar-chart', 'Radar Chart', 'Radar Chart', radarIcon),
       createChart('vegalite', 'pyramid-chart', 'Pyramid Chart', 'Pyramid Chart', pyramidIcon),
       createChart('vegalite', 'rose-chart', 'Rose Chart', 'Rose Chart', roseIcon),
+      createChart('vegalite', 'bar-table', 'Bar Table', 'Bar Table', barTableIcon),
+      createChart('vegalite', 'kpi-card', 'KPI Card', 'Gallery: KPI Card', kpiCardIcon),
       createChart('vegalite', 'map', 'Map', 'Map', worldMapIcon),
       createChart('vegalite', 'choropleth', 'Choropleth', 'Choropleth', usMapIcon),
     ],

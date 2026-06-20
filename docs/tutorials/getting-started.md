@@ -91,7 +91,7 @@ Add a `semantic_types` map — one semantic label per field:
 
 You do **not** set `type`, `timeUnit`, `axis.format`, or `scale.zero` here — the
 compiler reads the semantic type registry and fills those in when it builds the
-backend spec. See [Semantic types](/documentation/semantic-types) for the full
+backend spec. See [Semantic Type](/documentation/semantic-types) for the full
 T0 → T1 → T2 system.
 
 ---
@@ -150,7 +150,8 @@ stretch the effective width or height to keep marks readable. By default,
 `maxStretch` is `2`, so a 400 px axis may grow up to 800 px before Flint makes
 harder tradeoffs such as smaller steps or truncation. Set
 `options.maxStretch` when you need stricter fixed-size output; see the
-[layout model](/documentation/layout-model) for the full explanation.
+[chart sizing demo](/documentation/chart-sizing) for a quick visual walkthrough
+or [Auto Layout Algorithm](/documentation/layout-model) for the full explanation.
 
 Three observations compared to raw Vega-Lite:
 
@@ -221,7 +222,7 @@ visual template from monthly bars to a monthly trend line.
 For many semantic types the compiler **auto-aggregates** when multiple rows
 share the same x value — e.g. `Price` → `average`, additive amounts → `sum`.
 Explicit `aggregate` on an encoding always wins. Details are in
-[Semantic types](/documentation/semantic-types#aggregation-role).
+[Semantic Type](/documentation/semantic-types#aggregation-role).
 
 ---
 
@@ -296,9 +297,9 @@ Continue learning:
   Chart.js previews.
 - [Overview](/documentation/overview) — architecture and full
   `ChartAssemblyInput` reference.
-- [Semantic types](/documentation/semantic-types) — the type registry and
+- [Semantic Type](/documentation/semantic-types) — the type registry and
   compilation rules.
-- [Layout model](/documentation/layout-model) — how discrete axes and facets
+- [Auto Layout Algorithm](/documentation/layout-model) — how discrete axes and facets
   are sized.
 
 To extend the library itself, see [Adding a chart template](/documentation/adding-a-chart-template).

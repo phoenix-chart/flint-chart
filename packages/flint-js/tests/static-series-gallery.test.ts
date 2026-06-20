@@ -6,7 +6,6 @@ import {
     assembleVegaLite,
     assembleECharts,
     assembleChartjs,
-    assembleGoFish,
 } from '../src';
 import {
     STATIC_SERIES_GALLERY_EXAMPLES,
@@ -50,17 +49,6 @@ describe('static series gallery examples', () => {
                 } catch (e: any) {
                     // Chart type not supported in Chart.js backend — expected
                     expect(e.message).toContain('Unknown Chart.js chart type');
-                }
-            });
-
-            it('assembles via GoFish (if supported)', () => {
-                try {
-                    const spec = assembleGoFish(input as any);
-                    expect(spec).toBeDefined();
-                    expect(spec._gofish).toBeDefined();
-                } catch (e: any) {
-                    // Chart type not supported in GoFish backend — expected
-                    expect(e.message).toContain('Unknown GoFish chart type');
                 }
             });
         });

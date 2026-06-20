@@ -41,7 +41,6 @@ flint-chart/
 │   │   ├── src/vegalite/  Vega-Lite backend
 │   │   ├── src/echarts/   ECharts backend
 │   │   ├── src/chartjs/   Chart.js backend
-│   │   ├── src/gofish/    GoFish backend
 │   │   └── src/test-data/ gallery fixtures
 │   └── flint-py/          PyPI package `flint`
 ├── site/                  landing, gallery, editor, docs browser

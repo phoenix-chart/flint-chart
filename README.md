@@ -33,7 +33,7 @@ specification that is easy for agents to create, easy for people to edit, and
   charts without last-mile low-level refinement issues.
 - **Render across multiple backends.** Compile the same spec to **30+ chart
   types** across **Vega-Lite, ECharts, and Chart.js** through one unified
-  interface (an experimental GoFish backend is also included).
+  interface.
 
 <br/>
 
@@ -192,7 +192,6 @@ flint-chart/
 │   │       ├── vegalite/  Vega-Lite backend
 │   │       ├── echarts/   ECharts backend
 │   │       ├── chartjs/   Chart.js backend
-│   │       ├── gofish/    GoFish backend (experimental)
 │   │       └── test-data/ fixtures + generators (drive tests and the gallery)
 │   ├── flint-py/          PyPI package `flint` (Python port, Vega-Lite backend)
 │   └── flint-mcp/         npm package `flint-chart-mcp` (MCP render server)

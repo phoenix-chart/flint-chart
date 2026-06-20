@@ -30,6 +30,15 @@
          the main content shows one — avoids a competing second scrollbar. */
       .app-sidebar { scrollbar-width: none; }
       .app-sidebar::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
+      /* Doc nav links: keep the focus ring inset so it isn't clipped by the
+         sidebar's overflow:hidden (which made it look like an overflowing box). */
+      .doc-nav-link { outline: none; }
+      .doc-nav-link:focus-visible {
+        outline: 2px solid #0078d4;
+        outline-offset: -2px;
+        border-radius: 6px;
+      }
     </style>
   </head>
   <body>

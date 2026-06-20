@@ -66,7 +66,7 @@ export const dotPlotDef: ChartTemplateDef = {
 ### Key rules
 
 1. **`template`** — minimal native skeleton; `instantiate` fills encodings and mark props.
-2. **`markCognitiveChannel`** — tells the compiler how readers decode value (affects zero baseline and [layout model](/documentation/layout-model) compression).
+2. **`markCognitiveChannel`** — tells the compiler how readers decode value (affects zero baseline and [Auto Layout Algorithm](/documentation/layout-model) compression).
 3. **`instantiate`** — receives a **deep clone** of `template` plus `InstantiateContext` (resolved encodings, `ChannelSemantics`, `LayoutResult`, data table, canvas size).
 4. **No semantic branching** — read `ctx.channelSemantics[channel].format`, `.type`, `.zero`, etc.; do not switch on raw field names or storage types.
 
@@ -118,7 +118,7 @@ Eyeball format, layout stretch, legend, and facet behavior across 3–6 represen
 
 # §5 Cross-backend parity
 
-The user-facing contract is that the same `chartType` string should work across `assembleVegaLite`, `assembleECharts`, `assembleChartJs`, and `assembleGoFish` **when templates exist**. In practice:
+The user-facing contract is that the same `chartType` string should work across `assembleVegaLite`, `assembleECharts`, and `assembleChartJs` **when templates exist**. In practice:
 
 - Port to backends you need immediately; file follow-ups for the rest.
 - `site/src/shared/supported-backends.ts` filters chart types per backend registry — a VL-only template will not appear in ECharts until registered there too.
@@ -128,6 +128,6 @@ The user-facing contract is that the same `chartType` string should work across 
 # §6 Related
 
 - [Adding a backend](/documentation/adding-a-backend) — full assembler wiring
-- [Semantic types](/documentation/semantic-types) — what `channelSemantics` contains
-- [Layout model](/documentation/layout-model) — `declareLayoutMode` and stretch models
+- [Semantic Type](/documentation/semantic-types) — what `channelSemantics` contains
+- [Auto Layout Algorithm](/documentation/layout-model) — `declareLayoutMode` and stretch models
 - [API reference](/documentation/api-reference) — `chart_spec.chartType` and encodings

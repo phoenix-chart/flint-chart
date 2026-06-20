@@ -466,7 +466,7 @@ LLVM's frontend → IR → middle-end → backend architecture:
 
 **`ChannelSemantics`** is the IR — a flat, target-agnostic interface that
 decouples all upstream semantics (Stages 1–2) from all downstream
-rendering (Stages 3–4). Four backends (VL, ECharts, ChartJS, GoFish)
+rendering (Stages 3–4). Three backends (VL, ECharts, ChartJS)
 all read the same `ChannelSemantics` record without knowing each other exist.
 
 **Stage boundaries:**
@@ -1578,8 +1578,8 @@ contract between frontend (semantic resolution) and backend (spec generation).
 │  VL dependency: None                                                 │
 ├──────────────────────────────────────────────────────────────────────┤
 │  Stage 4: Spec Generation (backend-specific)                         │
-│  assembleVegaLite / assembleECharts / assembleChartjs / assembleGoFish│
-│  → Backend-native spec (VL JSON / ECharts option / CJS config / GF)  │
+│  assembleVegaLite / assembleECharts / assembleChartjs                 │
+│  → Backend-native spec (VL JSON / ECharts option / CJS config)        │
 │  Also: finalize zero-baseline, template.instantiate, apply layout    │
 │  VL dependency: Yes (only this stage)                                │
 └──────────────────────────────────────────────────────────────────────┘

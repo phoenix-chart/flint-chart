@@ -7,6 +7,7 @@ import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import { Link, useLocation } from 'react-router-dom';
 import { CodeBlock, PlainTextBlock, resolveCodeLanguage } from './CodeBlock';
+import { SizingPlayground } from './SizingPlayground';
 import { resolveMarkdownHref, resolveMarkdownImageSrc } from '../shared/load-docs';
 import { DOC_SCROLL_TO_KEY, scrollToHeading } from '../shared/scroll-to-heading';
 import { siteTheme } from '../shared/theme';
@@ -129,6 +130,17 @@ export function MarkdownView({
         return <code style={inlineCodeStyle}>{children}</code>;
       }
 
+      // Interactive doc widget: ```flint-playground discrete|continuous|circumference|area```
+      if (className?.includes('language-flint-playground')) {
+        const raw = text.trim().toLowerCase();
+        const mode =
+          raw === 'continuous' ? 'continuous'
+          : raw === 'circumference' ? 'circumference'
+          : raw === 'area' ? 'area'
+          : 'discrete';
+        return <SizingPlayground mode={mode} />;
+      }
+
       const language = resolveCodeLanguage(className);
       if (language && language !== 'text' && language !== 'plaintext') {
         return <CodeBlock language={language}>{text}</CodeBlock>;
@@ -139,6 +151,22 @@ export function MarkdownView({
     pre: ({ children }) => <>{children}</>,
     img: ({ src, alt }) => {
       const resolved = src ? resolveMarkdownImageSrc(src) : null;
+      const isIcon = typeof src === 'string' && src.includes('chart-icon');
+      if (isIcon) {
+        return (
+          <img
+            src={resolved ?? src}
+            alt={alt ?? ''}
+            style={{
+              display: 'inline-block',
+              width: 22,
+              height: 22,
+              verticalAlign: 'text-bottom',
+              marginRight: 8,
+            }}
+          />
+        );
+      }
       return (
         <img
           src={resolved ?? src}

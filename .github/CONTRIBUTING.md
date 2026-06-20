@@ -16,7 +16,6 @@ src/                         library source (published to npm)
   vegalite/                  Vega-Lite backend
   echarts/                   ECharts backend
   chartjs/                   Chart.js backend
-  gofish/                    GoFish backend
   test-data/                 fixtures + generators (used by gallery + tests)
 tests/                       repo-level tests (unit + snapshot)
 site/                        unified demo app (Vite + React, landing / gallery / editor)
@@ -54,7 +53,7 @@ Node 18+ required (see `.nvmrc`).
 ## Public API & semver
 
 The public surface is whatever is re-exported from [`src/index.ts`](../src/index.ts)
-and the per-backend `./vegalite`, `./echarts`, `./chartjs`, `./gofish`,
+and the per-backend `./vegalite`, `./echarts`, `./chartjs`,
 `./core`, `./test-data` subpath exports. We follow semver: breaking changes go in
 a major release; new templates / semantic types / fields on non-required types
 are minor; bug fixes are patch.

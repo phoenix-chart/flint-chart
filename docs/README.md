@@ -41,7 +41,7 @@ calling your agent again. The quality is consistent because it comes from
 the library, not from the model.
 
 Because the semantic layer is **library-agnostic**, the same spec compiles
-to multiple rendering backends — Vega-Lite, ECharts, Chart.js, and GoFish
+to multiple rendering backends — Vega-Lite, ECharts, and Chart.js
 today, with Plotly or D3 tomorrow — without re-deriving any design rules
 and without duplicating any prompts. The expensive work (semantic
 reasoning, layout computation) is done once; only the final instantiation
@@ -300,7 +300,7 @@ which model produced the spec.
   no VL stack traces, no silent misrepresentation.
 
 - **Multi-backend output from one spec.** The same semantic spec compiles
-  to Vega-Lite, ECharts, Chart.js, or GoFish. Your deployment context
+  to Vega-Lite, ECharts, or Chart.js. Your deployment context
   picks the backend; your agent and your prompts don't change.
 
 - **The generated output is still accessible.** Flint-chart compiles to
@@ -367,12 +367,12 @@ transformation, not visualization plumbing.
 ### Two-Stage Pipeline
 
 Each backend has its own `assemble*()` entry point (`assembleVegaLite`,
-`assembleECharts`, `assembleChartjs`, `assembleGoFish`), but they all
+`assembleECharts`, `assembleChartjs`), but they all
 follow the same two-stage structure. The analysis stage is shared;
 only the instantiation stage is backend-specific.
 
 ```
-assembleVegaLite(input: ChartAssemblyInput)   // or assembleECharts, assembleChartjs, assembleGoFish
+assembleVegaLite(input: ChartAssemblyInput)   // or assembleECharts, assembleChartjs
        │
        ▼
  ══ ANALYSIS (backend-free, shared core) ═════════════════════
@@ -576,7 +576,6 @@ No single charting library fits all of them:
 | **Vega-Lite** | Grammar of graphics; declarative composition; strong faceting and layering | Heavy runtime (~400 KB); limited interactivity beyond tooltips; poor mobile performance |
 | **ECharts** | Rich interactivity (zoom, brush, dataZoom); Canvas + SVG dual renderer; strong CJK locale support | Imperative option-bag API; no grammar-of-graphics composition; verbose config for layered designs |
 | **Chart.js** | Lightweight (~60 KB); Canvas-native (fast for large datasets); simple API; massive plugin ecosystem | No faceting; limited statistical charts; no declarative composition |
-| **GoFish** | Imperative rendering; full control over mark placement | No built-in layout or scale system |
 
 **These are not interchangeable APIs with different syntax — they use
 fundamentally different visual representation models and data models.**
@@ -928,7 +927,6 @@ visualization decisions:
 | **Part-to-Whole** | Pie Chart, Rose Chart, Waterfall Chart |
 | **Statistical** | Density Plot, Candlestick Chart, Radar Chart |
 | **Map** | US Map, World Map |
-| **Custom** | Custom Point, Custom Line, Custom Bar, Custom Rect, Custom Area |
 
 ### ECharts (28 chart types)
 
@@ -954,16 +952,7 @@ visualization decisions:
 | **Part-to-Whole** | Pie Chart |
 | **Polar** | Radar Chart, Rose Chart |
 
-### GoFish (8 chart types)
-
-| Category | Charts |
-|----------|--------|
-| **Scatter & Point** | Scatter Plot, Scatter Pie Chart |
-| **Bar** | Bar Chart, Grouped Bar Chart, Stacked Bar Chart |
-| **Line & Area** | Line Chart, Area Chart |
-| **Part-to-Whole** | Pie Chart |
-
-**76 template definitions** across 4 backends.
+**68 template definitions** across 3 backends.
 
 Each template defines:
 1. **`template`** — spec skeleton (mark + encoding structure)
@@ -976,11 +965,11 @@ Each template defines:
 
 ## Public API
 
-All four backends share the same input type (`ChartAssemblyInput`)
+All backends share the same input type (`ChartAssemblyInput`)
 and follow the same calling convention:
 
 ```typescript
-import { assembleVegaLite, assembleECharts, assembleChartjs, assembleGoFish } from './lib/flint-chart';
+import { assembleVegaLite, assembleECharts, assembleChartjs } from './lib/flint-chart';
 
 const input: ChartAssemblyInput = {
     chartType: 'Scatter Plot',
@@ -993,7 +982,6 @@ const input: ChartAssemblyInput = {
 const vlSpec   = assembleVegaLite(input);  // → Vega-Lite JSON spec
 const ecSpec   = assembleECharts(input);   // → ECharts option object
 const cjsSpec  = assembleChartjs(input);   // → Chart.js config object
-const gfSpec   = assembleGoFish(input);    // → GoFish imperative spec
 ```
 
 **`ChartAssemblyInput` fields:**
@@ -1076,14 +1064,6 @@ The default overflow strategy priority:
 | `chartjs/recommendation.ts` | 34 | Chart.js recommendation |
 | `chartjs/templates/*.ts` | ~1,400 | 8 template files (10 chart types) |
 
-### GoFish backend
-
-| File | Lines | Role |
-|------|-------|------|
-| `gofish/assemble.ts` | 521 | GoFish imperative rendering pipeline |
-| `gofish/recommendation.ts` | 34 | GoFish recommendation |
-| `gofish/templates/*.ts` | ~850 | 6 template files (8 chart types) |
-
 ### Top-level
 
 | File | Lines | Role |
@@ -1110,7 +1090,7 @@ The default overflow strategy priority:
 │  Outputs: types, decisions, layout numbers       │
 │  Imports: NO backend-specific syntax             │
 ├─────────────────────────────────────────────────┤
-│   INSTANTIATE (vegalite/ | echarts/ | chartjs/ | gofish/)  │
+│   INSTANTIATE (vegalite/ | echarts/ | chartjs/)  │
 │                                                  │
 │  Each backend has its own:                       │
 │    build*Encodings  →  backend encoding objects   │
@@ -1126,8 +1106,8 @@ The default overflow strategy priority:
 
 The boundary is enforced by function signatures: analysis-stage functions
 accept `ChannelSemantics` and `LayoutDeclaration` — never backend encoding
-objects or spec structures. All four backends (Vega-Lite, ECharts,
-Chart.js, GoFish) share the same analysis stage and read the same
+objects or spec structures. All backends (Vega-Lite, ECharts,
+Chart.js) share the same analysis stage and read the same
 `ChannelSemantics` IR. Adding a new backend only requires implementing
 the instantiation layer — no analysis code changes.
 

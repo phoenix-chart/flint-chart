@@ -97,16 +97,24 @@ export function DocSectionPage({ section }: { section: DocSection }) {
           >
             
 
-            {groups.map((group) => (
-              <div key={group.id} style={{ marginBottom: 12 }}>
+            {groups.map((group, gi) => (
+              <div
+                key={group.id}
+                style={{
+                  marginTop: gi === 0 ? 0 : 18,
+                  marginBottom: 4,
+                  paddingTop: gi === 0 ? 0 : 14,
+                  borderTop: gi === 0 ? 'none' : `1px solid ${siteTheme.border}`,
+                }}
+              >
                 <div
                   style={{
                     padding: '0 16px 8px',
                     fontSize: 11,
                     fontWeight: 700,
-                    color: siteTheme.textMuted,
+                    color: siteTheme.text,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
+                    letterSpacing: '0.06em',
                   }}
                 >
                   {group.label}
@@ -119,6 +127,7 @@ export function DocSectionPage({ section }: { section: DocSection }) {
                       key={doc.slug}
                       to={`/${section}/${doc.slug}`}
                       data-doc-nav={doc.slug}
+                      className="doc-nav-link"
                       style={{
                         display: 'block',
                         padding: '7px 16px',

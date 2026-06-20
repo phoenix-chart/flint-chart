@@ -1,6 +1,6 @@
 # Overview
 
-**Flint** is a semantic-driven intermediate language (IL) for data visualization. You declare what data *means* and a concise chart intent; the compiler derives scales, axes, aggregation, formatting, layout, and color — then transpiles to Vega-Lite, ECharts, Chart.js, or GoFish.
+**Flint** is a semantic-driven intermediate language (IL) for data visualization. You declare what data *means* and a concise chart intent; the compiler derives scales, axes, aggregation, formatting, layout, and color — then transpiles to Vega-Lite, ECharts, or Chart.js.
 
 New users: [Getting started](/tutorials/getting-started) first, then return here for architecture and API depth.
 
@@ -94,7 +94,7 @@ Faceted line chart:
 
 **Exploration workflow:** change only `chart_spec` to try heatmap, grouped bar, waterfall, or sunburst — **dataSpec stays fixed**. Switch backend (e.g. Vega-Lite → ECharts) without rewriting the Flint input. See the [gallery](/wall) for template and backend coverage.
 
-Semantic types use a three-level hierarchy. Details: [Semantic types](/documentation/semantic-types).
+Semantic types use a three-level hierarchy. Details: [Semantic Type](/documentation/semantic-types).
 
 ---
 
@@ -105,7 +105,6 @@ Semantic types use a three-level hierarchy. Details: [Semantic types](/documenta
 | `assembleVegaLite(input)` | Vega-Lite v6 spec |
 | `assembleECharts(input)` | ECharts `option` |
 | `assembleChartjs(input)` | Chart.js config |
-| `assembleGoFish(input)` | GoFish imperative spec |
 
 The same input compiles to every supported backend. Stages 1–2 (semantics + layout) run once in shared `core/`; only Stage 3 (template instantiation) is library-specific.
 
@@ -121,10 +120,10 @@ Full input schema: [API reference](/documentation/api-reference).
 |-------------|------|--------|
 | **Compiler frontend** | Phase 0 — `resolveChannelSemantics()` | `core/resolve-semantics.ts` |
 | **Optimizer** | Phase 1 — `computeLayout()`, overflow filter | `core/compute-layout.ts` |
-| **Code generator** | Phase 2 — `template.instantiate()` | `vegalite/`, `echarts/`, `chartjs/`, `gofish/` |
+| **Code generator** | Phase 2 — `template.instantiate()` | `vegalite/`, `echarts/`, `chartjs/` |
 
 1. **Frontend** — encoding type, format, aggregation, scale, domain, color, sort from dataSpec + data
-2. **Optimizer** — axis span, band step, facet grid, aspect ratio via physics-based [layout models](/documentation/layout-model)
+2. **Optimizer** — axis span, band step, facet grid, aspect ratio via physics-based sizing; start with the [chart sizing demo](/documentation/chart-sizing), then use [Auto Layout Algorithm](/documentation/layout-model) for the equations
 3. **Code generator** — dynamic templates per `chartType` emit library-native specs
 
 Pipeline detail: [Architecture](/documentation/architecture).
@@ -135,10 +134,9 @@ Pipeline detail: [Architecture](/documentation/architecture).
 
 | Section | Pages |
 |---------|-------|
-| **Introduction** | [Architecture](/documentation/architecture), [API reference](/documentation/api-reference) |
-| **Core concepts** | [Semantic types](/documentation/semantic-types), [Layout model](/documentation/layout-model) |
-| **Extending** | [Semantic type](/documentation/adding-a-semantic-type), [Backend](/documentation/adding-a-backend), [Template](/documentation/adding-a-chart-template) |
-| **Contributing** | [Development](/documentation/development) |
+| **Introduction** | [Architecture](/documentation/architecture), [Semantic Type](/documentation/semantic-types), [Auto Layout Algorithm](/documentation/layout-model), [API reference](/documentation/api-reference) |
+| **Chart reference** | [Vega-Lite charts](/documentation/reference-vegalite), [ECharts charts](/documentation/reference-echarts), [Chart.js charts](/documentation/reference-chartjs) |
+| **Development** | [Development guide](/documentation/development), [Extending semantic types](/documentation/adding-a-semantic-type), [Extending backends](/documentation/adding-a-backend), [Extending chart templates](/documentation/adding-a-chart-template) |
 
 ---
 

@@ -1,14 +1,13 @@
 {
   "name": "flint-chart",
   "version": "0.1.0",
-  "description": "Semantic-level visualization library that compiles data + semantic types into chart specs for Vega-Lite, ECharts, Chart.js, and GoFish.",
+  "description": "Semantic-level visualization library that compiles data + semantic types into chart specs for Vega-Lite, ECharts, and Chart.js.",
   "keywords": [
     "visualization",
     "charts",
     "vega-lite",
     "echarts",
     "chart.js",
-    "gofish",
     "semantic-types",
     "llm",
     "agent",
@@ -56,11 +55,6 @@
       "import": "./dist/chartjs/index.js",
       "require": "./dist/chartjs/index.cjs"
     },
-    "./gofish": {
-      "types": "./dist/gofish/index.d.ts",
-      "import": "./dist/gofish/index.js",
-      "require": "./dist/gofish/index.cjs"
-    },
     "./test-data": {
       "types": "./dist/test-data/index.d.ts",
       "import": "./dist/test-data/index.js",
@@ -95,7 +89,6 @@
   "peerDependencies": {
     "chart.js": "^4.0.0",
     "echarts": "^5.0.0 || ^6.0.0",
-    "gofish-graphics": "^0.0.22",
     "vega": "^5.0.0 || ^6.0.0",
     "vega-lite": "^5.0.0 || ^6.0.0"
   },
@@ -110,9 +103,6 @@
       "optional": true
     },
     "chart.js": {
-      "optional": true
-    },
-    "gofish-graphics": {
       "optional": true
     }
   },

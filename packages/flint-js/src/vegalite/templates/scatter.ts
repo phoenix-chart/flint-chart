@@ -10,10 +10,15 @@ import {
 export const scatterPlotDef: ChartTemplateDef = {
     chart: "Scatter Plot",
     template: { mark: "circle", encoding: {} },
-    channels: ["x", "y", "color", "size", "opacity", "column", "row"],
+    channels: ["x", "y", "color", "size", "shape", "opacity", "column", "row"],
     markCognitiveChannel: 'position',
     instantiate: (spec, ctx) => {
         defaultBuildEncodings(spec, ctx.resolvedEncodings);
+        // A `shape` encoding only renders distinct glyphs on the `point` mark;
+        // `circle` ignores it. Promote the mark when shape is in play.
+        if (spec.encoding?.shape?.field) {
+            spec.mark = setMarkProp(spec.mark, 'type', 'point');
+        }
         applyPointSizeScaling(spec, ctx.table, ctx.canvasSize?.width, ctx.canvasSize?.height);
         const config = ctx.chartProperties;
         if (config?.opacity !== undefined && config.opacity < 1) {

@@ -19,7 +19,6 @@ UI (`ChartGallery.tsx`) uses `TEST_GENERATORS` and `GALLERY_SECTIONS` from
 | **Semantic context** | semantic-tests | 39 tests validating semantic type → ChannelSemantics resolution |
 | **ECharts backend** | echarts-tests | All ECharts chart types (reuses VL inputs + ECharts-only types) |
 | **Chart.js backend** | chartjs-tests | Chart.js chart types |
-| **GoFish backend** | gofish-tests | GoFish imperative rendering |
 | **Facets** | facet-tests | Column, row, col+row, wrap, clip, overflow faceting |
 | **Stress/sizing** | stress-tests, gas-pressure-tests, line-area-stretch-tests, discrete-axis-tests | Overflow, elasticity, pressure model, discrete axis sizing |
 | **Temporal** | date-tests | Year, Month, YearMonth, Decade, DateTime, Hours parsing/formatting |
@@ -366,6 +365,5 @@ Plus additional non-matrix test generators:
 - Temporal (7 generators)
 - ECharts backend (24 generators)
 - Chart.js backend (11 generators)
-- GoFish backend (10 generators)
 
-**53 named test generators** total across all categories.
+**43 named test generators** total across all categories.

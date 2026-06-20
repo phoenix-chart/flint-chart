@@ -11,7 +11,6 @@ import {
     assembleVegaLite,
     assembleECharts,
     assembleChartjs,
-    assembleGoFish,
 } from '../src';
 import type { ChartAssemblyInput } from '../src';
 
@@ -280,13 +279,5 @@ describe('static series end-to-end: Chart.js', () => {
         expect(config).toBeDefined();
         // Chart.js should have 2 datasets
         expect(config.data?.datasets?.length).toBe(2);
-    });
-});
-
-describe('static series end-to-end: GoFish', () => {
-    it('produces a GoFish spec without errors', () => {
-        const spec = assembleGoFish(STATIC_SERIES_INPUT) as any;
-        expect(spec).toBeDefined();
-        expect(spec._gofish).toBeDefined();
     });
 });

@@ -1,6 +1,6 @@
 # Adding a backend
 
-A backend is an `assemble<Backend>(input)` orchestrator plus a `templates/` registry that turns shared compiler output into a native chart spec. Existing references: `vegalite/`, `echarts/`, `chartjs/`, `gofish/` under `packages/flint-js/src/`.
+A backend is an `assemble<Backend>(input)` orchestrator plus a `templates/` registry that turns shared compiler output into a native chart spec. Existing references: `vegalite/`, `echarts/`, `chartjs/` under `packages/flint-js/src/`.
 
 For pipeline stages and repo layout, see [Architecture](/documentation/architecture).
 
@@ -24,7 +24,7 @@ For pipeline stages and repo layout, see [Architecture](/documentation/architect
 packages/flint-js/src/<backend>/
 ├── index.ts              # public barrel
 ├── assemble.ts           # orchestrator: ChartAssemblyInput → native spec
-├── instantiate-spec.ts   # encoding + layout → spec (optional; GoFish inlines this)
+├── instantiate-spec.ts   # encoding + layout → spec (optional; some backends inline this)
 ├── recommendation.ts     # chart-type recommendations (optional)
 └── templates/
     ├── index.ts          # category map + getTemplateDef()
@@ -112,7 +112,7 @@ Register in `templates/index.ts`: import defs, add to the category map, expose `
 
 - **Gallery dev server:** `npm run site` (root) → `/wall`
 - **Supported backends:** update `site/src/shared/supported-backends.ts` if the new backend should appear in the UI
-- **Renderers:** only add a new React view (`site/src/components/`) when the spec format cannot reuse `VegaLiteView`, `EChartsView`, or `ChartjsView`. `TripleChart` currently covers VL + ECharts + Chart.js only; GoFish uses separate gallery paths.
+- **Renderers:** only add a new React view (`site/src/components/`) when the spec format cannot reuse `VegaLiteView`, `EChartsView`, or `ChartjsView`. `TripleChart` currently covers VL + ECharts + Chart.js.
 
 Optional: wire the assembler into `agent-skills/mcp-server/` if MCP clients should call it.
 
@@ -134,5 +134,5 @@ A backend is ready when:
 # §7 Related
 
 - [Adding a chart template](/documentation/adding-a-chart-template) — `ChartTemplateDef` authoring
-- [Layout model](/documentation/layout-model) — what `computeLayout()` expects
+- [Auto Layout Algorithm](/documentation/layout-model) — what `computeLayout()` expects
 - [API reference](/documentation/api-reference) — `ChartAssemblyInput` and assembler entry points

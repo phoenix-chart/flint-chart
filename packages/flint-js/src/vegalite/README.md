@@ -47,7 +47,6 @@ vegalite/
     lollipop.ts        – Lollipop (also in bar.ts registry)
     jitter.ts          – Strip Plot
     bump.ts            – Bump Chart helpers
-    custom.ts          – Custom Point/Line/Bar/Rect/Area
     map.ts             – US Map, World Map
     utils.ts           – shared template utilities
 ```
@@ -62,7 +61,6 @@ vegalite/
 | Part-to-Whole | Pie Chart, Rose Chart, Heatmap, Waterfall Chart |
 | Statistical | Density Plot, Ranged Dot Plot, Radar Chart, Candlestick Chart |
 | Map | US Map, World Map |
-| Custom | Custom Point, Custom Line, Custom Bar, Custom Rect, Custom Area |
 
 ## Known Issues & Notes
 

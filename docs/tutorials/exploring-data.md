@@ -216,8 +216,9 @@ If labels crowd or facets overflow, tune layout via `options` (optional):
 ```
 
 These control the spring / pressure sizing models — see
-[Layout model](/documentation/layout-model). Most tutorials and gallery
-examples work with defaults.
+[Chart sizing demo](/documentation/chart-sizing) for a quick walkthrough or
+[Auto Layout Algorithm](/documentation/layout-model) for the full model. Most
+tutorials and gallery examples work with defaults.
 
 ---
 
@@ -241,7 +242,7 @@ Workflow:
 | Goal | Where to go |
 |------|-------------|
 | Full API & architecture | [Overview](/documentation/overview) |
-| Semantic type reference | [Semantic types](/documentation/semantic-types) |
+| Semantic type reference | [Semantic Type](/documentation/semantic-types) |
 | All chart templates | [Gallery](/wall) |
 | Author a new template | [Adding a chart template](/documentation/adding-a-chart-template) |
 | Local dev setup | [Development](/documentation/development) |

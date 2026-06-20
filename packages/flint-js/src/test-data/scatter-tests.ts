@@ -334,7 +334,35 @@ function matrixToTestCase(entry: MatrixEntry, rand: () => number): TestCase {
 
 export function genScatterTests(): TestCase[] {
     const rand = seededRandom(42);
-    return SCATTER_MATRIX.map(entry => matrixToTestCase(entry, rand));
+    const tests = SCATTER_MATRIX.map(entry => matrixToTestCase(entry, rand));
+
+    // Categorical shape encoding — folded back from the former "Custom Point".
+    // Scatter is the most flexible point family member, so the `shape` channel
+    // lives here; it promotes the mark to `point` so distinct glyphs render.
+    {
+        const groups = genCategories('Category', 4);
+        const data = Array.from({ length: 40 }, (_, i) => ({
+            X: Math.round(rand() * 1000) / 10,
+            Y: Math.round(rand() * 1000) / 10,
+            Group: groups[i % groups.length],
+        }));
+        tests.push({
+            title: 'Q×Q +shape(N,4) (40 pts)',
+            description: 'Categorical shape encoding — 4 distinct marker glyphs',
+            tags: ['quantitative', 'nominal', 'shape', 'medium'],
+            chartType: 'Scatter Plot',
+            data,
+            fields: [makeField('X'), makeField('Y'), makeField('Group')],
+            metadata: {
+                X: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Y: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+                Group: { type: Type.String, semanticType: 'Category', levels: groups },
+            },
+            encodingMap: { x: makeEncodingItem('X'), y: makeEncodingItem('Y'), shape: makeEncodingItem('Group') },
+        });
+    }
+
+    return tests;
 }
 
 // ============================================================================

@@ -150,13 +150,6 @@ const FAMILY_SANKEY: ChannelRoleMap = {
     x: 'category', y: 'category', size: 'measure',
 };
 
-/** Range charts with x2/y2 */
-const FAMILY_RANGE: ChannelRoleMap = {
-    x: 'category', y: 'measure', x2: 'measure2', y2: 'measure2',
-    color: 'series', opacity: 'auxiliary',
-    column: 'facetCol', row: 'facetRow',
-};
-
 /** Gantt: horizontal interval bar — y=task, x=start, x2=end, color=series */
 const FAMILY_GANTT: ChannelRoleMap = {
     y: 'category', x: 'measure', x2: 'measure2', color: 'series',
@@ -192,12 +185,6 @@ const CHART_ROLE_MAP: Record<string, ChannelRoleMap> = {
     'Ranged Dot Plot': FAMILY_XY_STANDARD,
     'Boxplot': FAMILY_XY_STANDARD,
     'Strip Plot': FAMILY_XY_STANDARD,
-    // Custom marks
-    'Custom Point': FAMILY_XY_STANDARD,
-    'Custom Line': FAMILY_XY_STANDARD,
-    'Custom Bar': FAMILY_XY_STANDARD,
-    'Custom Rect': FAMILY_RANGE,
-    'Custom Area': FAMILY_RANGE,
     // Pie-like
     'Pie Chart': FAMILY_PIE,
     // Polar

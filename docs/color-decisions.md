@@ -77,7 +77,7 @@ Vega-Lite encoding build then applies:
 - User `encoding.scheme` if set and not `'default'`, else
 - `cs.colorScheme.scheme` and `domainMid` for diverging scales.
 
-See [Semantic types](/documentation/semantic-types) for how types feed these hints.
+See [Semantic Type](/documentation/semantic-types) for how types feed these hints.
 
 ---
 
@@ -233,7 +233,7 @@ encoding types drive the family; backends always have a fallback palette.
 
 ## Related
 
-- [Semantic types](/documentation/semantic-types) — type registry and
+- [Semantic Type](/documentation/semantic-types) — type registry and
   `colorScheme` hints in Phase 0
 - [Architecture](/documentation/architecture) — full compile pipeline
 - [API reference](/documentation/api-reference) — `ChartEncoding.scheme`

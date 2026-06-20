@@ -1,4 +1,4 @@
-# Semantic types
+# Semantic Type
 
 Semantic types describe what each data field *means* — not just its storage type, but how it should be encoded, formatted, aggregated, and colored. The compiler resolves each field's semantic type (plus optional annotations) into `FieldSemantics`, then promotes those decisions into per-channel `ChannelSemantics` for layout and backend spec generation.
 
@@ -431,7 +431,7 @@ function normalizeAnnotation(
 | **3. Layout** | `computeLayout()` | ChannelSemantics + data → `LayoutResult` | How big? What gets filtered? |
 | **4. Spec Generation** | `assembleVegaLite()` etc. | ChannelSemantics + template → backend spec | Backend-specific output |
 
-`ChannelSemantics` is the **IR**(Intermediate Representation) — a flat, target-agnostic record decoupling upstream semantics from layout and all backends (VL, ECharts, Chart.js, GoFish).
+`ChannelSemantics` is the **IR**(Intermediate Representation) — a flat, target-agnostic record decoupling upstream semantics from layout and all backends (VL, ECharts, Chart.js).
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -621,7 +621,7 @@ interface TickConstraint {
 
 ## §4.8 Layout and spec generation
 
-**Stage 3** operates on `ChannelSemantics` and data only — see [Layout model](/documentation/layout-model) for stretch sizing, overflow filtering, and facet grids. `declareLayoutMode()` is the template hook that lets Stage 4 influence Stage 3 through a narrow interface.
+**Stage 3** operates on `ChannelSemantics` and data only — see [Auto Layout Algorithm](/documentation/layout-model) for stretch sizing, overflow filtering, and facet grids. `declareLayoutMode()` is the template hook that lets Stage 4 influence Stage 3 through a narrow interface.
 
 **Stage 4** per backend: (1) finalize zero via `computeZeroDecision()` with mark type; (2) translate encodings; (3) `template.instantiate()`; (4) apply layout. Templates read flat `ChannelSemantics` directly.
 
@@ -858,6 +858,6 @@ Channel additions: `nice: false`, `tickConstraint: { integersOnly: true, exactTi
 
 - [Architecture](/documentation/architecture) — full compile pipeline and repo layout
 - [API reference](/documentation/api-reference) — `ChartAssemblyInput`, encodings, overflow
-- [Layout model](/documentation/layout-model) — Stage 3 sizing, stretch, and overflow
+- [Auto Layout Algorithm](/documentation/layout-model) — Stage 3 sizing, stretch, and overflow
 
 Explicit overrides in `chart_spec.encodings` or `chartProperties` always take precedence over compiler defaults.

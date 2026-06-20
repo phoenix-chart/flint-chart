@@ -1,6 +1,8 @@
-# Layout model
+# Auto Layout Algorithm
 
 Physics-based models for automatically sizing chart axes when data overflows the available canvas.
+
+New to Flint sizing? Start with the practical [Chart sizing demo](/documentation/chart-sizing), then return here for the complete algorithm.
 
 **How to read this document:** [§1](#1-layout-mode-classification) classifies banded vs continuous axes and routes to the right model. [§2](#2-discrete-axis-elastic-budget-model)–[§5](#5-area-layout-2d-pressure-model) describe the four geometry-specific models. [§6](#6-unified-summary) collects the shared pressure–stretch pattern, decision tree, and implementation map.
 
@@ -10,6 +12,44 @@ Physics-based models for automatically sizing chart axes when data overflows the
 | [§3](#3-continuous-axis-gas-pressure-model) | Gas Pressure | 2D point cloud | Scatter, Line, Area |
 | [§4](#4-circumference-radial-pressure-model) | Circumference | 1D closed loop | Pie, Rose, Sunburst, Radar, Gauge |
 | [§5](#5-area-layout-2d-pressure-model) | Area (2D) | 2D filled space | Treemap |
+
+---
+
+## Interactive demos
+
+These four models size a chart's axes when the data overflows the canvas. Drag the controls to watch each one respond live — adding items, changing the stretch factor, or resizing the canvas. Every control is explained inside its demo. The math in the sections below is only there if you want to verify the formulas.
+
+### Elastic budget — discrete (banded) axis · [§2](#2-discrete-axis-elastic-budget-model)
+
+Bars, histograms, heatmaps. The plot widens as categories are added, then compresses, then overflows once the stretch cap is exhausted.
+
+```flint-playground
+discrete
+```
+
+### Gas pressure — continuous axis · [§3](#3-continuous-axis-gas-pressure-model)
+
+Scatter, line, area. The axis stretches gently with point density rather than snapping to per-item bands.
+
+```flint-playground
+continuous
+```
+
+### Circumference — radial / closed loop · [§4](#4-circumference-radial-pressure-model)
+
+Pie, rose, radar. The chart grows its radius to keep the circumference legible as slices crowd in.
+
+```flint-playground
+circumference
+```
+
+### Area — 2D filled space · [§5](#5-area-layout-2d-pressure-model)
+
+Treemap. The canvas area grows so every rectangle stays large enough to read instead of shrinking to slivers.
+
+```flint-playground
+area
+```
 
 ---
 

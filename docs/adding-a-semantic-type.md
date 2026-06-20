@@ -2,7 +2,7 @@
 
 Semantic types are what LLMs and users attach to fields. Every format, aggregation, scale, and color decision traces back to a registered type (or graceful fallback to `Unknown`).
 
-For the full type hierarchy and resolution rules, see [Semantic types](/documentation/semantic-types).
+For the full type hierarchy and resolution rules, see [Semantic Type](/documentation/semantic-types).
 
 ---
 
@@ -26,7 +26,7 @@ Before adding a type, confirm it **changes compilation behavior** compared to it
 | Does the type need a bounded scale or unit? | Keep the type; document required `intrinsicDomain` / `unit` in annotations |
 | Is it only a friendlier label for agents? | Prefer T1 (`Amount`, `SignedMeasure`) over a new T2 |
 
-Dropped-type guidance and the full inventory live in [Semantic types §2.4](/documentation/semantic-types#24-tier-2-specific-types).
+Dropped-type guidance and the full inventory live in [Semantic Type §2.4](/documentation/semantic-types#24-tier-2-specific-types).
 
 ---
 
@@ -125,6 +125,6 @@ Verify:
 
 # §5 Related
 
-- [Semantic types](/documentation/semantic-types) — T0/T1/T2 hierarchy, annotations, resolution rules
+- [Semantic Type](/documentation/semantic-types) — T0/T1/T2 hierarchy, annotations, resolution rules
 - [Architecture](/documentation/architecture) — where `resolveChannelSemantics` sits in the pipeline
 - [API reference](/documentation/api-reference) — `semantic_types` / `semantic_annotations` on `ChartAssemblyInput`

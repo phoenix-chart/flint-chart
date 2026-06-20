@@ -27,10 +27,6 @@ from .jitter import strip_plot_def
 from .candlestick import candlestick_chart_def
 from .waterfall import waterfall_chart_def
 from .bar_table import bar_table_def
-from .custom import (
-    custom_point_def, custom_line_def, custom_bar_def,
-    custom_rect_def, custom_area_def,
-)
 
 
 # ─── Cross-cutting injected properties ──────────────────────────────────────
@@ -222,7 +218,6 @@ vl_template_defs = {
                       streamgraph_def, range_area_chart_def],
     "Circular": [pie_chart_def, rose_chart_def, radar_chart_def],
     "Tables & Maps": [heatmap_def, bar_table_def, kpi_card_def, map_def, choropleth_def],
-    "Custom": [custom_point_def, custom_line_def, custom_bar_def, custom_rect_def, custom_area_def],
 }
 
 # Apply withInjectedProperties to every template once at module import so the

@@ -976,7 +976,7 @@ const input: ChartAssemblyInput = {
     encodings: { x: { field: 'weight' }, y: { field: 'mpg' }, color: { field: 'origin' } },
     table: myData,
     semanticTypes: { weight: 'Quantity', mpg: 'Quantity', origin: 'Country' },
-    canvasSize: { width: 400, height: 300 },
+    baseSize: { width: 400, height: 300 },
 };
 
 const vlSpec   = assembleVegaLite(input);  // → Vega-Lite JSON spec
@@ -989,7 +989,7 @@ const cjsSpec  = assembleChartjs(input);   // → Chart.js config object
 - `encodings` — channel → `ChartEncoding` (field, aggregate, sort, scheme)
 - `table` — array of row objects
 - `semanticTypes` — field name → semantic type string (e.g., `"Revenue"`, `"Year"`)
-- `canvasSize` — `{ width, height }` in pixels
+- `baseSize` — target `{ width, height }` in pixels (default 400×320); optional `canvasSize` caps the stretched size
 - `options` — `AssembleOptions` (layout tuning, all have defaults)
 
 **Output:** Complete backend-specific spec, ready to render.

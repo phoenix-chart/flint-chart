@@ -173,7 +173,7 @@
           "field": "Country"
         }
       },
-      "canvasSize": {
+      "baseSize": {
         "width": 560,
         "height": 360
       }

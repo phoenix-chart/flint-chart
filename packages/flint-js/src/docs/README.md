@@ -976,7 +976,7 @@ const input: ChartAssemblyInput = {
     encodings: { x: { field: 'weight' }, y: { field: 'mpg' }, color: { field: 'origin' } },
     table: myData,
     semanticTypes: { weight: 'Quantity', mpg: 'Quantity', origin: 'Country' },
-    canvasSize: { width: 400, height: 300 },
+    baseSize: { width: 400, height: 300 },
 };
 
 const vlSpec   = assembleVegaLite(input);  // → Vega-Lite JSON spec

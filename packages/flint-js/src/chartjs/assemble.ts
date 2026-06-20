@@ -36,7 +36,7 @@ import { cjsGetTemplateDef } from './templates';
 import { resolveChannelSemantics, convertTemporalData } from '../core/resolve-semantics';
 import { computeZeroDecision } from '../core/semantic-types';
 import { filterOverflow } from '../core/filter-overflow';
-import { computeLayout, computeChannelBudgets } from '../core/compute-layout';
+import { computeLayout, computeChannelBudgets, deriveStretchCaps, resolveBaseSize } from '../core/compute-layout';
 import { decideColorMaps } from '../core/color-decisions';
 import { cjsApplyLayoutToSpec, cjsApplyTooltips } from './instantiate-spec';
 import { normalizeStaticSeries } from '../core/static-series';
@@ -62,7 +62,13 @@ import { normalizeStaticSeries } from '../core/static-series';
 export function assembleChartjs(input: ChartAssemblyInput): any {
     const chartType = input.chart_spec.chartType;
     const semanticTypes = input.semantic_types ?? {};
-    const canvasSize = input.chart_spec.canvasSize ?? { width: 400, height: 320 };
+    // Internal layout targets the base (target) size; the optional canvasSize
+    // ceiling is applied as per-dimension stretch caps once options resolve.
+    // The base is clamped to the ceiling so a smaller canvasSize shrinks the
+    // chart to fit rather than overflowing it.
+    const sizeCeiling = input.chart_spec.canvasSize;
+    const baseSize = resolveBaseSize(input.chart_spec.baseSize, sizeCeiling);
+    const canvasSize = baseSize;
     const chartProperties = input.chart_spec.chartProperties;
     const options = input.options ?? {};
     const chartTemplate = cjsGetTemplateDef(chartType) as ChartTemplateDef;
@@ -130,6 +136,10 @@ export function assembleChartjs(input: ChartAssemblyInput): any {
         ...options,
         ...(declaration.paramOverrides || {}),
     };
+
+    // Resolve the optional canvasSize ceiling into per-dimension stretch caps
+    // (βx, βy). Falls back to maxStretch when no ceiling is set.
+    Object.assign(effectiveOptions, deriveStretchCaps(baseSize, sizeCeiling, effectiveOptions));
 
     const {
         addTooltips: addTooltipsOpt = false,

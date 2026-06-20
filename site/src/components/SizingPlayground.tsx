@@ -14,7 +14,9 @@ import { siteTheme } from '../shared/theme';
  *   - `area`          — 2D area-pressure model on a treemap
  *
  * Users drag the number of items, the stretch/elasticity (where they apply),
- * and the canvas size, then watch the assembled plot size respond live.
+ * and the base size, then watch the assembled plot size respond live. The
+ * stretch ceiling shown is baseSize x B (the maxStretch option); a spec may
+ * instead pin a hard `canvasSize` ceiling.
  */
 type Mode = 'discrete' | 'continuous' | 'circumference' | 'area';
 
@@ -49,7 +51,7 @@ function buildDiscreteInput({ count, canvas, elasticity, maxStretch }: BuildArgs
   return {
     data: { values: categoryRows(count, 1234) },
     semantic_types: { Category: 'Category', Value: 'Quantity' },
-    chart_spec: { chartType: 'Bar Chart', encodings: { x: 'Category', y: 'Value' }, canvasSize: canvas },
+    chart_spec: { chartType: 'Bar Chart', encodings: { x: 'Category', y: 'Value' }, baseSize: canvas },
     options: { elasticity, maxStretch },
   };
 }
@@ -66,7 +68,7 @@ function buildContinuousInput({ count, canvas, elasticity, maxStretch }: BuildAr
   return {
     data: { values },
     semantic_types: { Date: 'Date', Value: 'Quantity' },
-    chart_spec: { chartType: 'Line Chart', encodings: { x: 'Date', y: 'Value' }, canvasSize: canvas },
+    chart_spec: { chartType: 'Line Chart', encodings: { x: 'Date', y: 'Value' }, baseSize: canvas },
     options: { continuousMarkCrossSection: { x: 80, y: 0, elasticity, maxStretch } },
   };
 }
@@ -75,7 +77,7 @@ function buildCircumferenceInput({ count, canvas }: BuildArgs): ChartAssemblyInp
   return {
     data: { values: categoryRows(count, 4321) },
     semantic_types: { Category: 'Category', Value: 'Quantity' },
-    chart_spec: { chartType: 'Pie Chart', encodings: { color: 'Category', size: 'Value' }, canvasSize: canvas },
+    chart_spec: { chartType: 'Pie Chart', encodings: { color: 'Category', size: 'Value' }, baseSize: canvas },
   };
 }
 
@@ -83,7 +85,7 @@ function buildAreaInput({ count, canvas }: BuildArgs): ChartAssemblyInput {
   return {
     data: { values: categoryRows(count, 8765) },
     semantic_types: { Category: 'Category', Value: 'Quantity' },
-    chart_spec: { chartType: 'Treemap', encodings: { color: 'Category', size: 'Value' }, canvasSize: canvas },
+    chart_spec: { chartType: 'Treemap', encodings: { color: 'Category', size: 'Value' }, baseSize: canvas },
   };
 }
 
@@ -138,9 +140,9 @@ const MODES: Record<Mode, ModeConfig> = {
 
 const PARAM_HELP: { symbol: string; name: string; desc: string; control: Control | 'count' | 'canvas' }[] = [
   { symbol: 'N', name: 'Item count', desc: 'how many data marks compete for space — bars, points, slices, or cells.', control: 'count' },
-  { symbol: 'β', name: 'Stretch factor', desc: 'how far the plot may grow past the canvas (maxStretch). β = 2 means up to 2× the canvas width.', control: 'stretch' },
+  { symbol: 'β', name: 'Stretch factor', desc: 'how far the plot may grow past the base size (maxStretch). β = 2 means up to 2× the base width.', control: 'stretch' },
   { symbol: 'α', name: 'Elasticity', desc: 'how strongly crowding turns into stretch — the power-law exponent. Higher reacts faster.', control: 'elasticity' },
-  { symbol: 'W×H', name: 'Canvas size', desc: 'the natural target size the layout aims for before any stretch is applied.', control: 'canvas' },
+  { symbol: 'W×H', name: 'Base size', desc: 'the natural target size the layout aims for before any stretch is applied.', control: 'canvas' },
 ];
 
 function Slider({ label, value, min, max, step, onChange, suffix }: {
@@ -231,8 +233,8 @@ export function SizingPlayground({ mode }: { mode: Mode }) {
         <Slider label={cfg.countLabel} value={count} min={cfg.countMin} max={cfg.countMax} step={cfg.countStep} onChange={setCount} />
         {showStretch && <Slider label="Stretch factor (β)" value={maxStretch} min={1} max={4} step={0.1} onChange={setMaxStretch} suffix="×" />}
         {showElasticity && <Slider label="Elasticity (α)" value={elasticity} min={0} max={1} step={0.05} onChange={setElasticity} />}
-        <Slider label="Canvas width" value={width} min={240} max={720} step={20} onChange={setWidth} suffix=" px" />
-        <Slider label="Canvas height" value={height} min={160} max={480} step={20} onChange={setHeight} suffix=" px" />
+        <Slider label="Base width" value={width} min={240} max={720} step={20} onChange={setWidth} suffix=" px" />
+        <Slider label="Base height" value={height} min={160} max={480} step={20} onChange={setHeight} suffix=" px" />
       </div>
 
       <dl
@@ -269,11 +271,11 @@ export function SizingPlayground({ mode }: { mode: Mode }) {
           borderBottom: `1px solid ${siteTheme.border}`,
         }}
       >
-        <span>canvas: {width} × {height} px</span>
+        <span>base: {width} × {height} px</span>
         {showStretch && <span>cap (β·width): {Math.round(width * maxStretch)} px</span>}
         {resolvedWidth != null && (
           <span style={{ color: siteTheme.text }}>
-            plot width: {resolvedWidth} px{stretchedW != null ? ` (${stretchedW}% of canvas)` : ''}
+            plot width: {resolvedWidth} px{stretchedW != null ? ` (${stretchedW}% of base)` : ''}
           </span>
         )}
         {resolvedHeight != null && <span>plot height: {resolvedHeight} px</span>}

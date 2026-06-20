@@ -38,7 +38,7 @@ def test_hoists_column_facets_around_hconcat_bar_table_and_wraps():
         "chart_spec": {
             "chartType": "Bar Table",
             "encodings": ENCODING,
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
         },
     })
 
@@ -74,7 +74,7 @@ def test_rolls_rows_up_within_each_facet_without_undefined_facet():
         "chart_spec": {
             "chartType": "Bar Table",
             "encodings": ENCODING,
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
             "chartProperties": {"maxRows": 3},
         },
     })
@@ -106,7 +106,7 @@ def test_computes_percentage_totals_within_each_facet():
         "chart_spec": {
             "chartType": "Bar Table",
             "encodings": {**ENCODING, "color": {"field": "agency_type"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
             "chartProperties": {"showPercent": True},
         },
     })

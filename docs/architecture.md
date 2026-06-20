@@ -97,7 +97,7 @@ Tiered types (T0 → T1 → T2) allow graceful degradation when agents supply co
 
 # §4 Stage 2 — Optimizer
 
-The optimizer receives `canvasSize` and produces a `LayoutResult` so the chart fits without unreadable compression.
+The optimizer receives `baseSize` (the target) and an optional `canvasSize` ceiling, then produces a `LayoutResult` so the chart fits without unreadable compression.
 
 ### Local optimization
 

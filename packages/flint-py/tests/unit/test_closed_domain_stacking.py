@@ -19,7 +19,7 @@ def test_drops_intrinsic_clamp_when_color_series_stacks_past_bound():
         "chart_spec": {
             "chartType": "Stacked Bar Chart",
             "encodings": {"x": {"field": "product"}, "y": {"field": "corr"}, "color": {"field": "series"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
         },
     })
     scale = spec["encoding"]["y"].get("scale") or {}
@@ -39,7 +39,7 @@ def test_drops_intrinsic_clamp_when_repeated_categories_stack_without_color():
         "chart_spec": {
             "chartType": "Bar Chart",
             "encodings": {"x": {"field": "product"}, "y": {"field": "corr"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
         },
     })
     scale = spec["encoding"]["y"].get("scale") or {}
@@ -61,7 +61,7 @@ def test_detects_overflow_on_negative_side_even_when_signed_totals_cancel():
         "chart_spec": {
             "chartType": "Bar Chart",
             "encodings": {"x": {"field": "product"}, "y": {"field": "corr"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
         },
     })
     scale = spec["encoding"]["y"].get("scale") or {}
@@ -80,7 +80,7 @@ def test_keeps_intrinsic_domain_for_non_stacking_chart():
         "chart_spec": {
             "chartType": "Bar Chart",
             "encodings": {"x": {"field": "product"}, "y": {"field": "corr"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
         },
     })
     scale = spec["encoding"]["y"].get("scale") or {}

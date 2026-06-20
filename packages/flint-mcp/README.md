@@ -88,7 +88,7 @@ FLINT_MCP_BACKENDS=vegalite,echarts npx -y flint-chart-mcp
     "chart_spec": {
       "chartType": "Bar Chart",
       "encodings": { "x": { "field": "region" }, "y": { "field": "revenue" } },
-      "canvasSize": { "width": 360, "height": 240 }
+      "baseSize": { "width": 360, "height": 240 }
     },
     "backend": "vegalite",
     "format": "png"

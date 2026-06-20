@@ -24,7 +24,7 @@ const INPUT = {
       y: { field: 'mpg' },
       color: { field: 'origin' },
     },
-    canvasSize: { width: 400, height: 300 },
+    baseSize: { width: 400, height: 300 },
   },
 };
 
@@ -63,7 +63,7 @@ describe('public API smoke', () => {
           y: { field: 'Value' },
           color: { field: 'ColorVal' },
         },
-        canvasSize: { width: 480, height: 320 },
+        baseSize: { width: 480, height: 320 },
       },
     }) as any;
 
@@ -91,7 +91,7 @@ describe('public API smoke', () => {
           y: { field: 'Value' },
           color: { field: 'ColorVal' },
         },
-        canvasSize: { width: 480, height: 320 },
+        baseSize: { width: 480, height: 320 },
       },
     }) as any;
 

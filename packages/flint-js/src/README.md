@@ -77,7 +77,7 @@ const spec = assembleVegaLite({
   chart_spec: {
     chartType: 'Scatter Plot',
     encodings: { x: { field: 'weight' }, y: { field: 'mpg' }, color: { field: 'origin' } },
-    canvasSize: { width: 400, height: 300 },
+    baseSize: { width: 400, height: 300 },
   },
 });
 ```
@@ -172,7 +172,8 @@ interface ChartAssemblyInput {
   chart_spec: {
     chartType: string;                         // e.g. "Scatter Plot"
     encodings: Record<string, ChartEncoding>;  // channel → encoding map
-    canvasSize?: { width: number; height: number }; // default 400×320
+    baseSize?: { width: number; height: number };    // target layout size, default 400×320
+    canvasSize?: { width: number; height: number };  // optional hard ceiling on stretch
     chartProperties?: Record<string, any>;     // template-specific knobs
   };
   options?: AssembleOptions;                   // layout tuning

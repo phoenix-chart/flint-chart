@@ -31,7 +31,7 @@ def test_stack_mode_applicable_when_color_bound():
         "chart_spec": {
             "chartType": "Stacked Bar Chart",
             "encodings": {"x": {"field": "region"}, "y": {"field": "val"}, "color": {"field": "cat"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
         },
     })
     assert "stackMode" in _applicable_keys(spec)
@@ -44,7 +44,7 @@ def test_stack_mode_not_applicable_without_color_channel():
         "chart_spec": {
             "chartType": "Stacked Bar Chart",
             "encodings": {"x": {"field": "region"}, "y": {"field": "val"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
         },
     })
     assert _has_option(spec, "stackMode") is True
@@ -66,7 +66,7 @@ def test_independent_y_axis_applicable_when_faceted():
         "chart_spec": {
             "chartType": "Bar Chart",
             "encodings": {"x": {"field": "x"}, "y": {"field": "y"}, "column": {"field": "g"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
         },
     })
     assert "independentYAxis" in _applicable_keys(spec)
@@ -79,7 +79,7 @@ def test_independent_y_axis_not_applicable_when_not_faceted():
         "chart_spec": {
             "chartType": "Bar Chart",
             "encodings": {"x": {"field": "x"}, "y": {"field": "y"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
         },
     })
     assert "independentYAxis" not in _applicable_keys(spec)
@@ -94,7 +94,7 @@ def _bar_table(values: list[dict], semantic_types: dict) -> dict:
         "chart_spec": {
             "chartType": "Bar Table",
             "encodings": {"y": {"field": "cat"}, "x": {"field": "val"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
         },
     })
 
@@ -129,7 +129,7 @@ def _bar_with_x(values, semantic_types, chart_properties=None):
     cs = {
         "chartType": "Bar Chart",
         "encodings": {"x": {"field": "month"}, "y": {"field": "cost"}},
-        "canvasSize": CANVAS,
+        "baseSize": CANVAS,
     }
     if chart_properties:
         cs["chartProperties"] = chart_properties
@@ -158,7 +158,7 @@ def test_x_axis_type_not_applicable_for_plain_categorical_x():
         "chart_spec": {
             "chartType": "Bar Chart",
             "encodings": {"x": {"field": "region"}, "y": {"field": "cost"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
         },
     })
     assert _has_option(spec, "xAxisType") is True
@@ -172,7 +172,7 @@ def test_y_axis_type_offered_for_date_like_temporal_y():
         "chart_spec": {
             "chartType": "Bar Chart",
             "encodings": {"y": {"field": "month"}, "x": {"field": "cost"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
         },
     })
     assert "yAxisType" in _applicable_keys(spec)
@@ -185,7 +185,7 @@ def test_y_axis_type_forces_discrete_nominal_when_user_picks_nominal():
         "chart_spec": {
             "chartType": "Bar Chart",
             "encodings": {"y": {"field": "month"}, "x": {"field": "cost"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
             "chartProperties": {"yAxisType": "nominal"},
         },
     })

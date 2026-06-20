@@ -52,7 +52,7 @@ describe('channel field shorthand', () => {
       chart_spec: {
         chartType: 'Scatter Plot',
         encodings: { x: 'weight', y: 'mpg', color: 'origin' },
-        canvasSize: { width: 400, height: 300 },
+        baseSize: { width: 400, height: 300 },
       },
     });
 
@@ -66,7 +66,7 @@ describe('channel field shorthand', () => {
           y: { field: 'mpg' },
           color: { field: 'origin' },
         },
-        canvasSize: { width: 400, height: 300 },
+        baseSize: { width: 400, height: 300 },
       },
     });
 
@@ -84,7 +84,7 @@ describe('channel field shorthand', () => {
       chart_spec: {
         chartType: 'Line Chart',
         encodings: { x: 'month', y: ['sales', 'profit'] },
-        canvasSize: { width: 400, height: 300 },
+        baseSize: { width: 400, height: 300 },
       },
     });
 
@@ -97,7 +97,7 @@ describe('channel field shorthand', () => {
           x: { field: 'month' },
           y: [{ field: 'sales' }, { field: 'profit' }],
         },
-        canvasSize: { width: 400, height: 300 },
+        baseSize: { width: 400, height: 300 },
       },
     });
 

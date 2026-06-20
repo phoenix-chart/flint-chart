@@ -247,6 +247,8 @@ export const ecSunburstDef: ChartTemplateDef = {
                 minRadius: Math.round(80 * SUNBURST_CANVAS_SIZE_MULTIPLIER),
                 maxRadius: Math.round(400 * SUNBURST_CANVAS_SIZE_MULTIPLIER),
                 maxStretch: ctx.assembleOptions?.maxStretch,
+                maxStretchX: ctx.assembleOptions?.maxStretchX,
+                maxStretchY: ctx.assembleOptions?.maxStretchY,
             });
 
         const minOuterR = Math.round(80 * SUNBURST_CANVAS_SIZE_MULTIPLIER);

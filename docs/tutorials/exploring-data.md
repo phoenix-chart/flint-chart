@@ -35,7 +35,7 @@ ECharts / Chart.js) open so you can see which backends support each chart.
       "x": { "field": "a" },
       "y": { "field": "b", "aggregate": "average" }
     },
-    "canvasSize": { "width": 480, "height": 320 }
+    "baseSize": { "width": 480, "height": 320 }
   }
 }
 ```
@@ -117,7 +117,7 @@ Add a time-like column to see temporal semantics:
       "x": { "field": "month" },
       "y": { "field": "value" }
     },
-    "canvasSize": { "width": 520, "height": 280 }
+    "baseSize": { "width": 520, "height": 280 }
   }
 }
 ```
@@ -187,7 +187,7 @@ Add a third field to split bars by group:
       "y": { "field": "b", "aggregate": "average" },
       "color": { "field": "g" }
     },
-    "canvasSize": { "width": 480, "height": 320 }
+    "baseSize": { "width": 480, "height": 320 }
   }
 }
 ```

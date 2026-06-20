@@ -16,7 +16,7 @@ const barChart = {
   chart_spec: {
     chartType: 'Bar Chart',
     encodings: { x: { field: 'region' }, y: { field: 'revenue' } },
-    canvasSize: { width: 320, height: 220 },
+    baseSize: { width: 320, height: 220 },
   },
 };
 

@@ -208,7 +208,7 @@ const STATIC_SERIES_INPUT: ChartAssemblyInput = {
             x: { field: 'Month' },
             y: [{ field: 'Sales Amount' }, { field: 'Sales Due Date' }],
         },
-        canvasSize: { width: 600, height: 400 },
+        baseSize: { width: 600, height: 400 },
     },
 };
 

@@ -34,7 +34,7 @@ function makeBoxplotInput(grades: string[], width: number) {
     chart_spec: {
       chartType: 'Boxplot',
       encodings: { x: { field: 'Grade' }, y: { field: 'Price' } },
-      canvasSize: { width, height: 300 },
+      baseSize: { width, height: 300 },
     },
   };
 }

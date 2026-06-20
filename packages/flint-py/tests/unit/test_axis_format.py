@@ -18,7 +18,7 @@ def test_adds_default_format_to_unformatted_quantitative_position_axes():
         "chart_spec": {
             "chartType": "Bar Chart",
             "encodings": {"x": {"field": "category"}, "y": {"field": "value"}},
-            "canvasSize": BASE_CANVAS,
+            "baseSize": BASE_CANVAS,
         },
         "options": {"addTooltips": True},
     })
@@ -44,7 +44,7 @@ def test_does_not_override_semantic_axis_formats():
         "chart_spec": {
             "chartType": "Bar Chart",
             "encodings": {"x": {"field": "category"}, "y": {"field": "completionRate"}},
-            "canvasSize": BASE_CANVAS,
+            "baseSize": BASE_CANVAS,
         },
         "options": {"addTooltips": True},
     })
@@ -63,7 +63,7 @@ def test_does_not_format_binned_axes():
         "chart_spec": {
             "chartType": "Histogram",
             "encodings": {"x": {"field": "value"}},
-            "canvasSize": BASE_CANVAS,
+            "baseSize": BASE_CANVAS,
         },
         "options": {"addTooltips": True},
     })

@@ -175,7 +175,7 @@
           "field": "is_member"
         }
       },
-      "canvasSize": {
+      "baseSize": {
         "width": 400,
         "height": 300
       }

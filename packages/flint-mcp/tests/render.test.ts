@@ -15,7 +15,7 @@ const sales: ChartAssemblyInput = {
   chart_spec: {
     chartType: 'Bar Chart',
     encodings: { x: { field: 'region' }, y: { field: 'revenue' } },
-    canvasSize: { width: 360, height: 240 },
+    baseSize: { width: 360, height: 240 },
   },
 };
 

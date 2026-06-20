@@ -1461,7 +1461,7 @@
           "field": "Grade"
         }
       },
-      "canvasSize": {
+      "baseSize": {
         "width": 560,
         "height": 360
       }

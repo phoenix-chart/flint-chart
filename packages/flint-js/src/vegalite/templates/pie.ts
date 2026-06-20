@@ -66,6 +66,8 @@ export const pieChartDef: ChartTemplateDef = {
                 minArcPx: 45,
                 minRadius: 60,
                 maxStretch: ctx.assembleOptions?.maxStretch,
+                maxStretchX: ctx.assembleOptions?.maxStretchX,
+                maxStretchY: ctx.assembleOptions?.maxStretchY,
                 margin: 50,   // room for labels around pie
             });
 

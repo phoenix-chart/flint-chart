@@ -98,7 +98,7 @@ export const STATIC_SERIES_LINE_BASIC: ChartAssemblyInput = {
             x: { field: 'Month' },
             y: [{ field: 'Revenue' }, { field: 'Expenses' }],
         },
-        canvasSize: { width: 600, height: 380 },
+        baseSize: { width: 600, height: 380 },
     },
     field_display_names: {
         Revenue: 'Revenue ($)',
@@ -121,7 +121,7 @@ export const STATIC_SERIES_LINE_THREE_KPIS: ChartAssemblyInput = {
             x: { field: 'Quarter' },
             y: [{ field: 'NPS' }, { field: 'CSAT' }, { field: 'CES' }],
         },
-        canvasSize: { width: 600, height: 380 },
+        baseSize: { width: 600, height: 380 },
     },
     field_display_names: {
         NPS: 'Net Promoter Score',
@@ -151,7 +151,7 @@ export const STATIC_SERIES_LINE_MANY_SERIES: ChartAssemblyInput = {
                 { field: 'LosAngeles' },
             ],
         },
-        canvasSize: { width: 650, height: 400 },
+        baseSize: { width: 650, height: 400 },
     },
     field_display_names: {
         SanFrancisco: 'San Francisco',
@@ -174,7 +174,7 @@ export const STATIC_SERIES_DOTTED_LINE_STOCKS: ChartAssemblyInput = {
             x: { field: 'Day' },
             y: [{ field: 'MSFT' }, { field: 'GOOG' }, { field: 'AMZN' }],
         },
-        canvasSize: { width: 600, height: 380 },
+        baseSize: { width: 600, height: 380 },
     },
     field_display_names: {
         MSFT: 'Microsoft',
@@ -202,7 +202,7 @@ export const STATIC_SERIES_AREA_STACKED: ChartAssemblyInput = {
                 { field: 'WholesaleRevenue' },
             ],
         },
-        canvasSize: { width: 600, height: 380 },
+        baseSize: { width: 600, height: 380 },
     },
     field_display_names: {
         OnlineRevenue: 'Online',
@@ -225,7 +225,7 @@ export const STATIC_SERIES_SCATTER: ChartAssemblyInput = {
             x: { field: 'Month' },
             y: [{ field: 'Revenue' }, { field: 'Expenses' }],
         },
-        canvasSize: { width: 600, height: 380 },
+        baseSize: { width: 600, height: 380 },
     },
 };
 

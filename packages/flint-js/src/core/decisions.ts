@@ -808,6 +808,12 @@ export interface CircumferencePressureParams {
      *  derived from min(baseW, baseH) × maxStretch so that the chart
      *  never exceeds the cap in either dimension.  Default: 2.0 */
     maxStretch?: number;
+    /** Per-dimension cap for the width axis. Defaults to `maxStretch`.
+     *  Lets the radius ceiling honor an asymmetric canvas (canvasW/baseW). */
+    maxStretchX?: number;
+    /** Per-dimension cap for the height axis. Defaults to `maxStretch`.
+     *  Lets the radius ceiling honor an asymmetric canvas (canvasH/baseH). */
+    maxStretchY?: number;
     /** Extra margin outside the chart circle (px) for labels, legend, etc.
      *  Added to each side when computing canvas dimensions. Default: 20 */
     margin?: number;
@@ -862,6 +868,10 @@ export function computeCircumferencePressure(
         margin = 20,
     } = params;
 
+    // Per-dimension caps default to the scalar maxStretch (symmetric canvas).
+    const maxStretchX = Math.max(1, params.maxStretchX ?? maxStretch);
+    const maxStretchY = Math.max(1, params.maxStretchY ?? maxStretch);
+
     const baseW = canvasSize.width;
     const baseH = canvasSize.height;
 
@@ -871,9 +881,9 @@ export function computeCircumferencePressure(
 
     // ── Effective max-stretch on the radius ──────────────────────────
     // The radius stretch expands the canvas in BOTH x and y equally.
-    // Cap so that neither dimension exceeds maxStretch × baseDim.
-    const maxCanvasW = baseW * maxStretch;
-    const maxCanvasH = baseH * maxStretch;
+    // Cap so that neither dimension exceeds its per-dimension budget.
+    const maxCanvasW = baseW * maxStretchX;
+    const maxCanvasH = baseH * maxStretchY;
     const maxDiameter = Math.min(maxCanvasW, maxCanvasH);
     const effectiveMaxRadius = Math.min(maxRadius,
         (maxDiameter - 2 * margin) / 2);

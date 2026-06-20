@@ -39,7 +39,7 @@ function buildChoropleth(
     chart_spec: {
       chartType: 'Choropleth',
       encodings: { id: idField, color: valueField },
-      canvasSize: { width: 500, height: 300 },
+      baseSize: { width: 500, height: 300 },
       ...(region ? { chartProperties: { region } } : {}),
     },
   }) as any;

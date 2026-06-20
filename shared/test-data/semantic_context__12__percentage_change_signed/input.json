@@ -78,7 +78,7 @@
           "field": "ytd_change"
         }
       },
-      "canvasSize": {
+      "baseSize": {
         "width": 400,
         "height": 300
       }

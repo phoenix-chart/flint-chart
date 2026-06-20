@@ -22,7 +22,7 @@ def _scatter(encodings: dict[str, Any], chart_properties: dict | None = None) ->
     cs = {
         "chartType": "Scatter Plot",
         "encodings": encodings,
-        "canvasSize": CANVAS,
+        "baseSize": CANVAS,
     }
     if chart_properties:
         cs["chartProperties"] = chart_properties
@@ -46,7 +46,7 @@ def test_does_not_offer_log_on_narrow_axis():
         "chart_spec": {
             "chartType": "Scatter Plot",
             "encodings": {"x": {"field": "x"}, "y": {"field": "y"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
         },
     })
     assert "logScale_x" not in _applicable_keys(spec)
@@ -73,7 +73,7 @@ def test_true_forces_log_axis_when_not_recommended():
         "chart_spec": {
             "chartType": "Scatter Plot",
             "encodings": {"x": {"field": "x"}, "y": {"field": "y"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
         },
     })
     assert (auto["encoding"]["x"].get("scale") or {}).get("type") != "log"
@@ -84,7 +84,7 @@ def test_true_forces_log_axis_when_not_recommended():
         "chart_spec": {
             "chartType": "Scatter Plot",
             "encodings": {"x": {"field": "x"}, "y": {"field": "y"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
             "chartProperties": {"logScale_x": True},
         },
     })
@@ -99,7 +99,7 @@ def test_symlog_for_true_toggle_with_zeros_in_data():
         "chart_spec": {
             "chartType": "Scatter Plot",
             "encodings": {"x": {"field": "x"}, "y": {"field": "y"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
             "chartProperties": {"logScale_x": True},
         },
     })
@@ -113,7 +113,7 @@ def test_never_offers_log_on_bar_chart():
         "chart_spec": {
             "chartType": "Bar Chart",
             "encodings": {"x": {"field": "cat"}, "y": {"field": "val"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
         },
     })
     has_log_option = any(o.get("key", "").startswith("logScale") for o in spec.get("_options", []))
@@ -131,7 +131,7 @@ def test_offers_log_only_on_value_axis_of_line_chart():
         "chart_spec": {
             "chartType": "Line Chart",
             "encodings": {"x": {"field": "t"}, "y": {"field": "v"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
         },
     })
     keys = _applicable_keys(spec)
@@ -146,7 +146,7 @@ def test_get_chart_options_matches_rendered_spec_options():
         "chart_spec": {
             "chartType": "Scatter Plot",
             "encodings": {"x": {"field": "x"}, "y": {"field": "y"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
         },
     }
     spec = assemble_vegalite(inp)

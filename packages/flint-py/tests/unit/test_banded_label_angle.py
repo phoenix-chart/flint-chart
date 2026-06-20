@@ -14,7 +14,7 @@ def test_rotates_many_wide_numeric_labels_on_banded_ordinal_x_axis():
         "chart_spec": {
             "chartType": "Bar Chart",
             "encodings": {"x": {"field": "bucket", "type": "ordinal"}, "y": {"field": "count"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
         },
     })
     assert spec["config"]["axisX"]["labelAngle"] == -45
@@ -32,7 +32,7 @@ def test_keeps_few_short_numeric_labels_horizontal():
         "chart_spec": {
             "chartType": "Bar Chart",
             "encodings": {"x": {"field": "bucket", "type": "ordinal"}, "y": {"field": "count"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
         },
     })
     assert spec["config"]["axisX"]["labelAngle"] == 0
@@ -46,7 +46,7 @@ def test_continuous_quantitative_x_axis_left_to_vl_overlap_handling():
         "chart_spec": {
             "chartType": "Bar Chart",
             "encodings": {"x": {"field": "bucket"}, "y": {"field": "count"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
         },
     })
     assert (spec.get("config", {}).get("axisX") or {}).get("labelAngle") is None
@@ -74,7 +74,7 @@ def _boxplot_spec(grades, width):
         "chart_spec": {
             "chartType": "Boxplot",
             "encodings": {"x": {"field": "Grade"}, "y": {"field": "Price"}},
-            "canvasSize": {"width": width, "height": 300},
+            "baseSize": {"width": width, "height": 300},
         },
     })
 

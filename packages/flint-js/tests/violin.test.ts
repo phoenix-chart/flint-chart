@@ -42,7 +42,7 @@ function toInput(tc: TestCase, extra?: Record<string, unknown>) {
     chart_spec: {
       chartType: tc.chartType,
       encodings,
-      canvasSize: { width: 560, height: 360 },
+      baseSize: { width: 560, height: 360 },
       ...(tc.chartProperties ? { chartProperties: tc.chartProperties } : {}),
       ...(extra ?? {}),
     },

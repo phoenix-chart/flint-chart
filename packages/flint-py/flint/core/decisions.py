@@ -412,14 +412,18 @@ def compute_circumference_pressure(
     max_radius = p.get("maxRadius", 400)
     elasticity = p.get("elasticity", 0.5)
     max_stretch = p.get("maxStretch", 2.0)
+    max_stretch_x = p.get("maxStretchX")
+    max_stretch_y = p.get("maxStretchY")
+    max_stretch_x = max(1, max_stretch if max_stretch_x is None else max_stretch_x)
+    max_stretch_y = max(1, max_stretch if max_stretch_y is None else max_stretch_y)
     margin = p.get("margin", 20)
 
     base_w = canvas_size["width"]
     base_h = canvas_size["height"]
 
     base_radius = max(min_radius, (min(base_w, base_h) / 2) - margin)
-    max_canvas_w = base_w * max_stretch
-    max_canvas_h = base_h * max_stretch
+    max_canvas_w = base_w * max_stretch_x
+    max_canvas_h = base_h * max_stretch_y
     max_diameter = min(max_canvas_w, max_canvas_h)
     effective_max_radius = min(max_radius, (max_diameter - 2 * margin) / 2)
     effective_max_stretch = max(1, effective_max_radius / base_radius)

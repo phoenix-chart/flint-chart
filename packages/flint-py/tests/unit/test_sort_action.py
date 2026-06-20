@@ -143,7 +143,7 @@ def test_value_desc_override_sorts_bar_x_axis_by_measure():
             "chartType": "Bar Chart",
             "encodings": {"x": {"field": "category"}, "y": {"field": "value", "aggregate": "sum"}},
             "chartProperties": {"sort": "value-desc"},
-            "canvasSize": BASE_CANVAS,
+            "baseSize": BASE_CANVAS,
         },
     })
     assert spec["encoding"]["x"]["sort"] == "-y"
@@ -156,7 +156,7 @@ def test_no_override_leaves_template_default_ordering():
         "chart_spec": {
             "chartType": "Bar Chart",
             "encodings": {"x": {"field": "category"}, "y": {"field": "value", "aggregate": "sum"}},
-            "canvasSize": BASE_CANVAS,
+            "baseSize": BASE_CANVAS,
         },
     })
     assert spec["encoding"]["x"].get("sort") != "-y"
@@ -170,7 +170,7 @@ def test_value_desc_applies_when_measure_type_is_auto():
             "chartType": "Bar Chart",
             "encodings": {"x": {"field": "category"}, "y": {"field": "value"}},
             "chartProperties": {"sort": "value-desc"},
-            "canvasSize": BASE_CANVAS,
+            "baseSize": BASE_CANVAS,
         },
     })
     assert spec["encoding"]["x"]["sort"] == "-y"
@@ -196,7 +196,7 @@ def test_value_desc_overrides_field_intrinsic_ordinal_ordering():
             "chartType": "Bar Chart",
             "encodings": {"x": {"field": "budget", "type": "ordinal"}, "y": {"field": "pct"}},
             "chartProperties": {"sort": "value-desc"},
-            "canvasSize": BASE_CANVAS,
+            "baseSize": BASE_CANVAS,
         },
     })
     assert spec["encoding"]["x"]["sort"] == "-y"

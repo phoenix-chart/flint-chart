@@ -121,13 +121,15 @@ export const ecTreemapDef: ChartTemplateDef = {
         const baseH = ctx.canvasSize.height;
         const minBarPx = 30;          // minimum width per effective bar
         const elasticity = 0.5;
-        const maxStretch = ctx.assembleOptions?.maxStretch ?? 2.0;       // max per-axis stretch
+        const maxStretch = ctx.assembleOptions?.maxStretch ?? 2.0;       // legacy scalar fallback
+        const maxStretchX = ctx.assembleOptions?.maxStretchX ?? maxStretch;  // width budget βx
+        const maxStretchY = ctx.assembleOptions?.maxStretchY ?? maxStretch;  // height budget βy
         const xBias = 1.5;            // X takes more of the stretch than Y
 
         const pressure = (effectiveCount * minBarPx) / baseW;
-        const areaStretch = pressure <= 1 ? 1 : Math.min(maxStretch * maxStretch, Math.pow(pressure, elasticity));
-        const stretchX = Math.min(maxStretch, Math.pow(areaStretch, xBias / (xBias + 1)));
-        const stretchY = Math.min(maxStretch, Math.pow(areaStretch, 1 / (xBias + 1)));
+        const areaStretch = pressure <= 1 ? 1 : Math.min(maxStretchX * maxStretchY, Math.pow(pressure, elasticity));
+        const stretchX = Math.min(maxStretchX, Math.pow(areaStretch, xBias / (xBias + 1)));
+        const stretchY = Math.min(maxStretchY, Math.pow(areaStretch, 1 / (xBias + 1)));
 
         const canvasW = Math.round(baseW * stretchX);
         const canvasH = Math.round(baseH * stretchY);

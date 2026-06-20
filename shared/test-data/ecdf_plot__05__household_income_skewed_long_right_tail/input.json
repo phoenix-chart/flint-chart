@@ -467,7 +467,7 @@
           "field": "Income ($k)"
         }
       },
-      "canvasSize": {
+      "baseSize": {
         "width": 560,
         "height": 360
       }

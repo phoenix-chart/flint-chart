@@ -52,6 +52,10 @@ def _pie_instantiate(spec, ctx):
     }
     if assemble_options.get("maxStretch") is not None:
         pressure_params["maxStretch"] = assemble_options["maxStretch"]
+    if assemble_options.get("maxStretchX") is not None:
+        pressure_params["maxStretchX"] = assemble_options["maxStretchX"]
+    if assemble_options.get("maxStretchY") is not None:
+        pressure_params["maxStretchY"] = assemble_options["maxStretchY"]
     pressure = compute_circumference_pressure(
         effective_count,
         ctx["canvasSize"],

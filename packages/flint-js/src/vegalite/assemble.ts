@@ -59,7 +59,7 @@ import { inferVisCategory, computeZeroDecision } from '../core/semantic-types';
 import { resolveChannelSemantics, convertTemporalData } from '../core/resolve-semantics';
 import { toTypeString, type SemanticAnnotation } from '../core/field-semantics';
 import { filterOverflow } from '../core/filter-overflow';
-import { computeLayout, computeChannelBudgets, computeMinSubplotDimensions } from '../core/compute-layout';
+import { computeLayout, computeChannelBudgets, computeMinSubplotDimensions, deriveStretchCaps, resolveBaseSize } from '../core/compute-layout';
 import { vlApplyLayoutToSpec, vlApplyTooltips } from './instantiate-spec';
 import { normalizeStaticSeries } from '../core/static-series';
 
@@ -105,7 +105,13 @@ const escapeVlFieldName = (name: string): string =>
 export function assembleVegaLite(input: ChartAssemblyInput): any {
     const chartType = input.chart_spec.chartType;
     const semanticTypes = input.semantic_types ?? {};
-    const canvasSize = input.chart_spec.canvasSize ?? { width: 400, height: 320 };
+    // Internal layout targets the base (target) size; the optional canvasSize
+    // ceiling is applied as per-dimension stretch caps once options resolve.
+    // The base is clamped to the ceiling so a smaller canvasSize shrinks the
+    // chart to fit rather than overflowing it.
+    const sizeCeiling = input.chart_spec.canvasSize;
+    const baseSize = resolveBaseSize(input.chart_spec.baseSize, sizeCeiling);
+    const canvasSize = baseSize;
     const chartProperties = input.chart_spec.chartProperties;
     const options = input.options ?? {};
     const chartTemplate = vlGetTemplateDef(chartType) as ChartTemplateDef;
@@ -298,7 +304,6 @@ export function assembleVegaLite(input: ChartAssemblyInput): any {
 
     const {
         addTooltips: addTooltipsOpt = false,
-        maxStretch: maxStretchVal = 2,
         minSubplotSize: minSubplotVal = 60,
     } = effectiveOptions;
 
@@ -316,6 +321,13 @@ export function assembleVegaLite(input: ChartAssemblyInput): any {
     if (effectiveOptions.targetBandAR == null) {
         effectiveOptions.targetBandAR = 10;
     }
+
+    // Resolve the optional canvasSize ceiling into per-dimension stretch caps
+    // (βx, βy) so single plots AND facet grids honor the same budget. Falls
+    // back to maxStretch when no ceiling is set.
+    const caps = deriveStretchCaps(baseSize, sizeCeiling, effectiveOptions);
+    effectiveOptions.maxStretchX = caps.maxStretchX;
+    effectiveOptions.maxStretchY = caps.maxStretchY;
     const facetFixW = effectiveOptions.facetFixedPadding.width;
     const facetFixH = effectiveOptions.facetFixedPadding.height;
 
@@ -501,8 +513,8 @@ export function assembleVegaLite(input: ChartAssemblyInput): any {
     vgObj.config = vgObj.config || {};
     vgObj.config.facet = { spacing: facetGapVal };
 
-    const maxFacetColumns = Math.max(2, Math.floor((defaultChartWidth * maxStretchVal - facetFixW) / (minSubplotWidth + facetGapVal)));
-    const maxFacetRows = Math.max(2, Math.floor((defaultChartHeight * maxStretchVal - facetFixH) / (minSubplotHeight + facetGapVal)));
+    const maxFacetColumns = Math.max(2, Math.floor((defaultChartWidth * caps.maxStretchX - facetFixW) / (minSubplotWidth + facetGapVal)));
+    const maxFacetRows = Math.max(2, Math.floor((defaultChartHeight * caps.maxStretchY - facetFixH) / (minSubplotHeight + facetGapVal)));
     const maxFacetNominalValues = maxFacetColumns * maxFacetRows;
 
     // Bin quantitative facets

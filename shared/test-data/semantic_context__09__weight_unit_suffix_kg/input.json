@@ -78,7 +78,7 @@
           "field": "weight_kg"
         }
       },
-      "canvasSize": {
+      "baseSize": {
         "width": 400,
         "height": 300
       }

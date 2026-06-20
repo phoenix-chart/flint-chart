@@ -145,6 +145,8 @@ export const ecRoseChartDef: ChartTemplateDef = {
                 minArcPx: 45,
                 minRadius: 80,
                 maxStretch: ctx.assembleOptions?.maxStretch,
+                maxStretchX: ctx.assembleOptions?.maxStretchX,
+                maxStretchY: ctx.assembleOptions?.maxStretchY,
             });
 
         // Canvas size — grow width to fit legend without squeezing the chart

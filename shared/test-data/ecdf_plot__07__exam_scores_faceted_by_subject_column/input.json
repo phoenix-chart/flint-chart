@@ -1101,7 +1101,7 @@
           "field": "Subject"
         }
       },
-      "canvasSize": {
+      "baseSize": {
         "width": 560,
         "height": 360
       }

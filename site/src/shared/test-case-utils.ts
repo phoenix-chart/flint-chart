@@ -91,7 +91,7 @@ export function testCaseToAssemblyInput(t: TestCase, canvasSize: CanvasSize = DE
     chart_spec: {
       chartType: t.chartType,
       encodings,
-      canvasSize,
+      baseSize: canvasSize,
       chartProperties: t.chartProperties,
     },
     options: t.assembleOptions,

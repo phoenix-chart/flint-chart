@@ -382,7 +382,9 @@ def _bar_table_instantiate(spec, ctx):
     )
     if has_facet and facet_rows_for_sizing > 1:
         assemble_opts = ctx.get("assembleOptions") or {}
-        max_stretch = assemble_opts.get("maxStretch", 2)
+        max_stretch = assemble_opts.get("maxStretchY")
+        if max_stretch is None:
+            max_stretch = assemble_opts.get("maxStretch", 2)
         facet_elasticity = assemble_opts.get("facetElasticity", 0.3)
         fix_h = ((assemble_opts.get("facetFixedPadding") or {}).get("height")) or 0
         gap = layout.get("effectiveFacetGap")

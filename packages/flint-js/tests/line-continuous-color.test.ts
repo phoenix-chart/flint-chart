@@ -22,7 +22,7 @@ function toInput(tc: TestCase) {
     chart_spec: {
       chartType: tc.chartType,
       encodings,
-      canvasSize: { width: 560, height: 360 },
+      baseSize: { width: 560, height: 360 },
     },
   };
 }

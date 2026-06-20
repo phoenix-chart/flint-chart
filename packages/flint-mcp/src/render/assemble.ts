@@ -67,15 +67,17 @@ export function validateInput(input: ChartAssemblyInput): void {
   if (cs == null || typeof cs !== 'object' || typeof cs.chartType !== 'string') {
     throw new Error('input.chart_spec.chartType is required');
   }
-  const size = cs.canvasSize;
-  if (size) {
-    if (
-      (typeof size.width === 'number' && size.width > MAX_CANVAS_DIM) ||
-      (typeof size.height === 'number' && size.height > MAX_CANVAS_DIM)
-    ) {
-      throw new Error(
-        `chart_spec.canvasSize exceeds the maximum dimension of ${MAX_CANVAS_DIM}px`,
-      );
+  for (const field of ['baseSize', 'canvasSize'] as const) {
+    const size = cs[field];
+    if (size) {
+      if (
+        (typeof size.width === 'number' && size.width > MAX_CANVAS_DIM) ||
+        (typeof size.height === 'number' && size.height > MAX_CANVAS_DIM)
+      ) {
+        throw new Error(
+          `chart_spec.${field} exceeds the maximum dimension of ${MAX_CANVAS_DIM}px`,
+        );
+      }
     }
   }
 }

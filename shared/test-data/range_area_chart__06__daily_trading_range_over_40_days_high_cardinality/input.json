@@ -225,7 +225,7 @@
           "field": "Day High"
         }
       },
-      "canvasSize": {
+      "baseSize": {
         "width": 560,
         "height": 360
       }

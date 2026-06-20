@@ -30,7 +30,8 @@ interface ChartAssemblyInput {
   chart_spec: {                               //                        ← you write this
     chartType: string;                        // e.g. "Scatter Plot"
     encodings: Record<string, EncodingValue>; // channel → { field, ... } (or array)
-    canvasSize?: { width: number; height: number };  // default 400×320
+    baseSize?: { width: number; height: number };    // target layout size, default 400×320
+    canvasSize?: { width: number; height: number };  // optional hard ceiling on stretch
     chartProperties?: Record<string, any>;    // per-chart tuning (optional)
   };
   options?: Record<string, any>;              // global layout options (rarely needed)
@@ -267,7 +268,12 @@ default:
 - **Sort a category axis by its measure:** `encodings.x = { field: "name", sortBy: "y", sortOrder: "descending" }`.
 - **Pick a color scheme:** `encodings.color = { field: "region", scheme: "tableau10" }`.
 - **Override an inferred type:** `encodings.x = { field: "year", type: "ordinal" }` (e.g. treat a year as discrete bands).
-- **Resize the canvas:** `chart_spec.canvasSize = { width, height }` (default 400×320).
+- **Resize the chart:** Flint sizes from two numbers — `baseSize` (the *target*
+  it aims for, default 400×320) and `canvasSize` (a *hard ceiling* it may never
+  exceed). With dense data the chart stretches from base toward the ceiling.
+  - Want a comfortable size that may grow for dense data → set `chart_spec.baseSize = { width, height }`.
+  - Want a fixed slot it must fit inside → set `chart_spec.canvasSize = { width, height }` alone; the chart fills it and shrinks to fit, never overflowing. *What you ask for is what you get.*
+  - Both → aims for `baseSize`, grows toward `canvasSize`, never beyond.
 - **Force log / zero baseline:** the `logScale_*` / `includeZero_*` chart
   properties above.
 
@@ -299,7 +305,7 @@ User: "Plot car weight vs fuel economy, colored by origin."
       "y": { "field": "mpg" },
       "color": { "field": "origin" }
     },
-    "canvasSize": { "width": 400, "height": 300 }
+    "baseSize": { "width": 400, "height": 300 }
   }
 }
 ```

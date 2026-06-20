@@ -51,7 +51,7 @@
           "field": "completion_rate"
         }
       },
-      "canvasSize": {
+      "baseSize": {
         "width": 400,
         "height": 300
       }

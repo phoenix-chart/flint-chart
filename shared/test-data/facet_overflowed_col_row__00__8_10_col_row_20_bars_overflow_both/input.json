@@ -9629,7 +9629,7 @@
           "field": "Row"
         }
       },
-      "canvasSize": {
+      "baseSize": {
         "width": 400,
         "height": 300
       }

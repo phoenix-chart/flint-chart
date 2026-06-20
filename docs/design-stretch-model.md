@@ -15,6 +15,42 @@ New to Flint sizing? Start with the practical [Chart sizing demo](/documentation
 
 ---
 
+## Base size and the stretch ceiling
+
+Every model below sizes a chart from **two numbers**: a target it aims for and a
+ceiling it may never exceed.
+
+| Field | Role in the model | Default |
+|-------|-------------------|---------|
+| `baseSize` | **Target.** The rest length $L_0$ / base canvas $W_0 \times H_0$ that every "pressure = demand ÷ supply" ratio below is measured against. | $400 \times 320$ |
+| `canvasSize` | **Hard ceiling.** The maximum stretched size, in any dimension (facet grids included). | none → $\text{baseSize} \times \text{maxStretch}$ (default $2\times$) |
+
+The stretch multiplier $\beta$ caps how far an axis may grow past the base, and
+is set per dimension:
+
+- **No `canvasSize` (default).** Each dimension may stretch up to `maxStretch`
+  (default **2.0**), i.e. the ceiling is $\text{baseSize} \times \text{maxStretch}$.
+- **Explicit `canvasSize` ceiling.** The caps become the ceiling-to-base ratio:
+
+  $$\beta_x = \max\!\left(1, \frac{\text{canvasSize.width}}{\text{baseSize.width}}\right), \qquad \beta_y = \max\!\left(1, \frac{\text{canvasSize.height}}{\text{baseSize.height}}\right).$$
+
+**Base never exceeds the ceiling.** Before the caps are computed, the base is
+clamped per dimension to the ceiling ($L_0 = \min(\text{baseSize}, \text{canvasSize})$).
+So a `canvasSize` *smaller* than the base (e.g. a fixed slot, with `baseSize`
+left at its default) shrinks $L_0$ to fit the box — the chart compresses and
+degrades text rather than overflowing. With `baseSize` omitted, a lone
+`canvasSize` therefore behaves as a pure **fit-to-box**: $L_0 = \text{canvasSize}$,
+$\beta = 1$, no growth past the box.
+
+The width-driving models (discrete x-axis, gas-pressure x, treemap x-split) use
+$\beta_x$; the height-driving models (discrete y-axis, gas-pressure y, treemap
+y-split) use $\beta_y$; radial/area caps use $\max(\beta_x, \beta_y)$. The same
+ceiling bounds **faceted** layouts: the total stretched extent of the
+small-multiple grid cannot exceed `canvasSize`. Where the sections below write a
+single $\beta$, read it as $\beta_x$ or $\beta_y$ for that dimension.
+
+---
+
 ## Interactive demos
 
 These four models size a chart's axes when the data overflows the canvas. Drag the controls to watch each one respond live — adding items, changing the stretch factor, or resizing the canvas. Every control is explained inside its demo. The math in the sections below is only there if you want to verify the formulas.
@@ -237,13 +273,13 @@ Two competing goals must be balanced:
 
 | Symbol | Meaning | Code mapping | Default |
 |---|---|---|---|
-| $L_0$ | Natural axis length | `width` / `height` (canvas size) | 400 px |
-| $L_{\max}$ | Maximum axis length | `width × maxStretch` | 800 px |
+| $L_0$ | Natural axis length | `width` / `height` (base size) | 400 px |
+| $L_{\max}$ | Maximum axis length | `base × β` (β from `maxStretch` or `canvasSize`) | 800 px |
 | $N$ | Number of banded items | Field cardinality | data-dependent |
 | $\ell_0$ | Natural length per item | `defaultStepSize` | ~20 px |
 | $\ell_{\min}$ | Minimum length per item | `minStep` option | 6 px |
 | $\alpha$ | Elasticity exponent | `elasticity` option | 0.5 |
-| $\beta$ | Maximum stretch multiplier | `maxStretch` option | 2.0 |
+| $\beta$ | Maximum stretch multiplier | `maxStretch`, or derived from `canvasSize` | 2.0 |
 
 > **Code defaults:** `ElasticStretchParams` in `core/decisions.ts` — `elasticity: 0.5`, `maxStretch: 2`, `minStep: 6`. The `defaultStepSize` is computed dynamically based on canvas size: `round(20 × max(1, sizeRatio) × defaultStepMultiplier)`.
 

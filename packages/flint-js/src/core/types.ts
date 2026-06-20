@@ -471,7 +471,12 @@ export interface InstantiateContext {
     /** Static series metadata (present when input used array-valued encoding) */
     staticSeries?: StaticSeriesMetadata;
 
-    /** Target canvas dimensions */
+    /**
+     * Base (target) chart dimensions — the size layout aims for before
+     * pressure-driven stretch. This is the resolved `chart_spec.baseSize`
+     * (NOT the hard ceiling). The ceiling is `baseSize × maxStretchX/Y`,
+     * available via `assembleOptions.maxStretchX` / `maxStretchY`.
+     */
     canvasSize: { width: number; height: number };
 
     /** Field name → semantic type (string or enriched annotation) */
@@ -838,7 +843,26 @@ export interface ChartAssemblyInput {
         /** Channel → encoding map (e.g., `{ x: { field: 'weight' }, y: { field: 'mpg' } }`).
          * A bare string is shorthand for `{ field: <string> }` (e.g. `{ x: 'weight' }`). */
         encodings: Record<string, RawEncodingValue>;
-        /** Target canvas size in pixels (default: `{ width: 400, height: 320 }`) */
+        /**
+         * Base (target) chart size in pixels — the size layout aims for when the
+         * data fits comfortably (default: `{ width: 400, height: 320 }`).
+         *
+         * For faceted charts this is the whole-chart target; panels divide it.
+         * The chart may grow beyond `baseSize` under pressure (dense axes, many
+         * facet panels), bounded by `canvasSize`.
+         */
+        baseSize?: { width: number; height: number };
+        /**
+         * Hard ceiling on the rendered size in pixels (optional).
+         *
+         * The final image — a single plot OR an entire facet grid — never exceeds
+         * this box. The per-dimension growth allowance is derived from the ratio
+         * to `baseSize`: `βx = canvasSize.width / baseSize.width`,
+         * `βy = canvasSize.height / baseSize.height` (each clamped to ≥ 1).
+         *
+         * When omitted, the ceiling defaults to `baseSize × options.maxStretch`
+         * (default 2×) in each dimension.
+         */
         canvasSize?: { width: number; height: number };
         /** Template-specific configurable properties (e.g., bar corner radius, show labels) */
         chartProperties?: Record<string, any>;
@@ -881,15 +905,36 @@ export interface AssembleOptions {
     /** Power-law exponent for discrete axis stretch (default: 0.5) */
     elasticity?: number;
     /**
-     * Maximum total stretch multiplier cap (default: 2).
+     * Default maximum stretch multiplier used when the spec provides no
+     * explicit `canvasSize` ceiling (default: 2).
      *
      * This is a **unified** budget: the combined stretch from facet
      * layout AND discrete/banded axis sizing must stay within this
-     * factor.  For example, with maxStretch=2 and a 400px canvas,
+     * factor.  For example, with maxStretch=2 and a 400px base,
      * the total chart width never exceeds 800px regardless of how
      * many facet columns or discrete axis items there are.
+     *
+     * When `chart_spec.canvasSize` IS set, the per-dimension caps
+     * `maxStretchX`/`maxStretchY` are derived from `canvasSize / baseSize`
+     * instead and this scalar is ignored.
      */
     maxStretch?: number;
+    /**
+     * Resolved per-dimension stretch cap for the X (width) axis.
+     *
+     * Normally derived by the assembler from `canvasSize / baseSize`
+     * (or `maxStretch` when no ceiling is set). Callers rarely set this
+     * directly. Falls back to `maxStretch` when absent.
+     */
+    maxStretchX?: number;
+    /**
+     * Resolved per-dimension stretch cap for the Y (height) axis.
+     *
+     * Normally derived by the assembler from `canvasSize / baseSize`
+     * (or `maxStretch` when no ceiling is set). Callers rarely set this
+     * directly. Falls back to `maxStretch` when absent.
+     */
+    maxStretchY?: number;
     /** Power-law exponent for facet subplot stretch — lower = more conservative (default: 0.3) */
     facetElasticity?: number;
     /** Minimum pixels per discrete axis item (default: 6) */

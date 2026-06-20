@@ -72,6 +72,8 @@ export const ecPieChartDef: ChartTemplateDef = {
                 minArcPx: 45,
                 minRadius: 60,
                 maxStretch: ctx.assembleOptions?.maxStretch,
+                maxStretchX: ctx.assembleOptions?.maxStretchX,
+                maxStretchY: ctx.assembleOptions?.maxStretchY,
                 // 增大 margin，给外侧标签留出更多画布空间，避免文字被裁切。
                 margin: 80,
             });

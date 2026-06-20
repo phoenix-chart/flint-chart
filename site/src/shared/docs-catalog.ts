@@ -37,7 +37,7 @@ export const DOCUMENTATION_GROUPS: DocGroup[] = [
         slug: 'chart-sizing',
         title: 'Chart sizing demo',
         description:
-          'See how canvasSize, stretch, and data density affect chart dimensions.',
+          'See how baseSize, the canvasSize ceiling, stretch, and data density affect chart dimensions.',
         file: '../../../docs/tutorials/chart-sizing.md',
       },
     ],

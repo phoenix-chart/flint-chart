@@ -95,7 +95,7 @@
           "field": "Max °C"
         }
       },
-      "canvasSize": {
+      "baseSize": {
         "width": 560,
         "height": 360
       }

@@ -59,7 +59,7 @@ def _scatter_y(y_type: str, y_values: list[float], chart_properties: dict | None
         "chart_spec": {
             "chartType": "Scatter Plot",
             "encodings": {"x": {"field": "x"}, "y": {"field": "y"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
             **({"chartProperties": chart_properties} if chart_properties else {}),
         },
     })
@@ -109,7 +109,7 @@ def test_does_not_offer_zero_y_on_bar_chart_arbitrary_type():
         "chart_spec": {
             "chartType": "Bar Chart",
             "encodings": {"x": {"field": "cat"}, "y": {"field": "y"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
         },
     })
     assert "includeZero_y" not in _applicable_keys(spec)
@@ -122,7 +122,7 @@ def test_does_not_offer_zero_y_on_bar_chart_meaningful_type():
         "chart_spec": {
             "chartType": "Bar Chart",
             "encodings": {"x": {"field": "cat"}, "y": {"field": "y"}},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
         },
     })
     assert "includeZero_y" not in _applicable_keys(spec)

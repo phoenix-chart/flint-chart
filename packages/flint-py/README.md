@@ -36,7 +36,7 @@ spec = assemble_vegalite({
     "chart_spec": {
         "chartType": "Scatter Plot",
         "encodings": {"x": {"field": "weight"}, "y": {"field": "mpg"}},
-        "canvasSize": {"width": 400, "height": 300},
+        "baseSize": {"width": 400, "height": 300},
     },
     "options": {"addTooltips": True},
 })

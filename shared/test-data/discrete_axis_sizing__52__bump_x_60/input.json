@@ -1525,7 +1525,7 @@
           "field": "Team"
         }
       },
-      "canvasSize": {
+      "baseSize": {
         "width": 400,
         "height": 300
       }

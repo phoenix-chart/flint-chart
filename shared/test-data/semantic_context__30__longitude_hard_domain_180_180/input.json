@@ -62,7 +62,7 @@
           "field": "population_M"
         }
       },
-      "canvasSize": {
+      "baseSize": {
         "width": 400,
         "height": 300
       }

@@ -102,7 +102,7 @@ A Vega-Lite spec uses `mark` plus `encoding`. Flint uses **`chart_spec`**:
 
 - `chartType` — template name (e.g. `"Scatter Plot"`, `"Bar Chart"`)
 - `encodings` — map visual channels (`x`, `y`, `color`, …) to fields
-- `canvasSize` — optional pixel budget (default 400×320)
+- `baseSize` — optional target size (default 400×320); `canvasSize` — optional hard ceiling on stretch
 
 ### Scatter plot — temporal x value
 
@@ -133,7 +133,7 @@ Map `month` to the x-channel and `value` to the y-channel:
       "x": { "field": "month" },
       "y": { "field": "value" }
     },
-    "canvasSize": { "width": 400, "height": 300 }
+    "baseSize": { "width": 400, "height": 300 }
   }
 }
 ```
@@ -144,12 +144,13 @@ like `2024-01` as year-month dates rather than arbitrary string labels. The
 compiler chose temporal parsing, month tick formatting, numeric ticks, and grid
 lines from `YearMonth` and `Quantity`.
 
-`canvasSize` is Flint's target layout budget, not always a hard final bounding
+`baseSize` is Flint's target layout budget, not always a hard final bounding
 box. For dense temporal axes, many facets, or long labels, the compiler may
 stretch the effective width or height to keep marks readable. By default,
 `maxStretch` is `2`, so a 400 px axis may grow up to 800 px before Flint makes
 harder tradeoffs such as smaller steps or truncation. Set
-`options.maxStretch` when you need stricter fixed-size output; see the
+`options.maxStretch` when you need stricter fixed-size output, or set a
+`canvasSize` ceiling to bound the stretched size directly; see the
 [chart sizing demo](/documentation/chart-sizing) for a quick visual walkthrough
 or [Auto Layout Algorithm](/documentation/layout-model) for the full explanation.
 
@@ -193,7 +194,7 @@ on a channel. Flint uses the same knob on encodings:
       "x": { "field": "month" },
       "y": { "field": "value", "aggregate": "average" }
     },
-    "canvasSize": { "width": 400, "height": 300 }
+    "baseSize": { "width": 400, "height": 300 }
   }
 }
 ```
@@ -242,7 +243,7 @@ const input = {
       x: { field: 'month' },
       y: { field: 'value', aggregate: 'average' },
     },
-    canvasSize: { width: 400, height: 300 },
+    baseSize: { width: 400, height: 300 },
   },
   options: { maxStretch: 1.5 }, // cap automatic layout growth at 1.5x
 };

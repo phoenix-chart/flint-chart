@@ -64,7 +64,7 @@
           "field": "response_time_ms"
         }
       },
-      "canvasSize": {
+      "baseSize": {
         "width": 400,
         "height": 300
       }

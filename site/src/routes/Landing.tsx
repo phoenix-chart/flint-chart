@@ -530,7 +530,7 @@ function FlintSpecCode({ testCase, canvasSize }: { testCase: TestCase; canvasSiz
   const text = useMemo(() => {
     const summary = testCaseToFlintSummary(testCase);
     const withCanvas = canvasSize
-      ? { ...summary, options: { canvasSize } }
+      ? { ...summary, chart_spec: { ...summary.chart_spec, baseSize: canvasSize } }
       : summary;
     const body = JSON.stringify(withCanvas, null, 2);
     return body.replace(/^{\n/, '{\n  "data": {...},\n');

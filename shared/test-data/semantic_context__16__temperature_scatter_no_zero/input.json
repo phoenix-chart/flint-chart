@@ -128,7 +128,7 @@
           "field": "high_temp"
         }
       },
-      "canvasSize": {
+      "baseSize": {
         "width": 400,
         "height": 300
       }

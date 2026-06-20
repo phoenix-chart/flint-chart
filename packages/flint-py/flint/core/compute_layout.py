@@ -108,6 +108,73 @@ def _is_nan(v: float) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Stretch caps (per-dimension)
+# ---------------------------------------------------------------------------
+
+DEFAULT_BASE_SIZE = {"width": 400, "height": 320}
+
+
+def resolve_base_size(
+    spec_base_size: Optional[dict[str, float]],
+    ceiling: Optional[dict[str, float]],
+) -> dict[str, float]:
+    """Resolve the effective base (target) size the layout pipeline aims for.
+
+    Defaults to ``DEFAULT_BASE_SIZE`` when the spec omits ``baseSize``, then
+    clamps each dimension to the optional ``canvasSize`` ceiling so the target
+    never exceeds the hard maximum: a smaller ``canvasSize`` (or a ``baseSize``
+    larger than the ceiling) shrinks the chart to fit instead of overflowing.
+    After clamping, ``derive_stretch_caps`` yields betaX/betaY = 1 in any
+    clamped dimension. Mirrors JS ``resolveBaseSize``.
+    """
+    base = spec_base_size or {**DEFAULT_BASE_SIZE}
+    if not ceiling:
+        return {"width": base["width"], "height": base["height"]}
+    return {
+        "width": min(base["width"], ceiling["width"]),
+        "height": min(base["height"], ceiling["height"]),
+    }
+
+
+def resolve_stretch_caps(options: dict[str, Any]) -> tuple[float, float]:
+    """Resolve per-dimension stretch caps (betaX, betaY).
+
+    Falls back to ``maxStretch`` (default 2) when an explicit per-dimension cap
+    is absent; each cap is clamped to >= 1. Mirrors JS ``resolveStretchCaps``.
+    """
+    default = options.get("maxStretch", 2)
+    if default is None:
+        default = 2
+    x = options.get("maxStretchX")
+    y = options.get("maxStretchY")
+    x = default if x is None else x
+    y = default if y is None else y
+    return (max(1, x), max(1, y))
+
+
+def derive_stretch_caps(
+    base_size: dict[str, float],
+    ceiling: Optional[dict[str, float]],
+    options: dict[str, Any],
+) -> dict[str, float]:
+    """Derive per-dimension stretch ceilings (betaX, betaY) for an assembler.
+
+    When an explicit ``ceiling`` (hard canvas limit) is given, the caps are the
+    ratio of ceiling to base size (clamped to >= 1). Otherwise both caps fall
+    back to ``maxStretch`` (default 2). Mirrors JS ``deriveStretchCaps``.
+    """
+    default = options.get("maxStretch", 2)
+    if default is None:
+        default = 2
+    if ceiling:
+        return {
+            "maxStretchX": max(1, ceiling["width"] / base_size["width"]),
+            "maxStretchY": max(1, ceiling["height"] / base_size["height"]),
+        }
+    return {"maxStretchX": default, "maxStretchY": default}
+
+
+# ---------------------------------------------------------------------------
 # Public API: compute_layout
 # ---------------------------------------------------------------------------
 
@@ -121,7 +188,7 @@ def compute_layout(
 ) -> dict[str, Any]:
     options = options or {}
     elasticity_val = options.get("elasticity", 0.5)
-    max_stretch_val = options.get("maxStretch", 2)
+    max_stretch_x, max_stretch_y = resolve_stretch_caps(options)
     facet_elasticity_val = options.get("facetElasticity", 0.3)
     min_step_val = options.get("minStep", 6)
     min_subplot_val = options.get("minSubplotSize", 60)
@@ -257,14 +324,14 @@ def compute_layout(
     min_continuous_size_y = max(min_continuous_size, log_boost_y)
 
     if facet_cols > 1:
-        stretch = min(max_stretch_val, facet_cols ** facet_elasticity_val)
+        stretch = min(max_stretch_x, facet_cols ** facet_elasticity_val)
         subplot_width = js_round(max(min_continuous_size_x,
             (default_chart_width * stretch - fix_w) / facet_cols - gap))
     else:
         subplot_width = default_chart_width
 
     if facet_rows > 1:
-        stretch = min(max_stretch_val, facet_rows ** facet_elasticity_val)
+        stretch = min(max_stretch_y, facet_rows ** facet_elasticity_val)
         subplot_height = js_round(max(min_continuous_size_y,
             (default_chart_height * stretch - fix_h) / facet_rows - gap))
     else:
@@ -353,12 +420,12 @@ def compute_layout(
 
                 if facet_cols > 1:
                     per_subplot_canvas_w = max(min_continuous_size_x,
-                        (default_chart_width * min(max_stretch_val, facet_cols ** facet_elasticity_val) - fix_w) / facet_cols - gap)
+                        (default_chart_width * min(max_stretch_x, facet_cols ** facet_elasticity_val) - fix_w) / facet_cols - gap)
                 else:
                     per_subplot_canvas_w = default_chart_width
                 if facet_rows > 1:
                     per_subplot_canvas_h = max(min_continuous_size_y,
-                        (default_chart_height * min(max_stretch_val, facet_rows ** facet_elasticity_val) - fix_h) / facet_rows - gap)
+                        (default_chart_height * min(max_stretch_y, facet_rows ** facet_elasticity_val) - fix_h) / facet_rows - gap)
                 else:
                     per_subplot_canvas_h = default_chart_height
 
@@ -412,7 +479,7 @@ def compute_layout(
                         blended_ar = banking_ar
 
                     raw_area = raw_w * raw_h
-                    max_area = per_subplot_canvas_w * per_subplot_canvas_h * max_stretch_val
+                    max_area = per_subplot_canvas_w * per_subplot_canvas_h * max(max_stretch_x, max_stretch_y)
                     area = min(raw_area, max_area)
 
                     ideal_w = math.sqrt(area * blended_ar)
@@ -422,13 +489,13 @@ def compute_layout(
                     ideal_h = raw_h
 
                 if facet_cols > 1:
-                    avail_w = max(min_continuous_size_x, (default_chart_width * max_stretch_val - fix_w) / facet_cols - gap)
+                    avail_w = max(min_continuous_size_x, (default_chart_width * max_stretch_x - fix_w) / facet_cols - gap)
                 else:
-                    avail_w = default_chart_width * max_stretch_val
+                    avail_w = default_chart_width * max_stretch_x
                 if facet_rows > 1:
-                    avail_h = max(min_continuous_size_y, (default_chart_height * max_stretch_val - fix_h) / facet_rows - gap)
+                    avail_h = max(min_continuous_size_y, (default_chart_height * max_stretch_y - fix_h) / facet_rows - gap)
                 else:
-                    avail_h = default_chart_height * max_stretch_val
+                    avail_h = default_chart_height * max_stretch_y
 
                 scale_x = avail_w / ideal_w if ideal_w > avail_w else 1
                 scale_y = avail_h / ideal_h if ideal_h > avail_h else 1
@@ -492,14 +559,20 @@ def compute_layout(
                         subplot_height = js_round(subplot_height * stretch1d)
 
     # Elastic stretch for discrete axes
-    elastic_params = {
+    elastic_params_x = {
         "elasticity": elasticity_val,
-        "maxStretch": max_stretch_val,
+        "maxStretch": max_stretch_x,
         "defaultStepSize": default_step_size,
         "minStep": min_step_val,
     }
-    x_axis = compute_axis_step(x_total_nominal_count, x_continuous_as_discrete, subplot_width, elastic_params)
-    y_axis = compute_axis_step(y_total_nominal_count, y_continuous_as_discrete, subplot_height, elastic_params)
+    elastic_params_y = {
+        "elasticity": elasticity_val,
+        "maxStretch": max_stretch_y,
+        "defaultStepSize": default_step_size,
+        "minStep": min_step_val,
+    }
+    x_axis = compute_axis_step(x_total_nominal_count, x_continuous_as_discrete, subplot_width, elastic_params_x)
+    y_axis = compute_axis_step(y_total_nominal_count, y_continuous_as_discrete, subplot_height, elastic_params_y)
 
     x_is_discrete = x_total_nominal_count > 0
     y_is_discrete = y_total_nominal_count > 0
@@ -513,7 +586,7 @@ def compute_layout(
         items_per_group = nominal_count["group"]
         default_group_step = items_per_group * default_step_size
         min_group_step = max(math.ceil(MIN_GROUP_GAP_PX / step_padding_val), 2 * items_per_group)
-        group_axis_step = compute_axis_step(nominal_count["x"], 0, subplot_width, elastic_params)
+        group_axis_step = compute_axis_step(nominal_count["x"], 0, subplot_width, elastic_params_x)
         x_step_size = max(min_group_step, min(default_group_step, group_axis_step["step"]))
         x_step_unit = "group"
     elif x_is_discrete:
@@ -527,7 +600,7 @@ def compute_layout(
         items_per_group = nominal_count["group"]
         default_group_step = items_per_group * default_step_size
         min_group_step = max(math.ceil(MIN_GROUP_GAP_PX / step_padding_val), 2 * items_per_group)
-        group_axis_step = compute_axis_step(nominal_count["y"], 0, subplot_height, elastic_params)
+        group_axis_step = compute_axis_step(nominal_count["y"], 0, subplot_height, elastic_params_y)
         y_step_size = max(min_group_step, min(default_group_step, group_axis_step["step"]))
         y_step_unit = "group"
     elif y_is_discrete:
@@ -550,8 +623,8 @@ def compute_layout(
             subplot_height = continuous_size
 
     # Unified stretch budget
-    max_subplot_w = (default_chart_width * max_stretch_val - fix_w) / facet_cols - gap
-    max_subplot_h = (default_chart_height * max_stretch_val - fix_h) / facet_rows - gap
+    max_subplot_w = (default_chart_width * max_stretch_x - fix_w) / facet_cols - gap
+    max_subplot_h = (default_chart_height * max_stretch_y - fix_h) / facet_rows - gap
 
     if x_total_nominal_count > 0:
         divisor = nominal_count["x"] if x_step_unit == "group" else x_total_nominal_count
@@ -820,7 +893,7 @@ def compute_channel_budgets(
     canvas_size: dict[str, float],
     options: dict[str, Any],
 ) -> dict[str, Any]:
-    max_stretch_val = options.get("maxStretch", 2)
+    max_stretch_x, max_stretch_y = resolve_stretch_caps(options)
     min_step_val = options.get("minStep", 6)
     step_padding_val = options.get("stepPadding", 0.1)
     max_color_val = options.get("maxColorValues", 24)
@@ -843,11 +916,11 @@ def compute_channel_budgets(
 
     max_subplot_w = max(
         options.get("minSubplotSize", 60),
-        (canvas_size["width"] * max_stretch_val - fix_w) / facet_cols - gap,
+        (canvas_size["width"] * max_stretch_x - fix_w) / facet_cols - gap,
     )
     max_subplot_h = max(
         options.get("minSubplotSize", 60),
-        (canvas_size["height"] * max_stretch_val - fix_h) / facet_rows - gap,
+        (canvas_size["height"] * max_stretch_y - fix_h) / facet_rows - gap,
     )
 
     group_field = (channel_semantics.get("group") or {}).get("field")
@@ -884,8 +957,8 @@ def compute_channel_budgets(
 
             if col_count > 1 and not row_field:
                 tighter_w = max(options.get("minSubplotSize", 60), max_x_to_keep * x_min_group_step)
-                total_w = canvas_size["width"] * max_stretch_val - fix_w
-                total_h = canvas_size["height"] * max_stretch_val - fix_h
+                total_w = canvas_size["width"] * max_stretch_x - fix_w
+                total_h = canvas_size["height"] * max_stretch_y - fix_h
                 revised_max_cols = max(1, math.floor(total_w / (tighter_w + gap)))
                 revised_max_rows = max(1, math.floor(total_h / (options.get("minSubplotSize", 60) + gap)))
                 max_total = revised_max_cols * revised_max_rows
@@ -918,7 +991,7 @@ def compute_facet_grid(
     canvas_size: dict[str, float],
     options: dict[str, Any],
 ) -> Optional[dict[str, Any]]:
-    ms = options.get("maxStretch", 2)
+    ms_x, ms_y = resolve_stretch_caps(options)
     facet_fixed_padding = options.get("facetFixedPadding") or {}
     fix_w = facet_fixed_padding.get("width", 0)
     fix_h = facet_fixed_padding.get("height", 0)
@@ -930,8 +1003,8 @@ def compute_facet_grid(
     def is_discrete_type(t: Optional[str]) -> bool:
         return t == "nominal" or t == "ordinal"
 
-    max_w = canvas_size["width"] * ms - fix_w
-    max_h = canvas_size["height"] * ms - fix_h
+    max_w = canvas_size["width"] * ms_x - fix_w
+    max_h = canvas_size["height"] * ms_y - fix_h
     MIN_GROUP_GAP_PX = 3
 
     group_field = (channel_semantics.get("group") or {}).get("field")
@@ -1064,11 +1137,11 @@ def compute_facet_grid(
                         y_dom[1] = 0
                 ar = compute_banking_ar(x_num, y_num, x_dom, y_dom, s_keys, is_conn)
                 if ar >= 1:
-                    min_subplot_width = max(min_subplot_width, js_round(base_min_subplot * min(ar, ms)))
+                    min_subplot_width = max(min_subplot_width, js_round(base_min_subplot * min(ar, ms_x)))
                     min_subplot_height = max(min_subplot_height, base_min_subplot)
                 else:
                     min_subplot_width = max(min_subplot_width, base_min_subplot)
-                    min_subplot_height = max(min_subplot_height, js_round(base_min_subplot * min(1 / ar, ms)))
+                    min_subplot_height = max(min_subplot_height, js_round(base_min_subplot * min(1 / ar, ms_y)))
 
     effective_w = max_w
     effective_h = max_h

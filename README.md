@@ -69,7 +69,7 @@ const spec = assembleVegaLite({
   chart_spec: {
     chartType: 'Scatter Plot',
     encodings: { x: { field: 'weight' }, y: { field: 'mpg' }, color: { field: 'origin' } },
-    canvasSize: { width: 400, height: 300 },
+    baseSize: { width: 400, height: 300 },
   },
   options: { maxStretch: 1.5 }, // cap automatic layout growth at 1.5x
 });
@@ -105,7 +105,7 @@ spec = assemble_vegalite({
     "chart_spec": {
         "chartType": "Scatter Plot",
         "encodings": {"x": {"field": "weight"}, "y": {"field": "mpg"}},
-        "canvasSize": {"width": 400, "height": 300},
+        "baseSize": {"width": 400, "height": 300},
     },
 })
 ```
@@ -119,7 +119,8 @@ interface ChartAssemblyInput {
   chart_spec: {
     chartType: string;                          // e.g. "Scatter Plot"
     encodings: Record<string, ChartEncoding>;   // channel -> encoding
-    canvasSize?: { width: number; height: number }; // default 400x320
+    baseSize?: { width: number; height: number };   // target layout size, default 400x320
+    canvasSize?: { width: number; height: number }; // optional hard ceiling on stretch
     chartProperties?: Record<string, any>;      // per-chart tuning (optional)
   };
   options?: AssembleOptions;                     // global layout tuning (rarely needed)
@@ -130,16 +131,43 @@ interface ChartAssemblyInput {
 |-----|------------|
 | `data` | `{ values: [...] }` (inline rows) or `{ url: "..." }` (JSON/CSV URL) |
 | `semantic_types` | Per-field meaning, e.g. `{ revenue: "Price", country: "Country" }` — drives all derived config |
-| `chart_spec` | What to draw: chart type, channel→field encodings, canvas size, properties |
+| `chart_spec` | What to draw: chart type, channel→field encodings, base/canvas size, properties |
 | `options` | Layout tuning (stretch elasticity, step sizes, tooltips, …) |
 
-**Note on stretch.** `canvasSize` is the target starting size, but Flint may
-stretch the effective width or height when a chart has many categories, dense
-facets, or labels that would otherwise become unreadable. The default
-`maxStretch` is `2`, so an axis can grow up to 2× before Flint starts making
-harder tradeoffs such as smaller steps or truncation. Tune this with
-`options.maxStretch` (as shown above) and related elasticity options when you
-need stricter fixed-size output.
+**Sizing: base size vs. canvas size.** Flint separates *the size a chart aims
+for* from *the size it may never exceed*:
+
+| Field | Role | Default |
+|-------|------|---------|
+| `baseSize` | **Target** — the size the chart aims for with typical data. The layout engine measures data density ("pressure") against this. | `400 × 320` |
+| `canvasSize` | **Hard ceiling** — the maximum the chart may ever reach, in any dimension (faceted grids included). | none → `baseSize × maxStretch` (default `2×`) |
+
+When data is dense (many categories, points, slices, or facets), Flint *stretches*
+the chart past its base to keep it readable — but never past the ceiling. The
+per-dimension stretch limits are `βx = canvasSize.width / baseSize.width` and
+`βy = canvasSize.height / baseSize.height` (each clamped to `≥ 1`).
+
+```
+                 stretches when data is dense
+   baseSize  ───────────────────────────────▶  canvasSize
+  (target, the size      grows only as needed     (hard ceiling,
+   for typical data)                               never exceeded)
+```
+
+What the common combinations do:
+
+- **Neither set** → `400×320` target; may grow up to `800×640` (2×) when dense.
+- **Only `baseSize`** → your target; may grow up to 2× when dense.
+- **Only `canvasSize`** → a **fixed box**: the chart fills it and shrinks to fit
+  when dense, but never overflows. *What you ask for is what you get.*
+- **Both** → aim for `baseSize`, grow toward `canvasSize`, never beyond. A
+  `canvasSize` smaller than `baseSize` shrinks the chart to fit the box.
+
+Rule of thumb: set **`canvasSize`** for a fixed slot ("never bigger than this
+box"); set **`baseSize`** for a comfortable size that may grow for dense data.
+Past the ceiling, Flint makes harder tradeoffs (smaller steps, angled labels,
+truncation) — tune those with `options.maxStretch`, `options.elasticity`, and
+related options.
 
 Semantic types span temporal (`DateTime`, `Year`, `Month`), measures (`Quantity`,
 `Price`, `Percentage`), discrete numerics (`Rank`, `Score`, `ID`), geographic

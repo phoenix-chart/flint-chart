@@ -205,7 +205,7 @@
           "field": "Step"
         }
       },
-      "canvasSize": {
+      "baseSize": {
         "width": 560,
         "height": 360
       }

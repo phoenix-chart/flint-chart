@@ -133,6 +133,8 @@ export const ecRadarChartDef: ChartTemplateDef = {
                 minArcPx: 60,
                 minRadius: 80,
                 maxStretch: ctx.assembleOptions?.maxStretch,
+                maxStretchX: ctx.assembleOptions?.maxStretchX,
+                maxStretchY: ctx.assembleOptions?.maxStretchY,
             });
         const chartH = canvasH + (hasLegend ? 36 : 0);
 

@@ -85,7 +85,7 @@
           "field": "Date"
         }
       },
-      "canvasSize": {
+      "baseSize": {
         "width": 560,
         "height": 360
       }

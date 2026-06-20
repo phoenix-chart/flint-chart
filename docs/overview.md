@@ -87,7 +87,7 @@ Faceted line chart:
       "y": { "field": "totalUsers" },
       "color": { "field": "gameType" }
     },
-    "canvasSize": { "width": 480, "height": 320 }
+    "baseSize": { "width": 480, "height": 320 }
   }
 }
 ```
@@ -156,7 +156,7 @@ const spec = assembleVegaLite({
   chart_spec: {
     chartType: 'Bar Chart',
     encodings: { x: { field: 'quarter' }, y: { field: 'revenue' } },
-    canvasSize: { width: 480, height: 320 },
+    baseSize: { width: 480, height: 320 },
   },
 });
 ```

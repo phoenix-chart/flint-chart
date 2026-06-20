@@ -16,6 +16,8 @@ from ..core.compute_layout import (
     compute_layout,
     compute_channel_budgets,
     compute_min_subplot_dimensions,
+    derive_stretch_caps,
+    resolve_base_size,
 )
 from .templates import vl_get_template_def
 from .instantiate_spec import vl_apply_layout_to_spec, vl_apply_tooltips
@@ -110,7 +112,15 @@ def assemble_vegalite(input_doc: dict) -> dict:
     raw_encodings = normalize_encoding_shorthand(chart_spec.get("encodings") or {})
     data = (input_doc.get("data") or {}).get("values") or []
     semantic_types = input_doc.get("semantic_types") or {}
-    canvas_size = chart_spec.get("canvasSize") or {"width": 400, "height": 320}
+    # Internal layout targets the base (target) size; the optional canvasSize
+    # acts as a hard ceiling that caps per-dimension stretch (see
+    # derive_stretch_caps below). When canvasSize is omitted, stretch falls
+    # back to options.maxStretch (default 2x). The base is clamped to the
+    # ceiling so a smaller canvasSize shrinks the chart to fit rather than
+    # overflowing it.
+    size_ceiling = chart_spec.get("canvasSize")
+    base_size = resolve_base_size(chart_spec.get("baseSize"), size_ceiling)
+    canvas_size = base_size
     chart_properties = chart_spec.get("chartProperties")
     options = input_doc.get("options") or {}
     chart_template = vl_get_template_def(chart_type)
@@ -270,7 +280,6 @@ def assemble_vegalite(input_doc: dict) -> dict:
     effective_options = {**options, **((declaration.get("paramOverrides") or {}))}
 
     add_tooltips_opt = effective_options.get("addTooltips", False)
-    max_stretch_val = effective_options.get("maxStretch", 2)
     min_subplot_val = effective_options.get("minSubplotSize", 60)
 
     if effective_options.get("facetFixedPadding") is None:
@@ -279,6 +288,12 @@ def assemble_vegalite(input_doc: dict) -> dict:
         effective_options["facetGap"] = 10
     if effective_options.get("targetBandAR") is None:
         effective_options["targetBandAR"] = 10
+    # Resolve the optional canvasSize ceiling into per-dimension stretch caps
+    # (betaX, betaY) so single plots AND facet grids honor the same budget.
+    # Falls back to maxStretch when no ceiling is set.
+    caps = derive_stretch_caps(base_size, size_ceiling, effective_options)
+    effective_options["maxStretchX"] = caps["maxStretchX"]
+    effective_options["maxStretchY"] = caps["maxStretchY"]
     facet_fix_w = effective_options["facetFixedPadding"]["width"]
     facet_fix_h = effective_options["facetFixedPadding"]["height"]
 
@@ -426,8 +441,8 @@ def assemble_vegalite(input_doc: dict) -> dict:
         vg_obj["config"] = {}
     vg_obj["config"]["facet"] = {"spacing": facet_gap_val}
 
-    max_facet_columns = max(2, math.floor((default_chart_width * max_stretch_val - facet_fix_w) / (min_subplot_width + facet_gap_val)))
-    max_facet_rows = max(2, math.floor((default_chart_height * max_stretch_val - facet_fix_h) / (min_subplot_height + facet_gap_val)))
+    max_facet_columns = max(2, math.floor((default_chart_width * caps["maxStretchX"] - facet_fix_w) / (min_subplot_width + facet_gap_val)))
+    max_facet_rows = max(2, math.floor((default_chart_height * caps["maxStretchY"] - facet_fix_h) / (min_subplot_height + facet_gap_val)))
     max_facet_nominal_values = max_facet_columns * max_facet_rows
 
     # Bin quantitative facets

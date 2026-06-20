@@ -377,7 +377,7 @@
           "field": "Response Time (ms)"
         }
       },
-      "canvasSize": {
+      "baseSize": {
         "width": 560,
         "height": 360
       }

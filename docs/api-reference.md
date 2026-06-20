@@ -83,7 +83,8 @@ interface ChartAssemblyInput {
   chart_spec: {
     chartType: string;
     encodings: Record<string, ChartEncoding | string>;  // string = field shorthand
-    canvasSize?: { width: number; height: number };    // default 400×320
+    baseSize?: { width: number; height: number };      // target layout size, default 400×320
+    canvasSize?: { width: number; height: number };    // optional hard ceiling on stretch
     chartProperties?: Record<string, unknown>;
   };
   options?: AssembleOptions;
@@ -108,8 +109,14 @@ Maps column name → semantic type. Drives encoding type, formatting, aggregatio
 |-------|-------------|
 | `chartType` | Template name — must match a backend registry entry (`"Bar Chart"`, `"Heatmap"`, …) |
 | `encodings` | Channel → encoding map |
-| `canvasSize` | Pixel budget for layout |
+| `baseSize` | **Target** layout size in pixels (default 400×320) — the size the chart aims for with typical data. It may *stretch* past this, up to the ceiling, when data is dense. |
+| `canvasSize` | **Hard ceiling** — the maximum size the chart may ever reach (faceted grids included). Omitted → ceiling is `baseSize × options.maxStretch` (default 2×). Per-dimension caps are `βx = canvasSize.width / baseSize.width`, `βy = canvasSize.height / baseSize.height` (each ≥ 1). The base is clamped to the ceiling, so a `canvasSize` on its own acts as a fixed box the chart fills and shrinks to fit — never overflows. |
 | `chartProperties` | Template-specific toggles (e.g. `orient`, `opacity`) |
+
+> **base vs. canvas, in one line:** `baseSize` is what the chart *aims for*;
+> `canvasSize` is what it *may never exceed*. Set `canvasSize` for a fixed slot,
+> `baseSize` for a comfortable size that may grow for dense data. See the
+> [chart sizing demo](/documentation/chart-sizing).
 
 ---
 
@@ -138,7 +145,9 @@ Common channels: `x`, `y`, `color`, `size`, `shape`, `column`, `row`, `group`, `
 interface AssembleOptions {
   addTooltips?: boolean;       // default false
   elasticity?: number;         // discrete stretch exponent (default 0.5)
-  maxStretch?: number;         // unified stretch cap (default 2)
+  maxStretch?: number;         // default stretch cap when no canvasSize ceiling (default 2)
+  maxStretchX?: number;        // per-dimension width cap (derived from canvasSize)
+  maxStretchY?: number;        // per-dimension height cap (derived from canvasSize)
   facetElasticity?: number;    // facet stretch (default 0.3)
   minStep?: number;            // min px per discrete item (default 6)
   minSubplotSize?: number;     // min facet subplot px (default 60)
@@ -171,7 +180,7 @@ const input: ChartAssemblyInput = {
       x: { field: 'quarter' },
       y: { field: 'revenue' },
     },
-    canvasSize: { width: 480, height: 320 },
+    baseSize: { width: 480, height: 320 },
   },
 };
 

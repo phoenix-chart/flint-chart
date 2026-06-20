@@ -136,6 +136,80 @@ interface AxisLayoutInput {
 }
 
 // ---------------------------------------------------------------------------
+// Stretch caps
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolve the per-dimension maximum stretch caps (βx, βy) from options.
+ *
+ * The assembler derives `maxStretchX`/`maxStretchY` from the spec's
+ * `canvasSize / baseSize` ratio (the hard ceiling). When neither is set,
+ * both fall back to the scalar `maxStretch` (default 2) — the legacy
+ * symmetric budget. Each cap is clamped to ≥ 1 (a chart never shrinks
+ * below its base under "stretch").
+ */
+export function resolveStretchCaps(options: AssembleOptions): { x: number; y: number } {
+    const def = options.maxStretch ?? 2;
+    return {
+        x: Math.max(1, options.maxStretchX ?? def),
+        y: Math.max(1, options.maxStretchY ?? def),
+    };
+}
+
+/** Default base (target) chart size in pixels when the spec omits `baseSize`. */
+export const DEFAULT_BASE_SIZE = { width: 400, height: 320 } as const;
+
+/**
+ * Resolve the effective base (target) size the layout pipeline aims for.
+ *
+ * Defaults to {@link DEFAULT_BASE_SIZE} when the spec omits `baseSize`, then
+ * clamps each dimension to the optional `canvasSize` ceiling. This guarantees
+ * the target never exceeds the hard maximum: when a user sets only a (small)
+ * `canvasSize` and leaves `baseSize` defaulted — or sets a `baseSize` larger
+ * than the ceiling — the chart shrinks to fit the box instead of overflowing
+ * it. After clamping, `deriveStretchCaps` yields βx/βy = 1 in any clamped
+ * dimension (pure fit-to-box, no growth past the ceiling).
+ */
+export function resolveBaseSize(
+    specBaseSize: { width: number; height: number } | undefined,
+    ceiling: { width: number; height: number } | undefined,
+): { width: number; height: number } {
+    const base = specBaseSize ?? { ...DEFAULT_BASE_SIZE };
+    if (!ceiling) return { width: base.width, height: base.height };
+    return {
+        width: Math.min(base.width, ceiling.width),
+        height: Math.min(base.height, ceiling.height),
+    };
+}
+
+/**
+ * Derive per-dimension stretch ceilings (βx, βy) for an assembler.
+ *
+ * When the spec supplies a hard `canvasSize` ceiling, the caps are the ratio
+ * of ceiling to base in each dimension (clamped to ≥ 1). The base passed here
+ * is expected to already be clamped to the ceiling (see {@link resolveBaseSize}),
+ * so a ceiling smaller than the spec's base resolves to β = 1 (fit-to-box)
+ * rather than an overflow. When no ceiling is given, both caps fall back to
+ * `options.maxStretch` (which already reflects any template `paramOverrides`),
+ * preserving legacy behavior.
+ *
+ * Assemblers inject the result into `effectiveOptions.maxStretchX/Y` so the
+ * whole layout pipeline shares one budget — including faceted grids, whose
+ * total size is bounded by the same ceiling.
+ */
+export function deriveStretchCaps(
+    baseSize: { width: number; height: number },
+    ceiling: { width: number; height: number } | undefined,
+    options: AssembleOptions,
+): { maxStretchX: number; maxStretchY: number } {
+    const def = options.maxStretch ?? 2;
+    return {
+        maxStretchX: ceiling ? Math.max(1, ceiling.width / baseSize.width) : def,
+        maxStretchY: ceiling ? Math.max(1, ceiling.height / baseSize.height) : def,
+    };
+}
+
+// ---------------------------------------------------------------------------
 // Public API: computeLayout
 // ---------------------------------------------------------------------------
 
@@ -170,7 +244,6 @@ export function computeLayout(
 ): LayoutResult {
     const {
         elasticity: elasticityVal = 0.5,
-        maxStretch: maxStretchVal = 2,
         facetElasticity: facetElasticityVal = 0.3,
         minStep: minStepVal = 6,
         minSubplotSize: minSubplotVal = 60,
@@ -179,6 +252,11 @@ export function computeLayout(
         continuousMarkCrossSection,
         facetAspectRatioResistance = 0,
     } = options;
+
+    // Per-dimension stretch ceilings: βx bounds width-related growth,
+    // βy bounds height-related growth. Both reduce to `maxStretch`
+    // (default 2) when the spec sets no explicit `canvasSize` ceiling.
+    const { x: maxStretchX, y: maxStretchY } = resolveStretchCaps(options);
 
     const defaultChartWidth = canvasSize.width;
     const defaultChartHeight = canvasSize.height;
@@ -318,7 +396,7 @@ export function computeLayout(
 
     let subplotWidth: number;
     if (facetCols > 1) {
-        const stretch = Math.min(maxStretchVal, Math.pow(facetCols, facetElasticityVal));
+        const stretch = Math.min(maxStretchX, Math.pow(facetCols, facetElasticityVal));
         subplotWidth = Math.round(Math.max(minContinuousSizeX,
             (defaultChartWidth * stretch - fixW) / facetCols - gap));
     } else {
@@ -327,7 +405,7 @@ export function computeLayout(
 
     let subplotHeight: number;
     if (facetRows > 1) {
-        const stretch = Math.min(maxStretchVal, Math.pow(facetRows, facetElasticityVal));
+        const stretch = Math.min(maxStretchY, Math.pow(facetRows, facetElasticityVal));
         subplotHeight = Math.round(Math.max(minContinuousSizeY,
             (defaultChartHeight * stretch - fixH) / facetRows - gap));
     } else {
@@ -465,12 +543,12 @@ export function computeLayout(
                 // is assumed before gas pressure even kicks in.
                 const perSubplotCanvasW = facetCols > 1
                     ? Math.max(minContinuousSizeX,
-                        (defaultChartWidth * Math.min(maxStretchVal, Math.pow(facetCols, facetElasticityVal)) - fixW)
+                        (defaultChartWidth * Math.min(maxStretchX, Math.pow(facetCols, facetElasticityVal)) - fixW)
                         / facetCols - gap)
                     : defaultChartWidth;
                 const perSubplotCanvasH = facetRows > 1
                     ? Math.max(minContinuousSizeY,
-                        (defaultChartHeight * Math.min(maxStretchVal, Math.pow(facetRows, facetElasticityVal)) - fixH)
+                        (defaultChartHeight * Math.min(maxStretchY, Math.pow(facetRows, facetElasticityVal)) - fixH)
                         / facetRows - gap)
                     : defaultChartHeight;
 
@@ -540,7 +618,7 @@ export function computeLayout(
                     // Total area from gas pressure (capped so subplot
                     // doesn't blow past per-subplot budget before fit).
                     const rawArea = rawW * rawH;
-                    const maxArea = perSubplotCanvasW * perSubplotCanvasH * maxStretchVal;
+                    const maxArea = perSubplotCanvasW * perSubplotCanvasH * Math.max(maxStretchX, maxStretchY);
                     const area = Math.min(rawArea, maxArea);
 
                     idealW = Math.sqrt(area * blendedAR);
@@ -555,11 +633,11 @@ export function computeLayout(
                 // Hard ceiling per subplot: canvas × maxStretch shared
                 // across facet panels.
                 const availW = facetCols > 1
-                    ? Math.max(minContinuousSizeX, (defaultChartWidth * maxStretchVal - fixW) / facetCols - gap)
-                    : defaultChartWidth * maxStretchVal;
+                    ? Math.max(minContinuousSizeX, (defaultChartWidth * maxStretchX - fixW) / facetCols - gap)
+                    : defaultChartWidth * maxStretchX;
                 const availH = facetRows > 1
-                    ? Math.max(minContinuousSizeY, (defaultChartHeight * maxStretchVal - fixH) / facetRows - gap)
-                    : defaultChartHeight * maxStretchVal;
+                    ? Math.max(minContinuousSizeY, (defaultChartHeight * maxStretchY - fixH) / facetRows - gap)
+                    : defaultChartHeight * maxStretchY;
 
                 // Scale down to fit: if either axis exceeds its budget,
                 // shrink both axes by the tighter ratio so neither
@@ -644,15 +722,22 @@ export function computeLayout(
     }
 
     // --- Elastic stretch for discrete axes ---
-    const elasticParams: ElasticStretchParams = {
+    // X axis grows under its width budget (βx); Y under its height budget (βy).
+    const elasticParamsX: ElasticStretchParams = {
         elasticity: elasticityVal,
-        maxStretch: maxStretchVal,
+        maxStretch: maxStretchX,
+        defaultStepSize,
+        minStep: minStepVal,
+    };
+    const elasticParamsY: ElasticStretchParams = {
+        elasticity: elasticityVal,
+        maxStretch: maxStretchY,
         defaultStepSize,
         minStep: minStepVal,
     };
 
-    const xAxis = computeAxisStep(xTotalNominalCount, xContinuousAsDiscrete, subplotWidth, elasticParams);
-    const yAxis = computeAxisStep(yTotalNominalCount, yContinuousAsDiscrete, subplotHeight, elasticParams);
+    const xAxis = computeAxisStep(xTotalNominalCount, xContinuousAsDiscrete, subplotWidth, elasticParamsX);
+    const yAxis = computeAxisStep(yTotalNominalCount, yContinuousAsDiscrete, subplotHeight, elasticParamsY);
 
     const xIsDiscrete = xTotalNominalCount > 0;
     const yIsDiscrete = yTotalNominalCount > 0;
@@ -669,7 +754,7 @@ export function computeLayout(
         const itemsPerGroup = nominalCount.group;
         const defaultGroupStep = itemsPerGroup * defaultStepSize;
         const minGroupStep = Math.max(Math.ceil(MIN_GROUP_GAP_PX / stepPaddingVal), 2 * itemsPerGroup);
-        const groupAxis = computeAxisStep(nominalCount.x, 0, subplotWidth, elasticParams);
+        const groupAxis = computeAxisStep(nominalCount.x, 0, subplotWidth, elasticParamsX);
         const groupStep = Math.max(minGroupStep, Math.min(defaultGroupStep, groupAxis.step));
         xStepSize = groupStep;
         xStepUnit = 'group';
@@ -685,7 +770,7 @@ export function computeLayout(
         const itemsPerGroup = nominalCount.group;
         const defaultGroupStep = itemsPerGroup * defaultStepSize;
         const minGroupStep = Math.max(Math.ceil(MIN_GROUP_GAP_PX / stepPaddingVal), 2 * itemsPerGroup);
-        const groupAxis = computeAxisStep(nominalCount.y, 0, subplotHeight, elasticParams);
+        const groupAxis = computeAxisStep(nominalCount.y, 0, subplotHeight, elasticParamsY);
         const groupStep = Math.max(minGroupStep, Math.min(defaultGroupStep, groupAxis.step));
         yStepSize = groupStep;
         yStepUnit = 'group';
@@ -714,8 +799,8 @@ export function computeLayout(
     // Cap the per-subplot dimensions so total canvas never exceeds
     // canvasWidth × maxStretch (and canvasHeight × maxStretch).
     // Formula: effectiveW = W × maxStretch − fixedPad; each panel costs subplot + gap.
-    const maxSubplotW = (defaultChartWidth * maxStretchVal - fixW) / facetCols - gap;
-    const maxSubplotH = (defaultChartHeight * maxStretchVal - fixH) / facetRows - gap;
+    const maxSubplotW = (defaultChartWidth * maxStretchX - fixW) / facetCols - gap;
+    const maxSubplotH = (defaultChartHeight * maxStretchY - fixH) / facetRows - gap;
 
     // Clamp step sizes for discrete/banded axes so VL step-based
     // sizing respects the same budget.
@@ -1141,11 +1226,12 @@ export function computeChannelBudgets(
     options: AssembleOptions,
 ): ChannelBudgets {
     const {
-        maxStretch: maxStretchVal = 2,
         minStep: minStepVal = 6,
         stepPadding: stepPaddingVal = 0.1,
         maxColorValues: maxColorVal = 24,
     } = options;
+
+    const { x: maxStretchX, y: maxStretchY } = resolveStretchCaps(options);
 
     const fixW = options.facetFixedPadding?.width ?? 0;
     const fixH = options.facetFixedPadding?.height ?? 0;
@@ -1165,11 +1251,11 @@ export function computeChannelBudgets(
     // --- 2. Per-subplot budget at maximum stretch ---
     const maxSubplotW = Math.max(
         options.minSubplotSize ?? 60,
-        (canvasSize.width * maxStretchVal - fixW) / facetCols - gap,
+        (canvasSize.width * maxStretchX - fixW) / facetCols - gap,
     );
     const maxSubplotH = Math.max(
         options.minSubplotSize ?? 60,
-        (canvasSize.height * maxStretchVal - fixH) / facetRows - gap,
+        (canvasSize.height * maxStretchY - fixH) / facetRows - gap,
     );
 
     // --- 3. Grouping detection ---
@@ -1229,8 +1315,8 @@ export function computeChannelBudgets(
                     options.minSubplotSize ?? 60,
                     maxXToKeep * xMinGroupStep,
                 );
-                const totalW = canvasSize.width * maxStretchVal - fixW;
-                const totalH = canvasSize.height * maxStretchVal - fixH;
+                const totalW = canvasSize.width * maxStretchX - fixW;
+                const totalH = canvasSize.height * maxStretchY - fixH;
                 const revisedMaxCols = Math.max(1, Math.floor(
                     totalW / (tighterW + gap),
                 ));
@@ -1292,7 +1378,7 @@ export function computeFacetGrid(
     canvasSize: { width: number; height: number },
     options: AssembleOptions,
 ): import('./types').FacetGridResult | undefined {
-    const { maxStretch: ms = 2 } = options;
+    const { x: msX, y: msY } = resolveStretchCaps(options);
     const fixW = options.facetFixedPadding?.width ?? 0;
     const fixH = options.facetFixedPadding?.height ?? 0;
     const gap = options.facetGap ?? 0;
@@ -1319,8 +1405,8 @@ export function computeFacetGrid(
     // Always capped at maxDim (full stretched canvas minus fixed overhead)
     // to guarantee at least 1 facet column/row.
 
-    const maxW = canvasSize.width * ms - fixW;
-    const maxH = canvasSize.height * ms - fixH;
+    const maxW = canvasSize.width * msX - fixW;
+    const maxH = canvasSize.height * msY - fixH;
     const MIN_GROUP_GAP_PX = 3;
 
     // Grouping detection
@@ -1468,12 +1554,12 @@ export function computeFacetGrid(
                 // Distribute: shorter side = base, longer side = base × min(ar, ms).
                 if (ar >= 1) {
                     minSubplotWidth = Math.max(minSubplotWidth,
-                        Math.round(baseMinSubplot * Math.min(ar, ms)));
+                        Math.round(baseMinSubplot * Math.min(ar, msX)));
                     minSubplotHeight = Math.max(minSubplotHeight, baseMinSubplot);
                 } else {
                     minSubplotWidth = Math.max(minSubplotWidth, baseMinSubplot);
                     minSubplotHeight = Math.max(minSubplotHeight,
-                        Math.round(baseMinSubplot * Math.min(1 / ar, ms)));
+                        Math.round(baseMinSubplot * Math.min(1 / ar, msY)));
                 }
             }
         }

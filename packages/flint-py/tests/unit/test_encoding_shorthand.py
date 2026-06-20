@@ -47,7 +47,7 @@ def test_shorthand_spec_matches_explicit_spec():
         "chart_spec": {
             "chartType": "Scatter Plot",
             "encodings": {"x": "weight", "y": "mpg", "color": "origin"},
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
         },
     })
     explicit = assemble_vegalite({
@@ -60,7 +60,7 @@ def test_shorthand_spec_matches_explicit_spec():
                 "y": {"field": "mpg"},
                 "color": {"field": "origin"},
             },
-            "canvasSize": CANVAS,
+            "baseSize": CANVAS,
         },
     })
     assert shorthand == explicit

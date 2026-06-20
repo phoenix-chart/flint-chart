@@ -1817,7 +1817,7 @@
           "field": "Part width (mm)"
         }
       },
-      "canvasSize": {
+      "baseSize": {
         "width": 560,
         "height": 360
       }

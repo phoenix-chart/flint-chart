@@ -31,10 +31,18 @@ export const chartSpecSchema = z
       .describe(
         'Channel → encoding map, e.g. { x: { field: "region" }, y: { field: "revenue" } }. A bare string is shorthand for { field: "..." }.',
       ),
+    baseSize: z
+      .object({ width: z.number(), height: z.number() })
+      .optional()
+      .describe(
+        'Target canvas size in px (default 400×320). Flint\'s layout model stretches around this base up to the ceiling.',
+      ),
     canvasSize: z
       .object({ width: z.number(), height: z.number() })
       .optional()
-      .describe('Target canvas size in px. A hint — Flint\'s layout model may resize.'),
+      .describe(
+        'Optional hard ceiling in px. Caps how far the chart may stretch beyond baseSize. When omitted, the cap is baseSize × the maxStretch option (default 2×).',
+      ),
     chartProperties: z
       .record(z.string(), z.any())
       .optional()
@@ -69,6 +77,7 @@ export type AssemblyInputArgs = {
   chart_spec: {
     chartType: string;
     encodings: Record<string, unknown>;
+    baseSize?: { width: number; height: number };
     canvasSize?: { width: number; height: number };
     chartProperties?: Record<string, unknown>;
   };

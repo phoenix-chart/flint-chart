@@ -64,7 +64,7 @@ import { ecGetTemplateDef } from './templates';
 import { resolveChannelSemantics, convertTemporalData } from '../core/resolve-semantics';
 import { toTypeString, type SemanticAnnotation } from '../core/field-semantics';
 import { filterOverflow } from '../core/filter-overflow';
-import { computeLayout, computeChannelBudgets } from '../core/compute-layout';
+import { computeLayout, computeChannelBudgets, deriveStretchCaps, resolveBaseSize } from '../core/compute-layout';
 import { ecApplyLayoutToSpec, ecApplyTooltips } from './instantiate-spec';
 import { ecCombineFacetPanels } from './facet';
 import { DEFAULT_COLORS } from './templates/utils';
@@ -94,7 +94,13 @@ import { normalizeStaticSeries } from '../core/static-series';
 export function assembleECharts(input: ChartAssemblyInput): any {
     const chartType = input.chart_spec.chartType;
     const semanticTypes = input.semantic_types ?? {};
-    const canvasSize = input.chart_spec.canvasSize ?? { width: 400, height: 320 };
+    // Internal layout targets the base (target) size; the optional canvasSize
+    // ceiling is applied as per-dimension stretch caps once options resolve.
+    // The base is clamped to the ceiling so a smaller canvasSize shrinks the
+    // chart to fit rather than overflowing it.
+    const sizeCeiling = input.chart_spec.canvasSize;
+    const baseSize = resolveBaseSize(input.chart_spec.baseSize, sizeCeiling);
+    const canvasSize = baseSize;
     const chartProperties = input.chart_spec.chartProperties;
     const options = input.options ?? {};
     const chartTemplate = ecGetTemplateDef(chartType) as ChartTemplateDef;
@@ -177,6 +183,11 @@ export function assembleECharts(input: ChartAssemblyInput): any {
     if (effectiveOptions.facetGap == null) {
         effectiveOptions.facetGap = 14;   // reference at 400px canvas
     }
+
+    // Resolve the optional canvasSize ceiling into per-dimension stretch caps
+    // (βx, βy) so the entire layout — single plot OR facet grid — stays within
+    // the same budget. Falls back to maxStretch when no ceiling is set.
+    Object.assign(effectiveOptions, deriveStretchCaps(baseSize, sizeCeiling, effectiveOptions));
 
     // Default true so that _encodingTooltip is applied and all charts get encoding-style tooltips
     const {

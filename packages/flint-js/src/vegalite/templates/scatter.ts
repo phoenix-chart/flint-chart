@@ -157,11 +157,32 @@ export const boxplotDef: ChartTemplateDef = {
     instantiate: (spec, ctx) => {
         defaultBuildEncodings(spec, ctx.resolvedEncodings);
 
-        // Scale box width to the step size of the discrete axis
         const layout = ctx.layout;
-        if (layout.xNominalCount > 0 || layout.yNominalCount > 0) {
-            const boxStep = layout.xNominalCount > 0 ? layout.xStep : layout.yStep;
-            const boxSize = Math.max(4, Math.round(boxStep * 0.7));
+        const hasDiscreteX = layout.xNominalCount > 0;
+        const hasDiscreteAxis = hasDiscreteX || layout.yNominalCount > 0;
+
+        // Grouped boxplots: a color field subdividing a categorical axis must
+        // dodge the boxes side-by-side (xOffset/yOffset), not overlay them at the
+        // same position — overlaid boxes hide whichever is drawn underneath.
+        // Vega-Lite needs an explicit offset encoding to lay grouped boxes out.
+        const colorEnc = spec.encoding?.color;
+        let subgroups = 1;
+        if (colorEnc?.field && hasDiscreteAxis && !spec.encoding.xOffset && !spec.encoding.yOffset) {
+            const offsetChannel = hasDiscreteX ? 'xOffset' : 'yOffset';
+            const offsetEnc: Record<string, unknown> = { field: colorEnc.field, type: 'nominal' };
+            if (colorEnc.sort !== undefined) offsetEnc.sort = colorEnc.sort;
+            spec.encoding[offsetChannel] = offsetEnc;
+            const colorField = ctx.channelSemantics?.color?.field;
+            if (colorField) {
+                subgroups = Math.max(1, new Set(ctx.table.map((r) => r[colorField])).size);
+            }
+        }
+
+        // Scale box width to the step size of the discrete axis. When boxes are
+        // dodged, share the band across subgroups so the group fits in one band.
+        if (hasDiscreteAxis) {
+            const boxStep = hasDiscreteX ? layout.xStep : layout.yStep;
+            const boxSize = Math.max(4, Math.round((boxStep * 0.7) / subgroups));
             spec.mark = setMarkProp(spec.mark, 'size', boxSize);
         }
     },

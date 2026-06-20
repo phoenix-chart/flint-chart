@@ -79,6 +79,11 @@ export interface CanvasSize {
 
 const DEFAULT_CANVAS: CanvasSize = { width: 480, height: 320 };
 
+/** True when a test case is faceted (small multiples) via a column/row encoding. */
+export function isFacetedTestCase(t: TestCase): boolean {
+  return !!(t.encodingMap?.column?.fieldID || t.encodingMap?.row?.fieldID);
+}
+
 /** Convert a gallery TestCase into a flat ChartAssemblyInput for the editor. */
 export function testCaseToAssemblyInput(t: TestCase, canvasSize: CanvasSize = DEFAULT_CANVAS) {
   const encodings = buildShorthandEncodings(t);
@@ -121,6 +126,15 @@ const BAND_FAMILY_TYPES = new Set([
 const LOW_CARDINALITY_MAX = 10;
 const THUMBNAIL_WIDE_CANVAS: CanvasSize = { width: 560, height: 280 };
 
+/**
+ * Faceted (small-multiples) charts lay their panels out in a row, so they need a
+ * wider designed canvas than a single plot for each panel to stay legible. The
+ * wall thumbnail then contain-fits the whole grid into the tile (scaled down a
+ * little), so the viewer sees it's a multi-panel chart they can open — rather
+ * than one cropped subplot.
+ */
+const THUMBNAIL_FACET_CANVAS: CanvasSize = { width: 720, height: 300 };
+
 /** Distinct values on the primary (category) axis — the bar count. */
 function categoryAxisCardinality(t: TestCase): number {
   const enc = t.encodingMap?.x ?? t.encodingMap?.y;
@@ -136,6 +150,7 @@ function categoryAxisCardinality(t: TestCase): number {
  * widens few-category band charts toward the gallery's aspect ratio.
  */
 export function thumbnailCanvasSize(t: TestCase): CanvasSize {
+  if (isFacetedTestCase(t)) return THUMBNAIL_FACET_CANVAS;
   if (!BAND_FAMILY_TYPES.has(t.chartType)) return DEFAULT_CANVAS;
   const cardinality = categoryAxisCardinality(t);
   if (cardinality === 0 || cardinality > LOW_CARDINALITY_MAX) return DEFAULT_CANVAS;

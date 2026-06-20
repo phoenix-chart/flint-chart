@@ -75,6 +75,8 @@ export function genCategories(semanticType: string, n: number): string[] {
             'TV', 'Router', 'Printer', 'Scanner', 'SSD', 'HDD', 'RAM', 'GPU', 'CPU', 'Motherboard'],
         Category: ['Electronics', 'Clothing', 'Food', 'Books', 'Sports', 'Home', 'Garden', 'Auto', 'Health', 'Beauty',
             'Toys', 'Music', 'Movies', 'Software', 'Games', 'Office', 'Pet', 'Baby', 'Tools', 'Crafts'],
+        City: ['New York', 'London', 'Tokyo', 'Paris', 'Berlin', 'Sydney', 'Toronto', 'Madrid', 'Rome', 'Seoul',
+            'Mumbai', 'Dubai', 'Singapore', 'Chicago', 'Boston', 'Austin', 'Denver', 'Seattle', 'Miami', 'Atlanta'],
         Department: ['Engineering', 'Sales', 'Marketing', 'HR', 'Finance', 'Legal', 'Operations', 'Support', 'Design', 'Research',
             'QA', 'DevOps', 'Security', 'Analytics', 'Product'],
         Status: ['Active', 'Inactive', 'Pending', 'Completed', 'Failed'],

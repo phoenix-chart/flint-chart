@@ -19,12 +19,20 @@ import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 export function ChartThumb({
   height,
   hovered = false,
+  contain = false,
   children,
 }: {
   /** Fixed height of the bounding box in px. Width fills the container. */
   height: number;
   /** Drives the hover pan-to-reveal (owned by the parent card). */
   hovered?: boolean;
+  /**
+   * Fit the *whole* chart inside the tile (scale by the smaller of the width and
+   * height ratios) and centre it, instead of height-gating + cropping the width.
+   * Used for faceted small-multiples so the entire panel grid stays visible —
+   * the viewer sees it's a multi-panel chart to open, not one cropped subplot.
+   */
+  contain?: boolean;
   children: ReactNode;
 }) {
   const outerRef = useRef<HTMLDivElement>(null);
@@ -42,6 +50,29 @@ export function ChartThumb({
       if (!natW || !natH) return;
       const boxW = outer.clientWidth;
       const boxH = height;
+
+      if (contain) {
+        // Contain-fit: scale so the whole chart fits within the tile in both
+        // dimensions, centred, never upscaled. No hover pan — everything is
+        // already visible. A small inset keeps the grid from touching the edges
+        // so it reads as a deliberately shrunk small-multiples preview.
+        const inset = 8;
+        const fitScale = Math.min((boxW - inset) / natW, (boxH - inset) / natH, 1);
+        if (!Number.isFinite(fitScale) || fitScale <= 0) return;
+        const contentW = natW * fitScale;
+        const contentH = natH * fitScale;
+        const restX = (boxW - contentW) / 2;
+        const restY = (boxH - contentH) / 2;
+        setFit((prev) => {
+          const next = { scale: fitScale, restX, restY, panX: 0, panY: 0 };
+          const same = (Object.keys(next) as (keyof typeof next)[]).every(
+            (k) => Math.abs(prev[k] - next[k]) < 0.5,
+          );
+          return same ? prev : next;
+        });
+        return;
+      }
+
       // Height-based gating: scale the chart to fit the tile height exactly so
       // the whole chart stays visible. Never upscale past the designed size
       // (so a chart shorter than the tile sits centred rather than blowing up
@@ -74,7 +105,7 @@ export function ChartThumb({
     ro.observe(inner);
     ro.observe(outer);
     return () => ro.disconnect();
-  }, [height]);
+  }, [height, contain]);
 
   return (
     <div

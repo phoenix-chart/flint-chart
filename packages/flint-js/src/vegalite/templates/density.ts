@@ -21,12 +21,29 @@ export const densityPlotDef: ChartTemplateDef = {
             spec.transform[0].density = x.field;
             spec.encoding.x.title = x.field;
         }
+
+        // The density transform only emits its `value`/`density` columns plus the
+        // fields named in `groupby`. Every field that partitions the chart — the
+        // color series AND any column/row facet — must therefore be in `groupby`,
+        // otherwise that field vanishes from the transformed data and its
+        // encoding silently collapses (e.g. a column facet renders a single
+        // "undefined" panel with all sites pooled together).
+        const groupby: string[] = [];
         if (color?.field) {
-            spec.transform[0].groupby = [color.field];
             spec.encoding.color = { ...(spec.encoding.color || {}), ...color };
+            groupby.push(color.field);
         }
-        if (column) spec.encoding.column = column;
-        if (row) spec.encoding.row = row;
+        if (column) {
+            spec.encoding.column = column;
+            if (column.field) groupby.push(column.field);
+        }
+        if (row) {
+            spec.encoding.row = row;
+            if (row.field) groupby.push(row.field);
+        }
+        if (groupby.length > 0) {
+            spec.transform[0].groupby = groupby;
+        }
 
         const config = ctx.chartProperties;
         if (config?.bandwidth && config.bandwidth > 0) {

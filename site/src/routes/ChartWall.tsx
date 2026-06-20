@@ -20,6 +20,7 @@ import {
   type ChartEntry,
 } from '../shared/chart-categories';
 import { selectVariants } from '../shared/wall-variants';
+import { isFacetedTestCase } from '../shared/test-case-utils';
 import { CHART_FAMILIES, familyForChart } from '../shared/wall-families';
 import { humanizeVariants } from '../shared/wall-title';
 import type { PreviewBackend } from '../shared/supported-backends';
@@ -559,6 +560,7 @@ function VariantCard({ tile, onOpen }: { tile: Tile; onOpen: () => void }) {
   const ref = useRef<HTMLButtonElement>(null);
   const [visible, setVisible] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const faceted = isFacetedTestCase(tile.testCase);
 
   // Render the preview only once the card scrolls near the viewport.
   useEffect(() => {
@@ -606,7 +608,7 @@ function VariantCard({ tile, onOpen }: { tile: Tile; onOpen: () => void }) {
         }}
       >
         {visible ? (
-          <ChartThumb height={TILE_CHART_HEIGHT} hovered={hovered}>
+          <ChartThumb height={TILE_CHART_HEIGHT} hovered={hovered} contain={faceted}>
             <WallChart testCase={tile.testCase} backend={tile.chart.backend} />
           </ChartThumb>
         ) : (

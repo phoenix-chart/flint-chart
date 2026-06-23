@@ -190,8 +190,8 @@ controls, or send it back to the agent for a revision.
 
 ### Let the agent transform data and write the spec together
 
-If the source table is not chart-ready, use the data-agent reference skill at
-[agent-skills/flint-data-agent/SKILL.md](https://github.com/microsoft/flint-chart/blob/main/agent-skills/flint-data-agent/SKILL.md).
+If the source table is not chart-ready, use the chart-author reference skill at
+[agent-skills/flint-chart-author/SKILL.md](https://github.com/microsoft/flint-chart/blob/main/agent-skills/flint-chart-author/SKILL.md).
 It is designed for a single structured turn: the agent returns Python pandas
 code that produces a chart-ready DataFrame, plus an explicit top-level Flint
 `chart_input` that can be rendered after the host binds the transformed rows.
@@ -268,7 +268,7 @@ charge of the surrounding experience.
   one source dataset becomes several chart designs.
 - [MCP server README](https://github.com/microsoft/flint-chart/tree/main/packages/flint-mcp)
   has the full tool reference and CLI options.
-- [Flint data-agent skill](https://github.com/microsoft/flint-chart/blob/main/agent-skills/flint-data-agent/SKILL.md)
+- [Flint chart-author skill](https://github.com/microsoft/flint-chart/blob/main/agent-skills/flint-chart-author/SKILL.md)
   shows a one-turn pattern for Python transformation code plus a Flint spec.
 - [Semantic Type](/documentation/semantic-types) lists the labels the agent can
   use for fields.

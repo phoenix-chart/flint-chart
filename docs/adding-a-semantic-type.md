@@ -119,8 +119,6 @@ Verify:
 - Zero baseline and reversal match type + mark (bar vs line)
 - Diverging color appears only when `diverging` + data warrant it
 
-4. **Changelog** — if renaming or removing a type, note it under `packages/flint-js/CHANGELOG.md` so downstream agents can adapt.
-
 ---
 
 # §5 Related

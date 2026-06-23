@@ -47,7 +47,6 @@ Node 18+ required (see `.nvmrc`).
 
 - One topic per PR. Keep diffs reviewable.
 - Run `npm run typecheck && npm run test && npm run lint` before pushing.
-- Update [`CHANGELOG.md`](../CHANGELOG.md) under "Unreleased" with a one-line summary.
 - Snapshot test updates: justify the diff in your PR description.
 
 ## Public API & semver

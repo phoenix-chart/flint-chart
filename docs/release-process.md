@@ -3,7 +3,6 @@
 ## Pre-flight
 
 - [ ] All CI jobs green on `main`.
-- [ ] `CHANGELOG.md` "Unreleased" section is accurate.
 - [ ] No `console.log` / debug artifacts left in `src/`.
 - [ ] Gallery + editor demos still build cleanly.
 
@@ -22,10 +21,7 @@ The push tag triggers `.github/workflows/release.yml`, which runs
 
 ## Post-release
 
-1. Move the "Unreleased" section in `CHANGELOG.md` under the new
-   version, with the release date.
-2. Open a "back to dev" PR adding a fresh empty "Unreleased" section.
-3. Verify install in a sandbox:
+1. Verify install in a sandbox:
    ```bash
    mkdir /tmp/flint-smoke && cd /tmp/flint-smoke
    npm init -y && npm install flint-chart vega-lite
@@ -44,5 +40,5 @@ Following [semver](https://semver.org/):
 
 ## Pre-1.0 policy
 
-While `0.x`, minor bumps may include breaking changes. Document any
-breakage in `CHANGELOG.md` under "Breaking" with a migration note.
+While `0.x`, minor bumps may include breaking changes. Note any
+breakage in the GitHub release notes with a migration note.

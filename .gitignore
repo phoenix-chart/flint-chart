@@ -71,7 +71,10 @@ docs/flint-spinout-plan.md
 # Local-only working decision sessions (design docs, not shipped)
 design-docs/
 
-# Loops: commit only the top-level method docs (README.md, log.md).
-# Per-loop work artifacts (datasets, test cases, render scripts, rendered
-# images, scratch) live under work/ and are kept local, not committed.
-loops/*/work/
+# Loops: internal development/method notes and work artifacts — kept local,
+# not published (not polished for a public audience).
+loops/
+
+# Generated eval-results data for the flint-py results viewer (8.5MB+, contains
+# run-specific paths/tracebacks). Regenerate locally via tools/build_results_page.py.
+packages/flint-py/tools/viewer/results.js

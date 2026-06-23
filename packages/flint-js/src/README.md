@@ -9,8 +9,8 @@ templates — so charts look good *and* stay editable without calling the LLM ag
 
 Pure TypeScript · No UI framework dependencies · Data-in, spec-out
 
-> For full motivation & comparisons, see [docs/story.md](docs/story.md).
-> For architecture details, see [docs/design_v3.md](docs/design_v3.md).
+> For the semantic-type model & rationale, see [docs/design-semantics.md](docs/design-semantics.md).
+> For the stretch / banking layout model, see [docs/design-stretch-model.md](docs/design-stretch-model.md).
 
 ---
 

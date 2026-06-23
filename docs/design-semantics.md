@@ -1,6 +1,6 @@
 # Semantic Type
 
-Semantic types describe what each data field *means* — not just its storage type, but how it should be encoded, formatted, aggregated, and colored. The compiler resolves each field's semantic type (plus optional annotations) into `FieldSemantics`, then promotes those decisions into per-channel `ChannelSemantics` for layout and backend spec generation.
+Semantic types describe what each data field *means*, not just how it is stored. They tell Flint how a field should be encoded, formatted, aggregated, sorted, and colored. The compiler first resolves each field's semantic type plus optional annotations into `FieldSemantics`, then promotes the relevant decisions into per-channel `ChannelSemantics` for layout and backend spec generation.
 
 ---
 
@@ -49,7 +49,7 @@ Semantic types describe what each data field *means* — not just its storage ty
 
 # §1 Overview
 
-A **semantic type** is a named label (e.g. `Revenue`, `Month`, `Rating`) that tells the compiler how to treat a field. Types are organized in three tiers that map to Flint's semantic levels:
+A **semantic type** is a named label, such as `Revenue`, `Month`, or `Rating`, that tells the compiler how to treat a field. Types are organized in three tiers that map to Flint's semantic levels:
 
 | Flint level | Code tier | Count | Decides |
 |-------------|-----------|-------|---------|
@@ -57,16 +57,16 @@ A **semantic type** is a named label (e.g. `Revenue`, `Month`, `Rating`) that te
 | L2 Semantic Family | **T1** Category | 17 | Aggregation role, zero class, format class, diverging hints |
 | L3 Semantic Type | **T2** Specific | 46 | Exact format, domain, tick strategy, type-specific presentation |
 
-The LLM (or user) may annotate at any tier. **Graceful degradation, not failure:** `Revenue` (T2) yields currency format, sum aggregation, and log-scale hints; `Amount` (T1) still gets currency class and sum; `Measure` (T0) still gets quantitative encoding and meaningful zero — but no format prefix.
+The LLM or user may annotate at any tier. The result degrades gracefully rather than failing: `Revenue` (T2) yields currency format, sum aggregation, and log-scale hints; `Amount` (T1) still gets currency class and sum; `Measure` (T0) still gets quantitative encoding and meaningful zero, but no format prefix.
 
 **Design principles:**
 
 1. **Semantic type is the source of truth.** Compilation context is a deterministic function of (semanticType, dataValues, channel, markType). No hidden state.
-2. **Decisions are structured, not scattered.** One builder produces typed context objects; downstream code reads fields, never re-inspects the semantic type.
+2. **Decisions are structured, not scattered.** One builder produces typed context objects; downstream code reads those objects instead of re-inspecting semantic type strings.
 3. **Per-field, then per-channel.** Format and aggregation are field-intrinsic; zero-baseline, reversal, and color scheme depend on channel and mark.
 4. **Override-friendly.** Every decision has a type-derived default; users, templates, or the agent can override individual fields explicitly.
-5. **Backend-agnostic.** Context describes abstract intent (currency format, reversed axis); then translates to Vega-Lite, ECharts, etc.
-6. **Semantic type + optional metadata.** Bounded scales, units, and custom orderings need structured annotations alongside the type string.
+5. **Backend-agnostic.** Context describes abstract intent, such as currency format or reversed axis, before it is translated to Vega-Lite, ECharts, or another target.
+6. **Semantic type + optional metadata.** Bounded scales, units, and custom orderings can need structured annotations alongside the type string.
 
 For where semantic resolution sits in the full compile path, see [Architecture](/documentation/architecture).
 
@@ -76,7 +76,7 @@ For where semantic resolution sits in the full compile path, see [Architecture](
 
 ## §2.1 Tiered type system
 
-Different tasks warrant different type specificity. Three tiers let the LLM annotate at the appropriate cost/quality tradeoff:
+Different tasks need different levels of specificity. Three tiers let the LLM choose the right cost/quality tradeoff:
 
 | Tier | Count | Purpose | LLM cost | Viz config quality |
 |---|---|---|---|---|
@@ -97,7 +97,7 @@ Broad categories inferred by heuristics (no LLM required):
 | **Categorical** | string | nominal | Color/shape/facet, no axis ordering |
 | **Identifier** | number/string | nominal | Tooltip only, never encode on axis/color |
 
-T0 alone gives correct encoding, basic aggregation, and zero-baseline class. It misses format prefix/suffix, specific aggregation, diverging detection, domain constraints, and scale hints.
+T0 alone gives correct encoding, basic aggregation, and zero-baseline class. It does not capture format prefix/suffix, specific aggregation, diverging detection, domain constraints, or scale hints.
 
 ## §2.3 Tier 1 — Categories
 
@@ -136,7 +136,7 @@ Each T1 maps to exactly one T0 family:
 
 ## §2.4 Tier 2 — Specific types
 
-Each T2 maps to exactly one T1. The inventory is pruned to types that **change compilation behavior** vs their T1 parent. Domain-specific diverging midpoints (pH=7, NPS=0) come from `intrinsicDomain` or type-intrinsic logic, not dedicated T2 types.
+Each T2 maps to exactly one T1. The inventory keeps only types that **change compilation behavior** relative to their T1 parent. Domain-specific diverging midpoints, such as pH=7 or NPS=0, come from `intrinsicDomain` or type-intrinsic logic rather than dedicated T2 types.
 
 | T1 Category | T2 Specific Types |
 |---|---|
@@ -207,7 +207,7 @@ Categorical ──┬── Entity ───────────── Perso
 Identifier ───┴── ID ───────────────── ID
 ```
 
-Resolution walks T2 → T1 → T0, applying progressively finer rules with null fallbacks at each tier:
+Resolution walks T2 → T1 → T0, applying progressively finer rules and falling back whenever a tier has no specific decision:
 
 ```typescript
 function resolveFieldSemantics(annotation, fieldName, values) {
@@ -261,7 +261,7 @@ Types with wrap-around domains need canonical sort, no extrapolation beyond the 
 
 ## §2.8 Type registry
 
-The tier hierarchy controls *which* rules fire and at what granularity. Every type also carries **five orthogonal dimensions** that directly drive visualization properties — stored in `TypeRegistryEntry` alongside tier position:
+The tier hierarchy controls *which* rules fire and at what granularity. Every type also carries **five orthogonal dimensions** that directly drive visualization properties. These dimensions live in `TypeRegistryEntry` alongside the type's tier position:
 
 | Dimension | Values | What it controls |
 |---|---|---|
@@ -294,7 +294,7 @@ The tier hierarchy controls *which* rules fire and at what granularity. Every ty
 | Status | Coded | Categorical | nominal | dimension | fixed | none | plain |
 | Direction | Coded | Categorical | nominal | dimension | cyclic (8/16) | none | plain |
 
-At T1, the builder inherits the category's dimension values; at T2, specific overrides apply; at T0 only, conservative defaults apply. Downstream code reads resolved `FieldSemantics` / `ChannelSemantics` — never tiers or dimensions directly. Some dimension values are data-dependent (e.g. `Rating` encoding chosen by distinct-value count); that disambiguation happens in `resolveFieldSemantics`, not in the registry.
+At T1, the builder inherits the category's dimension values. At T2, specific overrides apply. At T0 only, conservative defaults apply. Downstream code reads resolved `FieldSemantics` / `ChannelSemantics` rather than tiers or dimensions directly. Some dimension values are data-dependent, such as choosing the `Rating` encoding from distinct-value count; that disambiguation happens in `resolveFieldSemantics`, not in the registry.
 
 ```typescript
 interface TypeRegistryEntry {
@@ -316,7 +316,7 @@ interface TypeRegistryEntry {
 
 ## §3.1 Why metadata matters
 
-A bare type string like `"Rating"` is ambiguous: is the scale 1–5, 1–10, or 0–100? Similar gaps exist for other bounded or unit-bearing types:
+A bare type string like `"Rating"` is ambiguous: is the scale 1–5, 1–10, or 0–100? Other bounded or unit-bearing types have similar gaps:
 
 | Type | What's missing | Why it matters |
 |---|---|---|
@@ -328,7 +328,7 @@ A bare type string like `"Rating"` is ambiguous: is the scale 1–5, 1–10, or 
 | **Duration** | Unit (seconds, hours) | Display strategy |
 | **Ordinal categoricals** | Custom sort order | Non-alphabetical ordering (severity, size) |
 
-Open-ended measures (`Count`, `Revenue`, `Rank`) and nominals (`Country`, `Status`) typically need no metadata.
+Open-ended measures (`Count`, `Revenue`, `Rank`) and nominal fields (`Country`, `Status`) typically need no metadata.
 
 ## §3.2 SemanticAnnotation
 
@@ -384,7 +384,7 @@ interface SemanticAnnotation {
 
 ## §3.4 Numeric representation detection
 
-Some types appear in different numeric encodings. The builder resolves at context-determination time:
+Some types appear in different numeric encodings. The builder resolves these representations while determining field context:
 
 | Type | Representations | Detection |
 |---|---|---|
@@ -401,7 +401,7 @@ Some types appear in different numeric encodings. The builder resolves at contex
 | Domain | [0, 1] | [0, 100] |
 | Ticks | 0, 0.25, 0.5, 0.75, 1.0 | 0, 25, 50, 75, 100 |
 
-Priority: (1) explicit `intrinsicDomain`, (2) data inspection, (3) conservative default. If ≥80% of absolute values are ≤1, treat as fractional.
+Priority: (1) explicit `intrinsicDomain`, (2) data inspection, (3) conservative default. If at least 80% of absolute values are ≤1, treat the field as fractional.
 
 ## §3.5 Accepting string or object
 
@@ -416,7 +416,7 @@ function normalizeAnnotation(
 }
 ```
 
-`semantic_types` in chart input accepts `Record<string, string | SemanticAnnotation>`. Annotation metadata flows into `FieldSemantics` during `resolveFieldSemantics`: `intrinsicDomain` → domain, ticks, zero, diverging midpoint; `unit` → format prefix/suffix; `sortOrder` → `canonicalOrder` and ordinal encoding.
+`semantic_types` in chart input accepts `Record<string, string | SemanticAnnotation>`. Annotation metadata flows into `FieldSemantics` during `resolveFieldSemantics`: `intrinsicDomain` → domain, ticks, zero, and diverging midpoint; `unit` → format prefix/suffix; `sortOrder` → `canonicalOrder` and ordinal encoding.
 
 ---
 
@@ -431,7 +431,7 @@ function normalizeAnnotation(
 | **3. Layout** | `computeLayout()` | ChannelSemantics + data → `LayoutResult` | How big? What gets filtered? |
 | **4. Spec Generation** | `assembleVegaLite()` etc. | ChannelSemantics + template → backend spec | Backend-specific output |
 
-`ChannelSemantics` is the **IR**(Intermediate Representation) — a flat, target-agnostic record decoupling upstream semantics from layout and all backends (VL, ECharts, Chart.js).
+`ChannelSemantics` is the **intermediate representation (IR)**: a flat, target-agnostic record that decouples upstream semantics from layout and all backends (Vega-Lite, ECharts, Chart.js).
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -452,7 +452,7 @@ function normalizeAnnotation(
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
-Stage boundaries: `convertTemporalData()` runs once before Stage 2; `FieldSemantics` is internal to Stage 2; zero-baseline finalization requires mark type (Stage 4). Stage 2 does not know template mark types.
+Stage boundaries are intentionally narrow: `convertTemporalData()` runs once before Stage 2; `FieldSemantics` stays internal to Stage 2; zero-baseline finalization waits until Stage 4 because it needs the template mark type.
 
 ## §4.2 Field vs channel responsibilities
 
@@ -507,7 +507,7 @@ Internal flow (field-intrinsic only):
 - `resolveSortDirection(semanticType)` → ascending / descending
 - `resolveBinningSuggested(semanticType, domain, values)` → boolean
 
-Channel-level functions (`resolveTickConstraint`, `resolveReversed`, `resolveNice`, color scheme, interpolation, stackable) are exported from the same module but called by Stage 2.
+Channel-level functions (`resolveTickConstraint`, `resolveReversed`, `resolveNice`, color scheme, interpolation, stackable) are exported from the same module and called by Stage 2.
 
 ## §4.4 resolveChannelSemantics
 
@@ -536,7 +536,7 @@ function resolveChannelSemantics(encodings, data, semanticTypes, convertedData?)
 }
 ```
 
-Stage 2 does **not** set `zero` — Stage 4 calls `computeZeroDecision()` with mark type (bar → include zero for length integrity; scatter → data-fitted).
+Stage 2 does **not** set `zero`. Stage 4 calls `computeZeroDecision()` with the mark type: bar → include zero for length integrity; scatter → data-fitted.
 
 ## §4.5 FieldSemantics interface
 
@@ -621,13 +621,13 @@ interface TickConstraint {
 
 ## §4.8 Layout and spec generation
 
-**Stage 3** operates on `ChannelSemantics` and data only — see [Auto Layout Algorithm](/documentation/layout-model) for stretch sizing, overflow filtering, and facet grids. `declareLayoutMode()` is the template hook that lets Stage 4 influence Stage 3 through a narrow interface.
+**Stage 3** operates on `ChannelSemantics` and data only. See [Auto Layout Algorithm](/documentation/layout-model) for stretch sizing, overflow filtering, and facet grids. `declareLayoutMode()` is the template hook that lets Stage 4 influence Stage 3 through a narrow interface.
 
-**Stage 4** per backend: (1) finalize zero via `computeZeroDecision()` with mark type; (2) translate encodings; (3) `template.instantiate()`; (4) apply layout. Templates read flat `ChannelSemantics` directly.
+**Stage 4** is backend-specific: (1) finalize zero via `computeZeroDecision()` with mark type; (2) translate encodings; (3) run `template.instantiate()`; (4) apply layout. Templates read flat `ChannelSemantics` directly.
 
 ## §4.9 Caching
 
-Field semantics are expensive (format detection, distribution analysis). Cache per field: key `${fieldName}::${semanticType}::${dataHash}` where `dataHash` fingerprints the first ~100 values.
+Field semantics can be expensive because they include format detection and distribution analysis. Cache per field with key `${fieldName}::${semanticType}::${dataHash}`, where `dataHash` fingerprints the first ~100 values.
 
 ---
 
@@ -635,7 +635,7 @@ Field semantics are expensive (format detection, distribution analysis). Cache p
 
 ## §5.1 Format and parsing
 
-Only override native formatting when semantic context adds value — prefix/suffix, abbreviation, sign, or no-comma (Year). Generic decimals (`Number`, `Score`, `Rating`) use empty `format: {}` so Vega-Lite adapts precision. When format is provided, `detectPrecision(values)` caps meaningful decimals (0–4).
+Only override native formatting when semantic context adds value: prefix/suffix, abbreviation, sign, or no-comma years. Generic decimals (`Number`, `Score`, `Rating`) use empty `format: {}` so Vega-Lite can adapt precision. When format is provided, `detectPrecision(values)` caps meaningful decimals at 0–4.
 
 | Semantic Type | `pattern` | `prefix` | `suffix` | `abbreviate` | Notes |
 |---|---|---|---|---|---|
@@ -656,9 +656,9 @@ Only override native formatting when semantic context adds value — prefix/suff
 | **Sentiment / Correlation** | `+` + data-driven | — | — | — | Signed decimal |
 | **Latitude / Longitude** | — (empty) | — | — | — | VL native |
 
-Unit/currency priority: `annotation.unit` > column-name heuristics > data-value scanning > type defaults.
+Unit/currency priority is `annotation.unit` > column-name heuristics > data-value scanning > type defaults.
 
-**Parsing** is the compiler's job, guided by semantic type (not stored on context):
+**Parsing** is the compiler's job, guided by semantic type rather than stored on context:
 
 | Semantic Type | Raw examples | Compiler action |
 |---|---|---|
@@ -680,7 +680,7 @@ Unit/currency priority: `annotation.unit` > column-name heuristics > data-value 
 | Discrete numeric | Rank, Index, ID | — | Not aggregable |
 | Temporal / Categorical | DateTime, Name, Status, … | — | Not aggregable |
 
-Auto-aggregation injects the correct aggregate when multiple rows map to the same positional encoding — Revenue→sum, Temperature→mean. Wrong aggregation (summing temperatures) produces nonsensical charts. This is an explicit compiler option (some contexts suppress it):
+Auto-aggregation injects the correct aggregate when multiple rows map to the same positional encoding: Revenue → sum, Temperature → mean. The wrong aggregation, such as summing temperatures, produces nonsensical charts. This is an explicit compiler option, because some contexts suppress it:
 
 ```typescript
 interface CompilerOptions {
@@ -702,7 +702,7 @@ interface CompilerOptions {
 | Percentage (0–100) | `linear` | Completion rate |
 | Default quantitative | `linear` | — |
 
-**Domain constraints** — effective domain = union of intrinsic bounds and data range (soft domains never clip legitimate outliers):
+**Domain constraints** — effective domain = union of intrinsic bounds and data range. Soft domains never clip legitimate outliers:
 
 | Source | Type | Intrinsic | Data | Effective | Clamp |
 |---|---|---|---|---|---|
@@ -712,7 +712,7 @@ interface CompilerOptions {
 | Type-intrinsic | Latitude | [-90,90] | any | [-90,90] | hard |
 | Type-intrinsic | Correlation | [-1,1] | any | [-1,1] | hard |
 
-Priority: `annotation.intrinsicDomain` > type-intrinsic > data-inferred. Small intrinsic spans (≤20) also set `exactTicks`, `binningSuggested: false`, and refine `zeroBaseline`.
+Priority is `annotation.intrinsicDomain` > type-intrinsic > data-inferred. Small intrinsic spans (≤20) also set `exactTicks`, `binningSuggested: false`, and refine `zeroBaseline`.
 
 **Tick constraints:**
 
@@ -735,7 +735,7 @@ Priority: `annotation.intrinsicDomain` > type-intrinsic > data-inferred. Small i
 
 ## §5.5 Diverging and color
 
-Diverging treatment needs a **midpoint** — resolved in priority order:
+Diverging treatment needs a **midpoint**, resolved in priority order:
 
 1. `annotation.unit` lookup (°C → 0, °F → 32)
 2. Type-intrinsic midpoint
@@ -751,7 +751,7 @@ Diverging treatment needs a **midpoint** — resolved in priority order:
 | Score (0–100) | 50 | conditional | From domain midpoint |
 | Rating (1–5) | 3 | conditional | Rarely diverging |
 
-**Inherent** types always use diverging palettes (semantic pos/neg meaning). **Conditional** types use diverging only when data spans both sides of the midpoint; otherwise sequential.
+**Inherent** types always use diverging palettes because positive and negative values have semantic meaning. **Conditional** types use diverging palettes only when data spans both sides of the midpoint; otherwise they use sequential palettes.
 
 ```typescript
 interface ColorSchemeHint {
@@ -795,7 +795,7 @@ function resolveColorSchemeHint(semanticType, annotation, values): ColorSchemeHi
 }
 ```
 
-Channel additions: `nice: true`, `stackable: 'sum'`, `interpolation: 'monotone'`, sequential color. Y axis shows €0, €100K, …; zero-baseline included; tooltip €124,500.00.
+Channel additions: `nice: true`, `stackable: 'sum'`, `interpolation: 'monotone'`, sequential color. The Y axis shows €0, €100K, …; the zero baseline is included; tooltip shows €124,500.00.
 
 ## §6.2 Temperature line chart
 
@@ -813,7 +813,7 @@ Channel additions: `nice: true`, `stackable: 'sum'`, `interpolation: 'monotone'`
 }
 ```
 
-Channel additions: diverging color midpoint 0°C, `interpolation: 'monotone'`, `stackable: false`. Axis data-fitted (no forced 0°C); ticks 16°C, 20°C, …; smooth line.
+Channel additions: diverging color midpoint 0°C, `interpolation: 'monotone'`, `stackable: false`. The axis is data-fitted with no forced 0°C; ticks show 16°C, 20°C, …; the line is smoothed.
 
 ## §6.3 Rank bump chart
 
@@ -831,7 +831,7 @@ Channel additions: diverging color midpoint 0°C, `interpolation: 'monotone'`, `
 }
 ```
 
-Channel additions: `reversed: true`, `tickConstraint: { integersOnly: true, minStep: 1 }`, `interpolation: 'step'`. Y reversed (1 at top); integer ticks; no stacking.
+Channel additions: `reversed: true`, `tickConstraint: { integersOnly: true, minStep: 1 }`, `interpolation: 'step'`. The Y axis is reversed (1 at top), ticks are integers, and stacking is disabled.
 
 ## §6.4 Rating with domain
 
@@ -850,7 +850,7 @@ Channel additions: `reversed: true`, `tickConstraint: { integersOnly: true, minS
 }
 ```
 
-Channel additions: `nice: false`, `tickConstraint: { integersOnly: true, exactTicks: [1,2,3,4,5] }`. Domain [1,5] from annotation; arbitrary zero (1-based scale); exact integer ticks; bars use proportional lengths from zero (Stage 4 keeps `scale.zero` for bar marks).
+Channel additions: `nice: false`, `tickConstraint: { integersOnly: true, exactTicks: [1,2,3,4,5] }`. The domain [1,5] comes from the annotation; zero is arbitrary because this is a 1-based scale; ticks are exact integers; bars use proportional lengths from zero because Stage 4 keeps `scale.zero` for bar marks.
 
 ---
 

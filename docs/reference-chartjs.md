@@ -2,11 +2,20 @@
 
 > This page is generated from the live chart-template registry (`scripts/gen-chart-reference.ts`). Do not edit it by hand — run `npm run gen:reference`.
 
-The Chart.js backend is the lightweight embedding target. It supports the common chart families with a focused set of parameters.
+The Chart.js backend is the lightweight embedding target for common chart families. It keeps the parameter surface intentionally small.
 
-## How to set parameters
+## What this page covers
 
-Every parameter below is set through `chart_spec.chartProperties`, keyed by the parameter name:
+This reference lists the 19 chart types currently supported by the Chart.js backend, grouped into 5 categories. Each chart entry shows:
+
+- **Encoding channels** — the visual roles accepted in `chart_spec.encodings`, such as `x`, `y`, `color`, `size`, `column`, or `row`.
+- **Options** — template-specific `chart_spec.chartProperties` keys, including control type, domain, default, availability, and description.
+
+Use the chart type name exactly as shown in `chart_spec.chartType`.
+
+## How to set encodings and options
+
+Set encodings in `chart_spec.encodings` and chart-specific options in `chart_spec.chartProperties`. Option keys match the parameter names below:
 
 ```jsonc
 {
@@ -16,9 +25,7 @@ Every parameter below is set through `chart_spec.chartProperties`, keyed by the 
 }
 ```
 
-The **Availability** column marks whether a parameter is `always` offered or only `conditional` (surfaced when the data/encodings warrant it — e.g. a log scale only on a wide-range axis). Passing a non-applicable parameter is accepted but ignored.
-
-**19 chart types** across 5 categories.
+The **Availability** column shows whether a parameter is `always` available or `conditional`, meaning it appears only when the data and encodings make it relevant. For example, log-scale controls appear only on wide-range axes. Non-applicable parameters are safe to pass; the assembler ignores them.
 
 ## Scatter & Point
 
@@ -28,7 +35,7 @@ The **Availability** column marks whether a parameter is `always` offered or onl
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `opacity` | number | 0.1 – 1 (step 0.05) | `1` | always | Mark fill/stroke opacity. |
+| `opacity` | number | 0.1 – 1 (step 0.05) | `1` | always | Mark opacity. |
 
 ### ![](chart-icon-connected-scatter.svg) Connected Scatter Plot
 
@@ -42,7 +49,7 @@ _No template-specific parameters._
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `opacity` | number | 0.1 – 1 (step 0.05) | `0.6` | always | Mark fill/stroke opacity. |
+| `opacity` | number | 0.1 – 1 (step 0.05) | `0.6` | always | Mark opacity. |
 
 ## Bar
 
@@ -52,7 +59,7 @@ _No template-specific parameters._
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `cornerRadius` | number | 0 – 15 (step 1) | `0` | always | Rounded-corner radius for bar marks. |
+| `cornerRadius` | number | 0 – 15 (step 1) | `0` | always | Corner radius for supported marks. |
 
 ### ![](chart-icon-column-grouped.svg) Grouped Bar Chart
 
@@ -72,7 +79,7 @@ _No template-specific parameters._
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `cornerRadius` | number | 0 – 15 (step 1) | `0` | always | Rounded-corner radius for bar marks. |
+| `cornerRadius` | number | 0 – 15 (step 1) | `0` | always | Corner radius for supported marks. |
 
 ### ![](chart-icon-histogram.svg) Histogram
 
@@ -102,7 +109,7 @@ _No template-specific parameters._
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `interpolate` | choice | `Default (linear)`, `Linear`, `Monotone (smooth)`, `Step`, `Step Before`, `Step After` | — | always | Line/area interpolation (curve) method. |
+| `interpolate` | choice | `Default (linear)`, `Linear`, `Monotone (smooth)`, `Step`, `Step Before`, `Step After` | — | always | Line or area interpolation method. |
 
 ### ![](chart-icon-slope.svg) Slope Chart
 
@@ -116,9 +123,9 @@ _No template-specific parameters._
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `interpolate` | choice | `Default (linear)`, `Linear`, `Monotone (smooth)` | — | always | Line/area interpolation (curve) method. |
-| `opacity` | number | 0.1 – 1 (step 0.05) | `0.4` | always | Mark fill/stroke opacity. |
-| `stackMode` | choice | `Stacked (default)`, `Layered (overlap)` | — | always | How overlapping series are stacked (none / stacked / normalized). |
+| `interpolate` | choice | `Default (linear)`, `Linear`, `Monotone (smooth)` | — | always | Line or area interpolation method. |
+| `opacity` | number | 0.1 – 1 (step 0.05) | `0.4` | always | Mark opacity. |
+| `stackMode` | choice | `Stacked (default)`, `Layered (overlap)` | — | always | Stacking strategy for overlapping series. |
 
 ### ![](chart-icon-range-area.svg) Range Area Chart
 
@@ -142,7 +149,7 @@ _No template-specific parameters._
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `innerRadius` | number | 0 – 60 (step 5) | `0` | always | Inner-radius (donut hole) as a percentage of the outer radius. |
+| `innerRadius` | number | 0 – 60 (step 5) | `0` | always | Inner radius as a percentage of the outer radius. |
 
 ### ![](chart-icon-doughnut.svg) Doughnut Chart
 
@@ -150,7 +157,7 @@ _No template-specific parameters._
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `innerRadius` | number | 20 – 80 (step 5) | `55` | always | Inner-radius (donut hole) as a percentage of the outer radius. |
+| `innerRadius` | number | 20 – 80 (step 5) | `55` | always | Inner radius as a percentage of the outer radius. |
 
 ## Polar
 
@@ -160,8 +167,8 @@ _No template-specific parameters._
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `filled` | choice | `Filled (default)`, `Outline only` | — | always | Fill the enclosed area. |
-| `fillOpacity` | number | 0.05 – 0.8 (step 0.05) | `0.3` | always | Fill opacity for the area/region. |
+| `filled` | choice | `Filled (default)`, `Outline only` | — | always | Fill the enclosed radar area. |
+| `fillOpacity` | number | 0.05 – 0.8 (step 0.05) | `0.3` | always | Fill opacity for the area or region. |
 
 ### ![](chart-icon-rose.svg) Rose Chart
 

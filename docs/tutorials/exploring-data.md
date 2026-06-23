@@ -328,7 +328,7 @@ Workflow:
 | Full API & architecture | [Overview](/documentation/overview) |
 | Semantic type reference | [Semantic Type](/documentation/semantic-types) |
 | All chart templates | [Gallery](/wall) |
-| Author a new template | [Adding a chart template](/documentation/adding-a-chart-template) |
+| Author a new template | [Extending chart templates](/documentation/adding-a-chart-template) |
 | Local dev setup | [Development](/documentation/development) |
 
 Return to [Getting started](/tutorials/getting-started) if you want to rebuild

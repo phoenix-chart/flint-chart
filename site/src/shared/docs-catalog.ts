@@ -128,19 +128,19 @@ export const DOCUMENTATION_GROUPS: DocGroup[] = [
       {
         slug: 'adding-a-semantic-type',
         title: 'Extending semantic types',
-        description: 'Register in type-registry.ts, sync constants, and verify in the gallery.',
+        description: 'Decide when a new field meaning is needed, then register and verify it.',
         file: '../../../docs/adding-a-semantic-type.md',
       },
       {
         slug: 'adding-a-backend',
         title: 'Extending backends',
-        description: 'Assembler skeleton, core pipeline contract, packaging, and gallery wiring.',
+        description: 'Add a rendering target while keeping semantics and layout in the shared pipeline.',
         file: '../../../docs/adding-a-backend.md',
       },
       {
         slug: 'adding-a-chart-template',
         title: 'Extending chart templates',
-        description: 'ChartTemplateDef, instantiate hook, registry, and test generators.',
+        description: 'Add a chart type to an existing backend, then cover it in tests and the gallery.',
         file: '../../../docs/adding-a-chart-template.md',
       },
     ],

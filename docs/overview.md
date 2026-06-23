@@ -1,8 +1,8 @@
 # Overview
 
-**Flint** is a semantic-driven intermediate language (IL) for data visualization. You declare what data *means* and a concise chart intent; the compiler derives scales, axes, aggregation, formatting, layout, and color — then transpiles to Vega-Lite, ECharts, or Chart.js.
+**Flint** is a semantics-driven intermediate language (IL) for data visualization. You declare what each field *means* and the chart you want; the compiler derives scales, axes, aggregation, formatting, layout, and color, then emits Vega-Lite, ECharts, or Chart.js.
 
-New users: [Getting started](/tutorials/getting-started) first, then return here for architecture and API depth.
+If you're new to Flint, start with [Getting started](/tutorials/getting-started), then come back here for the architecture and API map.
 
 ---
 
@@ -22,19 +22,19 @@ New users: [Getting started](/tutorials/getting-started) first, then return here
 
 # §1 What Flint is
 
-Flint separates **data semantics** from **chart intent**, similar to how an IL separates program logic from target-machine code ([LLVM](https://llvm.org/) analogy in the paper). Authors avoid hand-tuning interdependent low-level parameters; LLM agents emit compact Flint programs instead of verbose library-native specs that are costly to regenerate and brittle under small edits.
+Flint separates **data semantics** from **chart intent**, much as an IL separates program logic from target-machine code ([LLVM](https://llvm.org/) analogy in the paper). Authors avoid hand-tuning interdependent low-level parameters, and LLM agents can emit compact Flint programs instead of verbose native specs that are costly to regenerate and brittle under small edits.
 
 ---
 
 # §2 The problem
 
-Declarative grammars (Vega-Lite, ECharts, …) work when primitive types align with visual mappings. They break when **semantic meaning** diverges from storage representation:
+Declarative grammars (Vega-Lite, ECharts, …) work well when primitive data types line up with visual mappings. They get brittle when **semantic meaning** diverges from storage representation:
 
 - Integer `202001` as **YearMonth**, not a quantitative magnitude
 - Stacking non-additive measures (temperature, rates)
 - Diverging fields on sequential color ramps
 
-Experts fix this with long, coupled specs; those specs fail when you swap a field, rotate a heatmap, or change chart type. Flint treats **semantic types as first-class objects** and resolves encoding and layout from semantics plus data characteristics.
+Experts can fix these cases with long, coupled specs, but those specs are hard to keep correct when you swap a field, rotate a heatmap, or change chart type. Flint treats **semantic types as first-class objects** and resolves encoding and layout from semantics plus data characteristics.
 
 ---
 
@@ -92,7 +92,7 @@ Faceted line chart:
 }
 ```
 
-**Exploration workflow:** change only `chart_spec` to try heatmap, grouped bar, waterfall, or sunburst — **dataSpec stays fixed**. Switch backend (e.g. Vega-Lite → ECharts) without rewriting the Flint input. See the [gallery](/wall) for template and backend coverage.
+**Exploration workflow:** change only `chart_spec` to try a heatmap, grouped bar, waterfall, or sunburst. The **dataSpec stays fixed**, and you can switch backend (for example, Vega-Lite → ECharts) without rewriting the Flint input. See the [gallery](/wall) for template and backend coverage.
 
 Semantic types use a three-level hierarchy. Details: [Semantic Type](/documentation/semantic-types).
 
@@ -106,7 +106,7 @@ Semantic types use a three-level hierarchy. Details: [Semantic Type](/documentat
 | `assembleECharts(input)` | ECharts `option` |
 | `assembleChartjs(input)` | Chart.js config |
 
-The same input compiles to every supported backend. Stages 1–2 (semantics + layout) run once in shared `core/`; only Stage 3 (template instantiation) is library-specific.
+The same input compiles to every supported backend. Stages 1–2 (semantics + layout) live in shared `core/`; only Stage 3 (template instantiation) is library-specific.
 
 Full input schema: [API reference](/documentation/api-reference).
 
@@ -122,9 +122,9 @@ Full input schema: [API reference](/documentation/api-reference).
 | **Optimizer** | Phase 1 — `computeLayout()`, overflow filter | `core/compute-layout.ts` |
 | **Code generator** | Phase 2 — `template.instantiate()` | `vegalite/`, `echarts/`, `chartjs/` |
 
-1. **Frontend** — encoding type, format, aggregation, scale, domain, color, sort from dataSpec + data
-2. **Optimizer** — axis span, band step, facet grid, aspect ratio via physics-based sizing; start with [Example: Auto Layout](/documentation/chart-sizing), then use [Auto Layout Algorithm](/documentation/layout-model) for the equations
-3. **Code generator** — dynamic templates per `chartType` emit library-native specs
+1. **Frontend** — derives encoding type, format, aggregation, scale, domain, color, and sort from dataSpec + data
+2. **Optimizer** — chooses axis span, band step, facet grid, and aspect ratio with physics-based sizing; start with [Example: Auto Layout](/documentation/chart-sizing), then use [Auto Layout Algorithm](/documentation/layout-model) for the equations
+3. **Code generator** — uses dynamic templates for each `chartType` to emit library-native specs
 
 Pipeline detail: [Architecture](/documentation/architecture).
 
@@ -134,7 +134,7 @@ Pipeline detail: [Architecture](/documentation/architecture).
 
 | Section | Pages |
 |---------|-------|
-| **Introduction** | [Architecture](/documentation/architecture), [Semantic Type](/documentation/semantic-types), [Auto Layout Algorithm](/documentation/layout-model), [API reference](/documentation/api-reference) |
+| **Language design** | [Architecture](/documentation/architecture), [Semantic Type](/documentation/semantic-types), [Auto Layout Algorithm](/documentation/layout-model), [API reference](/documentation/api-reference) |
 | **Chart reference** | [Vega-Lite charts](/documentation/reference-vegalite), [ECharts charts](/documentation/reference-echarts), [Chart.js charts](/documentation/reference-chartjs) |
 | **Development** | [Development guide](/documentation/development), [Extending semantic types](/documentation/adding-a-semantic-type), [Extending backends](/documentation/adding-a-backend), [Extending chart templates](/documentation/adding-a-chart-template) |
 
@@ -167,7 +167,7 @@ const spec = assembleVegaLite({
 
 | Page | Use for |
 |------|---------|
-| [Quick Start](/tutorials/getting-started) | Step-by-step first chart |
+| [Getting started](/tutorials/getting-started) | Step-by-step first chart |
 | [Gallery](/wall) | Every template + multi-backend preview |
 | [Editor](/editor) | Paste JSON, switch Vega-Lite / ECharts / Chart.js |
 

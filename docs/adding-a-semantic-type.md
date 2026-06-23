@@ -1,6 +1,6 @@
-# Adding a semantic type
+# Extending semantic types
 
-Semantic types are what LLMs and users attach to fields. Every format, aggregation, scale, and color decision traces back to a registered type (or graceful fallback to `Unknown`).
+Semantic types are the labels LLMs and users attach to fields. Extend them when a new field meaning should change how Flint formats values, aggregates data, chooses scales, or assigns color. If Flint does not recognize a type, it falls back gracefully to `Unknown`.
 
 For the full type hierarchy and resolution rules, see [Semantic Type](/documentation/semantic-types).
 
@@ -8,17 +8,17 @@ For the full type hierarchy and resolution rules, see [Semantic Type](/documenta
 
 ## Table of Contents
 
-- [§1 Design check](#1-design-check)
-- [§2 Register in the type registry](#2-register-in-the-type-registry)
+- [§1 Decide whether a new type is needed](#1-decide-whether-a-new-type-is-needed)
+- [§2 Register the type](#2-register-the-type)
 - [§3 Sync constants and annotations](#3-sync-constants-and-annotations)
 - [§4 Test and verify](#4-test-and-verify)
 - [§5 Related](#5-related)
 
 ---
 
-# §1 Design check
+# §1 Decide whether a new type is needed
 
-Before adding a type, confirm it **changes compilation behavior** compared to its T1 parent. Avoid synonyms (`Money` vs `Price` vs `Currency`) — pick one name, register it, and alias others in agent prompts if needed.
+Before adding a type, confirm it **changes compilation behavior** compared with its T1 parent. Avoid registering synonyms such as `Money`, `Price`, and `Currency`; pick one name for the registry and alias the others in agent prompts if needed.
 
 | Question | If yes |
 |---|---|
@@ -30,11 +30,11 @@ Dropped-type guidance and the full inventory live in [Semantic Type §2.4](/docu
 
 ---
 
-# §2 Register in the type registry
+# §2 Register the type
 
 **Single source of truth:** `packages/flint-js/src/core/type-registry.ts`
 
-Add one entry to `TYPE_REGISTRY`. The record key is the **T2 type name** (the string used in `semantic_types`).
+Add one entry to `TYPE_REGISTRY`. The record key is the **T2 type name**, which is also the string users pass in `semantic_types`.
 
 ```typescript
 PercentageChange: {
@@ -66,7 +66,7 @@ PercentageChange: {
 
 Query API: `getRegistryEntry()`, `isRegistered()`, `getRegisteredTypes()` in the same file.
 
-**Not on the registry** (resolved elsewhere): explicit `pattern` strings, `reversed` axis, `colorScheme` name, `stackable` — these come from `field-semantics.ts` / `resolve-semantics.ts` reading registry dimensions plus data and channel context.
+**Not on the registry** (resolved elsewhere): explicit `pattern` strings, reversed axes, `colorScheme` names, and `stackable`. These come from `field-semantics.ts` / `resolve-semantics.ts`, which combine registry dimensions with data and channel context.
 
 ---
 
@@ -85,7 +85,7 @@ export const SemanticTypes = {
 
 ### Field-level metadata (optional)
 
-Per-field overrides that are **not** intrinsic to the type belong on `SemanticAnnotation` (`field-semantics.ts`), not in `TYPE_REGISTRY`:
+Per-field details that are **not** intrinsic to the type belong on `SemanticAnnotation` (`field-semantics.ts`), not in `TYPE_REGISTRY`:
 
 ```typescript
 interface SemanticAnnotation {
@@ -103,7 +103,7 @@ Chart input accepts `Record<string, string | SemanticAnnotation>` as `semantic_t
 # §4 Test and verify
 
 1. **Gallery case** — add or extend a generator in `packages/flint-js/src/test-data/semantic-tests.ts` that uses the new type on a relevant channel.
-2. **Register generator** — if it is a new gallery page, wire the key in `packages/flint-js/src/test-data/index.ts` (`TEST_GENERATORS`) and optionally `gallery-tree.ts`.
+2. **Register generator** — if this creates a new gallery page, wire the key in `packages/flint-js/src/test-data/index.ts` (`TEST_GENERATORS`) and optionally `gallery-tree.ts`.
 3. **Run checks:**
 
 ```bash
@@ -125,4 +125,4 @@ Verify:
 
 - [Semantic Type](/documentation/semantic-types) — T0/T1/T2 hierarchy, annotations, resolution rules
 - [Architecture](/documentation/architecture) — where `resolveChannelSemantics` sits in the pipeline
-- [API reference](/documentation/api-reference) — `semantic_types` / `semantic_annotations` on `ChartAssemblyInput`
+- [API reference](/documentation/api-reference) — `semantic_types` on `ChartAssemblyInput`

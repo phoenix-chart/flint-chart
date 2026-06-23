@@ -127,7 +127,6 @@ function ChartjsFacetView({ config, constrain }: { config: any; constrain: boole
   const flat = panelRows.flat();
 
   const refPanel = flat[0]?.config;
-  const panelW = asFinite(refPanel?._width) ?? 300;
   const panelH = asFinite(refPanel?._height) ?? 240;
 
   const rows = asFinite(config?._facetRows) ?? panelRows.length;
@@ -138,8 +137,37 @@ function ChartjsFacetView({ config, constrain }: { config: any; constrain: boole
   const colHeaderH = hasColHeader ? 22 : 0;
   const rowHeaderW = hasRowHeader ? 28 : 0;
 
-  const bodyW = rowHeaderW + cols * panelW + (cols - 1) * FACET_GAP;
-  const bodyH = colHeaderH + rows * panelH + (rows - 1) * FACET_GAP;
+  const axisGutter = asFinite(config?._facetAxisGutter) ?? 0;
+  // Wrapped column-only facets repeat the column-header band above each row.
+  const colHeaderPerRow = !!config?._facetColHeaderPerRow;
+
+  // Column widths vary — the leftmost column carries the shared y-axis gutter,
+  // inner columns are narrower (axis hidden). Derive width + left per column.
+  const colWidths = Array.from({ length: cols }, (_, ci) =>
+    asFinite(panelRows[0]?.[ci]?.config?._width) ?? asFinite(refPanel?._width) ?? 300,
+  );
+  const colLefts: number[] = [];
+  {
+    let x = rowHeaderW;
+    for (let ci = 0; ci < cols; ci++) {
+      colLefts.push(x);
+      x += colWidths[ci] + FACET_GAP;
+    }
+  }
+  const bodyW = rowHeaderW + colWidths.reduce((a, b) => a + b, 0) + (cols - 1) * FACET_GAP;
+
+  // Vertical layout. When each wrapped row carries its own column-header band,
+  // every row block is (header + panel) tall; otherwise there is a single
+  // header band across the top and rows are just panel-tall.
+  const rowBlockH = colHeaderPerRow ? colHeaderH + panelH : panelH;
+  const panelTop = (ri: number) =>
+    colHeaderPerRow
+      ? ri * (rowBlockH + FACET_GAP) + colHeaderH
+      : colHeaderH + ri * (panelH + FACET_GAP);
+  const headerTop = (ri: number) => (colHeaderPerRow ? ri * (rowBlockH + FACET_GAP) : 0);
+  const bodyH = colHeaderPerRow
+    ? rows * rowBlockH + (rows - 1) * FACET_GAP
+    : colHeaderH + rows * panelH + (rows - 1) * FACET_GAP;
 
   const sharedY = config?._facetSharedYDomain as { min: number; max: number } | undefined;
   const legend = (config?._facetLegend ?? []) as Array<{ label: string; color: string }>;
@@ -148,18 +176,25 @@ function ChartjsFacetView({ config, constrain }: { config: any; constrain: boole
   // scale (the assembler computes the domain but leaves it to the renderer).
   const panels = useMemo(() => {
     return flat.map((p) => {
-      if (!sharedY) return p;
+      const y: any = { ...(p.config?.options?.scales?.y ?? {}) };
+      if (sharedY) {
+        y.min = sharedY.min;
+        y.max = sharedY.max;
+      }
+      // Pin the leftmost column's y-axis width so its plot area matches the
+      // (axis-less) inner panels exactly, keeping all lines aligned.
+      if (p.colIndex === 0 && axisGutter > 0) {
+        y.afterFit = (scale: { width: number }) => {
+          scale.width = axisGutter;
+        };
+      }
       const cfg = {
         ...p.config,
         options: {
           ...(p.config?.options ?? {}),
           scales: {
             ...(p.config?.options?.scales ?? {}),
-            y: {
-              ...(p.config?.options?.scales?.y ?? {}),
-              min: sharedY.min,
-              max: sharedY.max,
-            },
+            y,
           },
         },
       };
@@ -168,9 +203,6 @@ function ChartjsFacetView({ config, constrain }: { config: any; constrain: boole
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config]);
 
-  const colHeaders = hasColHeader
-    ? Array.from({ length: cols }, (_, ci) => panelRows[0]?.[ci]?.colHeader ?? '')
-    : [];
   const rowHeaders = hasRowHeader
     ? Array.from({ length: rows }, (_, ri) => panelRows[ri]?.[0]?.rowHeader ?? '')
     : [];
@@ -212,28 +244,31 @@ function ChartjsFacetView({ config, constrain }: { config: any; constrain: boole
       )}
 
       <div style={{ position: 'relative', width: bodyW, height: bodyH }}>
-        {/* Column headers */}
-        {colHeaders.map((label, ci) => (
-          <div
-            key={`ch-${ci}`}
-            style={{
-              position: 'absolute',
-              left: rowHeaderW + ci * (panelW + FACET_GAP),
-              top: 0,
-              width: panelW,
-              height: colHeaderH,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 600,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
-            {label}
-          </div>
-        ))}
+        {/* Column headers — one band per row when wrapping, else a single top band. */}
+        {hasColHeader &&
+          (colHeaderPerRow ? panelRows : [panelRows[0] ?? []]).flatMap((rowPanels, ri) =>
+            rowPanels.map((p, ci) => (
+              <div
+                key={`ch-${ri}-${ci}`}
+                style={{
+                  position: 'absolute',
+                  left: colLefts[ci] + (ci === 0 ? axisGutter : 0),
+                  top: headerTop(ri),
+                  width: colWidths[ci] - (ci === 0 ? axisGutter : 0),
+                  height: colHeaderH,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 600,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {p?.colHeader ?? ''}
+              </div>
+            )),
+          )}
 
         {/* Row headers */}
         {rowHeaders.map((label, ri) => (
@@ -242,7 +277,7 @@ function ChartjsFacetView({ config, constrain }: { config: any; constrain: boole
             style={{
               position: 'absolute',
               left: 0,
-              top: colHeaderH + ri * (panelH + FACET_GAP),
+              top: panelTop(ri),
               width: rowHeaderW,
               height: panelH,
               display: 'flex',
@@ -263,11 +298,11 @@ function ChartjsFacetView({ config, constrain }: { config: any; constrain: boole
             key={p.key}
             style={{
               position: 'absolute',
-              left: rowHeaderW + p.colIndex * (panelW + FACET_GAP),
-              top: colHeaderH + p.rowIndex * (panelH + FACET_GAP),
+              left: colLefts[p.colIndex],
+              top: panelTop(p.rowIndex),
             }}
           >
-            <FacetPanel config={p.config} width={panelW} height={panelH} />
+            <FacetPanel config={p.config} width={colWidths[p.colIndex]} height={panelH} />
           </div>
         ))}
       </div>

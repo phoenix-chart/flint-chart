@@ -2,11 +2,20 @@
 
 > This page is generated from the live chart-template registry (`scripts/gen-chart-reference.ts`). Do not edit it by hand — run `npm run gen:reference`.
 
-The ECharts backend targets interactive, canvas-rendered charts and adds several types Vega-Lite does not cover (sunburst, treemap, sankey, gauge, graph, tree, parallel coordinates, calendar heatmap).
+The ECharts backend targets interactive, canvas-rendered charts and covers several structures outside Vega-Lite's scope: sunburst, treemap, sankey, gauge, graph, tree, parallel coordinates, and calendar heatmap.
 
-## How to set parameters
+## What this page covers
 
-Every parameter below is set through `chart_spec.chartProperties`, keyed by the parameter name:
+This reference lists the 37 chart types currently supported by the ECharts backend, grouped into 10 categories. Each chart entry shows:
+
+- **Encoding channels** — the visual roles accepted in `chart_spec.encodings`, such as `x`, `y`, `color`, `size`, `column`, or `row`.
+- **Options** — template-specific `chart_spec.chartProperties` keys, including control type, domain, default, availability, and description.
+
+Use the chart type name exactly as shown in `chart_spec.chartType`.
+
+## How to set encodings and options
+
+Set encodings in `chart_spec.encodings` and chart-specific options in `chart_spec.chartProperties`. Option keys match the parameter names below:
 
 ```jsonc
 {
@@ -16,9 +25,7 @@ Every parameter below is set through `chart_spec.chartProperties`, keyed by the 
 }
 ```
 
-The **Availability** column marks whether a parameter is `always` offered or only `conditional` (surfaced when the data/encodings warrant it — e.g. a log scale only on a wide-range axis). Passing a non-applicable parameter is accepted but ignored.
-
-**37 chart types** across 10 categories.
+The **Availability** column shows whether a parameter is `always` available or `conditional`, meaning it appears only when the data and encodings make it relevant. For example, log-scale controls appear only on wide-range axes. Non-applicable parameters are safe to pass; the assembler ignores them.
 
 ## Scatter & Point
 
@@ -28,7 +35,7 @@ The **Availability** column marks whether a parameter is `always` offered or onl
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `opacity` | number | 0.1 – 1 (step 0.05) | `1` | always | Mark fill/stroke opacity. |
+| `opacity` | number | 0.1 – 1 (step 0.05) | `1` | always | Mark opacity. |
 
 ### ![](chart-icon-linear-regression.svg) Regression
 
@@ -71,7 +78,7 @@ _No template-specific parameters._
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `cornerRadius` | number | 0 – 15 (step 1) | `0` | always | Rounded-corner radius for bar marks. |
+| `cornerRadius` | number | 0 – 15 (step 1) | `0` | always | Corner radius for supported marks. |
 
 ### ![](chart-icon-column-grouped.svg) Grouped Bar Chart
 
@@ -85,7 +92,7 @@ _No template-specific parameters._
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `stackMode` | choice | `Stacked (default)`, `Normalize (100%)`, `Layered (overlap)` | — | always | How overlapping series are stacked (none / stacked / normalized). |
+| `stackMode` | choice | `Stacked (default)`, `Normalize (100%)`, `Layered (overlap)` | — | always | Stacking strategy for overlapping series. |
 
 ### ![](chart-icon-lollipop.svg) Lollipop Chart
 
@@ -121,7 +128,7 @@ _No template-specific parameters._
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `interpolate` | choice | `Default (linear)`, `Linear`, `Monotone (smooth)`, `Step`, `Step Before`, `Step After` | — | always | Line/area interpolation (curve) method. |
+| `interpolate` | choice | `Default (linear)`, `Linear`, `Monotone (smooth)`, `Step`, `Step Before`, `Step After` | — | always | Line or area interpolation method. |
 | `showPoints` | toggle | on / off | `false` | always | Overlay point markers on the line. |
 
 ### ![](chart-icon-bump.svg) Bump Chart
@@ -142,9 +149,9 @@ _No template-specific parameters._
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `interpolate` | choice | `Default (linear)`, `Linear`, `Monotone (smooth)`, `Step`, `Step Before`, `Step After` | — | always | Line/area interpolation (curve) method. |
-| `opacity` | number | 0.1 – 1 (step 0.05) | `0.7` | always | Mark fill/stroke opacity. |
-| `stackMode` | choice | `Stacked (default)`, `Normalize (100%)`, `Center`, `Layered (overlap)` | — | always | How overlapping series are stacked (none / stacked / normalized). |
+| `interpolate` | choice | `Default (linear)`, `Linear`, `Monotone (smooth)`, `Step`, `Step Before`, `Step After` | — | always | Line or area interpolation method. |
+| `opacity` | number | 0.1 – 1 (step 0.05) | `0.7` | always | Mark opacity. |
+| `stackMode` | choice | `Stacked (default)`, `Normalize (100%)`, `Center`, `Layered (overlap)` | — | always | Stacking strategy for overlapping series. |
 
 ### ![](chart-icon-streamgraph.svg) Streamgraph
 
@@ -166,8 +173,8 @@ _No template-specific parameters._
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `innerRadius` | number | 0 – 60 (step 5) | `0` | always | Inner-radius (donut hole) as a percentage of the outer radius. |
-| `cornerRadius` | number | 0 – 10 (step 1) | `0` | always | Rounded-corner radius for bar marks. |
+| `innerRadius` | number | 0 – 60 (step 5) | `0` | always | Inner radius as a percentage of the outer radius. |
+| `cornerRadius` | number | 0 – 10 (step 1) | `0` | always | Corner radius for supported marks. |
 
 ### ![](chart-icon-funnel.svg) Funnel Chart
 
@@ -175,9 +182,9 @@ _No template-specific parameters._
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `sort` | choice | `Descending (default)`, `Ascending`, `Original order` | — | always | Sort |
-| `orient` | choice | `Vertical (default)`, `Horizontal` | — | always | Orient |
-| `gap` | number | 0 – 20 (step 1) | `2` | always | Gap |
+| `sort` | choice | `Descending (default)`, `Ascending`, `Original order` | — | always | Sort order for ordered stages or categories. |
+| `orient` | choice | `Vertical (default)`, `Horizontal` | — | always | Chart orientation. |
+| `gap` | number | 0 – 20 (step 1) | `2` | always | Gap between segments. |
 
 ### ![](chart-icon-treemap.svg) Treemap
 
@@ -185,7 +192,7 @@ _No template-specific parameters._
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `breadcrumb` | choice | `Show (default)`, `Hide` | — | always | Breadcrumb |
+| `breadcrumb` | choice | `Show (default)`, `Hide` | — | always | Show or hide treemap breadcrumb navigation. |
 
 ### ![](chart-icon-sunburst.svg) Sunburst Chart
 
@@ -193,8 +200,8 @@ _No template-specific parameters._
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `innerRadius` | number | 0 – 80 (step 5) | `0` | always | Inner-radius (donut hole) as a percentage of the outer radius. |
-| `labelRotate` | choice | `Radial (default)`, `Tangential`, `Horizontal` | — | always | Labels |
+| `innerRadius` | number | 0 – 80 (step 5) | `0` | always | Inner radius as a percentage of the outer radius. |
+| `labelRotate` | choice | `Radial (default)`, `Tangential`, `Horizontal` | — | always | Label orientation for sunburst sectors. |
 
 ### ![](chart-icon-tree.svg) Tree
 
@@ -202,7 +209,7 @@ _No template-specific parameters._
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `orient` | choice | `Left → Right (default)`, `Top → Bottom` | — | always | Orient |
+| `orient` | choice | `Left → Right (default)`, `Top → Bottom` | — | always | Chart orientation. |
 
 ## Statistical
 
@@ -244,8 +251,8 @@ _No template-specific parameters._
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `showMA` | toggle | on / off | `false` | always | Show Moving Avg |
-| `maWindow` | number | 3 – 30 (step 1) | `5` | always | MA Window |
+| `showMA` | toggle | on / off | `false` | always | Show a moving-average overlay. |
+| `maWindow` | number | 3 – 30 (step 1) | `5` | always | Moving-average window size. |
 
 ## Other
 
@@ -276,8 +283,8 @@ _No template-specific parameters._
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
 | `shape` | choice | `Polygon (default)`, `Circle` | — | always | Grid |
-| `filled` | choice | `Filled (default)`, `Outline only` | — | always | Fill the enclosed area. |
-| `fillOpacity` | number | 0.05 – 0.8 (step 0.05) | `0.3` | always | Fill opacity for the area/region. |
+| `filled` | choice | `Filled (default)`, `Outline only` | — | always | Fill the enclosed radar area. |
+| `fillOpacity` | number | 0.05 – 0.8 (step 0.05) | `0.3` | always | Fill opacity for the area or region. |
 
 ### ![](chart-icon-rose.svg) Rose Chart
 
@@ -307,7 +314,7 @@ _No template-specific parameters._
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `orient` | choice | `Horizontal (default)`, `Vertical` | — | always | Orient |
+| `orient` | choice | `Horizontal (default)`, `Vertical` | — | always | Chart orientation. |
 | `nodeWidth` | number | 5 – 40 (step 5) | `20` | always | Node Width |
 | `nodeGap` | number | 2 – 30 (step 2) | `10` | always | Node Gap |
 

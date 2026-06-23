@@ -1,6 +1,6 @@
-# Adding a backend
+# Extending backends
 
-A backend is an `assemble<Backend>(input)` orchestrator plus a `templates/` registry that turns shared compiler output into a native chart spec. Existing references: `vegalite/`, `echarts/`, `chartjs/` under `packages/flint-js/src/`.
+Add a backend when Flint needs to target a new rendering library or spec format. A backend is an `assemble<Backend>(input)` orchestrator plus a `templates/` registry; together they turn shared compiler output into a native chart spec. Existing references live under `packages/flint-js/src/`: `vegalite/`, `echarts/`, and `chartjs/`.
 
 For pipeline stages and repo layout, see [Architecture](/documentation/architecture).
 
@@ -8,9 +8,9 @@ For pipeline stages and repo layout, see [Architecture](/documentation/architect
 
 ## Table of Contents
 
-- [§1 Skeleton](#1-skeleton)
-- [§2 Assembly contract](#2-assembly-contract)
-- [§3 Templates](#3-templates)
+- [§1 Create the skeleton](#1-create-the-skeleton)
+- [§2 Follow the assembly contract](#2-follow-the-assembly-contract)
+- [§3 Add templates](#3-add-templates)
 - [§4 Wire up the package](#4-wire-up-the-package)
 - [§5 Site and gallery](#5-site-and-gallery)
 - [§6 Acceptance checklist](#6-acceptance-checklist)
@@ -18,7 +18,7 @@ For pipeline stages and repo layout, see [Architecture](/documentation/architect
 
 ---
 
-# §1 Skeleton
+# §1 Create the skeleton
 
 ```
 packages/flint-js/src/<backend>/
@@ -33,21 +33,21 @@ packages/flint-js/src/<backend>/
     └── …
 ```
 
-Copy the closest existing backend. Vega-Lite is the most complete reference for the two-stage pipeline; ECharts adds `colormap.ts` and `facet.ts` for backend-specific concerns.
+Copy the closest existing backend before starting from scratch. Vega-Lite is the most complete reference for the shared pipeline; ECharts adds `colormap.ts` and `facet.ts` for backend-specific concerns.
 
 ---
 
-# §2 Assembly contract
+# §2 Follow the assembly contract
 
 ```typescript
 function assemble<Backend>(input: ChartAssemblyInput): <BackendSpec>
 ```
 
-`ChartAssemblyInput` is defined in `packages/flint-js/src/core/types.ts` (`data`, `chart_spec`, `semantic_types`, `options`, …).
+`ChartAssemblyInput` is defined in `packages/flint-js/src/core/types.ts` and includes `data`, `chart_spec`, `semantic_types`, `options`, and related fields.
 
 ### Pipeline (do not skip core stages)
 
-The orchestrator **coordinates** `core/` — it should not re-derive format, zero baseline, or color from raw field types.
+The orchestrator **coordinates** `core/`. It should not re-derive format, zero baseline, or color from raw field types.
 
 ```text
 PRE-PHASE     normalizeStaticSeries(), applyEncodingOverrides()
@@ -73,13 +73,13 @@ PHASE 2       build backend encodings
 
 See `packages/flint-js/src/vegalite/assemble.ts` (file header + `assembleVegaLite`) for the canonical ordering.
 
-**IR boundary:** downstream code reads flat `ChannelSemantics` and `LayoutResult` — never re-inspects semantic type strings.
+**IR boundary:** downstream code reads flat `ChannelSemantics` and `LayoutResult` instead of re-inspecting semantic type strings.
 
 ---
 
-# §3 Templates
+# §3 Add templates
 
-Templates encode **shape**, not **decisions**. If you branch on `field.type === 'temporal'` inside a template, move that logic to `core/`.
+Templates encode **shape**, not **decisions**. If a template needs to branch on `field.type === 'temporal'`, move that logic to `core/` instead.
 
 Each template exports a `ChartTemplateDef` (`core/types.ts`):
 
@@ -94,27 +94,27 @@ Each template exports a `ChartTemplateDef` (`core/types.ts`):
 | `properties?` | Configurable chart properties |
 | `postProcess?` | Final visual tweaks after layout |
 
-Register in `templates/index.ts`: import defs, add to the category map, expose `*GetTemplateDef(chartType)` as `find(t => t.chart === chartType)`.
+Register in `templates/index.ts`: import defs, add them to the category map, and expose `*GetTemplateDef(chartType)` as `find(t => t.chart === chartType)`.
 
 ---
 
 # §4 Wire up the package
 
 1. **Barrel** — `export * from './<backend>'` in `packages/flint-js/src/index.ts`
-2. **Bundle** — add entry to `packages/flint-js/tsup.config.ts` (`<backend>/index`)
-3. **Exports** — add `"./<backend>"` subpath in `packages/flint-js/package.json#exports`
+2. **Bundle** — add a `packages/flint-js/tsup.config.ts` entry (`<backend>/index`)
+3. **Exports** — add the `"./<backend>"` subpath in `packages/flint-js/package.json#exports`
 4. **Smoke test** — extend `packages/flint-js/tests/smoke.test.ts` with one `assemble<Backend>()` shape assertion
-5. **Gallery data** — add `gen<Backend>*Tests()` in `src/test-data/` and register in `TEST_GENERATORS`
+5. **Gallery data** — add `gen<Backend>*Tests()` in `src/test-data/` and register it in `TEST_GENERATORS`
 
 ---
 
 # §5 Site and gallery
 
-- **Gallery dev server:** `npm run site` (root) → `/wall`
+- **Gallery dev server:** `npm run site` from the repo root, then open `/wall`
 - **Supported backends:** update `site/src/shared/supported-backends.ts` if the new backend should appear in the UI
 - **Renderers:** only add a new React view (`site/src/components/`) when the spec format cannot reuse `VegaLiteView`, `EChartsView`, or `ChartjsView`. `TripleChart` currently covers VL + ECharts + Chart.js.
 
-Optional: wire the assembler into `agent-skills/mcp-server/` if MCP clients should call it.
+Optional: wire the assembler into `agent-skills/mcp-server/` if MCP clients should be able to call it.
 
 ---
 
@@ -127,12 +127,12 @@ A backend is ready when:
 - [ ] `npm run typecheck` and `npm run test` pass at repo root
 - [ ] At least one dedicated test-data generator exercises backend-specific options
 
-**Parity note:** not every `chart` name exists in all four backends today. Document which templates you port; cross-backend parity is a goal, not a prerequisite for the first merge.
+**Parity note:** not every `chart` name exists in every backend today. Document which templates you port; cross-backend parity is a goal, not a prerequisite for the first merge.
 
 ---
 
 # §7 Related
 
-- [Adding a chart template](/documentation/adding-a-chart-template) — `ChartTemplateDef` authoring
+- [Extending chart templates](/documentation/adding-a-chart-template) — `ChartTemplateDef` authoring
 - [Auto Layout Algorithm](/documentation/layout-model) — what `computeLayout()` expects
 - [API reference](/documentation/api-reference) — `ChartAssemblyInput` and assembler entry points

@@ -44,26 +44,25 @@ const BACKENDS: BackendSpec[] = [
         file: 'reference-vegalite.md',
         defs: vlTemplateDefs,
         blurb:
-            'The Vega-Lite backend is the reference implementation and ships the widest set of chart types. ' +
-            'In addition to each template\'s own parameters, position-based charts automatically gain the ' +
-            'cross-cutting axis controls (`logScale_*`, `includeZero_*`, `xAxisType`/`yAxisType`) and faceted ' +
-            'charts gain `independentYAxis`.',
+            'The Vega-Lite backend serves as Flint\'s reference implementation and offers the broadest chart coverage. ' +
+            'Use it when you want the most complete support for declarative charts, including axis, scale, and faceting behavior.',
     },
     {
         name: 'ECharts',
         file: 'reference-echarts.md',
         defs: ecTemplateDefs,
         blurb:
-            'The ECharts backend targets interactive, canvas-rendered charts and adds several types Vega-Lite ' +
-            'does not cover (sunburst, treemap, sankey, gauge, graph, tree, parallel coordinates, calendar heatmap).',
+            'The ECharts backend targets interactive, canvas-rendered charts and covers several structures ' +
+            'outside Vega-Lite\'s scope: sunburst, treemap, sankey, gauge, graph, tree, parallel coordinates, ' +
+            'and calendar heatmap.',
     },
     {
         name: 'Chart.js',
         file: 'reference-chartjs.md',
         defs: cjsTemplateDefs,
         blurb:
-            'The Chart.js backend is the lightweight embedding target. It supports the common chart families with ' +
-            'a focused set of parameters.',
+            'The Chart.js backend is the lightweight embedding target for common chart families. It keeps the ' +
+            'parameter surface intentionally small.',
     },
 ];
 
@@ -73,34 +72,41 @@ const BACKENDS: BackendSpec[] = [
  * generic — the same key means the same thing across backends.
  */
 const PARAM_DESCRIPTIONS: Record<string, string> = {
-    opacity: 'Mark fill/stroke opacity.',
-    fillOpacity: 'Fill opacity for the area/region.',
-    pointSize: 'Point/marker size.',
+    opacity: 'Mark opacity.',
+    fillOpacity: 'Fill opacity for the area or region.',
+    pointSize: 'Point or marker size.',
     dotSize: 'Size of the dot mark.',
-    cornerRadius: 'Rounded-corner radius for bar marks.',
-    interpolate: 'Line/area interpolation (curve) method.',
+    cornerRadius: 'Corner radius for supported marks.',
+    interpolate: 'Line or area interpolation method.',
     showPoints: 'Overlay point markers on the line.',
     showTextLabels: 'Render value labels on the marks.',
     showPercent: 'Show each value as a percentage of the total.',
-    stackMode: 'How overlapping series are stacked (none / stacked / normalized).',
+    stackMode: 'Stacking strategy for overlapping series.',
     binCount: 'Number of histogram bins.',
     bandwidth: 'Kernel-density bandwidth (0 = auto).',
-    innerRadius: 'Inner-radius (donut hole) as a percentage of the outer radius.',
+    innerRadius: 'Inner radius as a percentage of the outer radius.',
     padAngle: 'Angular gap between radial segments.',
     alignment: 'Segment alignment for radial charts.',
     strokeWidth: 'Line stroke width.',
-    filled: 'Fill the enclosed area.',
+    filled: 'Fill the enclosed radar area.',
     maxRows: 'Maximum number of table rows to display.',
     stepWidth: 'Jitter spread width.',
     regressionMethod: 'Regression fit method.',
     polyOrder: 'Polynomial order for the regression fit.',
-    independentYAxis: 'Give each facet its own independent y-scale.',
+    independentYAxis: 'Use independent y-scales for facets.',
     logScale_x: 'Use a log/symlog scale on the x-axis.',
     logScale_y: 'Use a log/symlog scale on the y-axis.',
     includeZero_x: 'Anchor the x-axis at zero.',
     includeZero_y: 'Anchor the y-axis at zero.',
     xAxisType: 'Interpret the x-axis as a continuous time scale or discrete bands.',
     yAxisType: 'Interpret the y-axis as a continuous time scale or discrete bands.',
+    sort: 'Sort order for ordered stages or categories.',
+    orient: 'Chart orientation.',
+    gap: 'Gap between segments.',
+    breadcrumb: 'Show or hide treemap breadcrumb navigation.',
+    labelRotate: 'Label orientation for sunburst sectors.',
+    showMA: 'Show a moving-average overlay.',
+    maWindow: 'Moving-average window size.',
 };
 
 /**
@@ -240,6 +246,9 @@ function renderChart(def: ChartTemplateDef): string {
 
 function renderBackend(spec: BackendSpec): string {
     const out: string[] = [];
+    const total = Object.values(spec.defs).reduce((n, defs) => n + defs.length, 0);
+    const categoryCount = Object.keys(spec.defs).length;
+
     out.push(`# ${spec.name} chart reference`);
     out.push('');
     out.push(
@@ -249,10 +258,27 @@ function renderBackend(spec: BackendSpec): string {
     out.push('');
     out.push(spec.blurb);
     out.push('');
-    out.push('## How to set parameters');
+    out.push('## What this page covers');
     out.push('');
     out.push(
-        'Every parameter below is set through `chart_spec.chartProperties`, keyed by the parameter name:',
+        `This reference lists the ${total} chart types currently supported by the ${spec.name} backend, ` +
+            `grouped into ${categoryCount} categories. Each chart entry shows:`,
+    );
+    out.push('');
+    out.push(
+        '- **Encoding channels** — the visual roles accepted in `chart_spec.encodings`, such as `x`, `y`, `color`, `size`, `column`, or `row`.',
+    );
+    out.push(
+        '- **Options** — template-specific `chart_spec.chartProperties` keys, including control type, domain, default, availability, and description.',
+    );
+    out.push('');
+    out.push('Use the chart type name exactly as shown in `chart_spec.chartType`.');
+    out.push('');
+    out.push('## How to set encodings and options');
+    out.push('');
+    out.push(
+        'Set encodings in `chart_spec.encodings` and chart-specific options in `chart_spec.chartProperties`. ' +
+            'Option keys match the parameter names below:',
     );
     out.push('');
     out.push('```jsonc');
@@ -264,14 +290,10 @@ function renderBackend(spec: BackendSpec): string {
     out.push('```');
     out.push('');
     out.push(
-        'The **Availability** column marks whether a parameter is `always` offered or only `conditional` ' +
-            '(surfaced when the data/encodings warrant it — e.g. a log scale only on a wide-range axis). ' +
-            'Passing a non-applicable parameter is accepted but ignored.',
+        'The **Availability** column shows whether a parameter is `always` available or `conditional`, ' +
+            'meaning it appears only when the data and encodings make it relevant. For example, log-scale ' +
+            'controls appear only on wide-range axes. Non-applicable parameters are safe to pass; the assembler ignores them.',
     );
-    out.push('');
-
-    const total = Object.values(spec.defs).reduce((n, defs) => n + defs.length, 0);
-    out.push(`**${total} chart types** across ${Object.keys(spec.defs).length} categories.`);
     out.push('');
 
     for (const [category, defs] of Object.entries(spec.defs)) {

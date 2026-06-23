@@ -1,10 +1,10 @@
-# DEVELOPMENT
+# Development guide
 
-How to build, test, and extend **flint-chart** locally.
+Use this page to set up **flint-chart** locally, run the common checks, and find the right extension path when you need to add a new capability.
 
 ## Prerequisites
 
-- Node 18+ (see [`packages/flint-js/.nvmrc`](../packages/flint-js/.nvmrc) — `nvm use` if you have nvm)
+- Node 18+ (see [`packages/flint-js/.nvmrc`](../packages/flint-js/.nvmrc); run `nvm use` if you use nvm)
 - npm 9+ (workspaces)
 
 ## First-time setup
@@ -17,7 +17,7 @@ npm install    # root workspace: packages/flint-js, site, agent-skills
 
 ## Daily commands
 
-Run from the **repository root**:
+Run these from the **repository root**:
 
 | Command | What it does |
 |---------|----------------|
@@ -28,8 +28,7 @@ Run from the **repository root**:
 | `npm run site:build` | Production build → `site/dist/` |
 | `npm run mcp:build` | Build MCP server workspace |
 
-The demo site aliases `flint-chart` to `packages/flint-js/src` via Vite, so
-library edits hot-reload in the gallery and editor without rebuilding `dist/`.
+The demo site aliases `flint-chart` to `packages/flint-js/src` through Vite, so library edits hot-reload in the gallery and editor without rebuilding `dist/`.
 
 ## Repo layout
 
@@ -49,25 +48,28 @@ flint-chart/
 └── shared/test-data/      JSON fixtures (JS + Python)
 ```
 
-## How a chart gets assembled
+## How chart assembly works
 
 1. **Phase 0 — semantic resolution** (`packages/flint-js/src/core/resolve-semantics.ts`)
 2. **Phase 1 — layout** (`packages/flint-js/src/core/compute-layout.ts`)
 3. **Phase 2 — instantiation** (per-backend `assemble.ts` + templates)
 
-See [Architecture](/documentation/architecture) on the site.
+For the full flow, see [Architecture](/documentation/architecture).
 
-## Adding things
+## Extension guides
 
-- [Adding a chart template](/documentation/adding-a-chart-template)
-- [Adding a semantic type](/documentation/adding-a-semantic-type)
-- [Adding a backend](/documentation/adding-a-backend)
+Start with the guide that matches the surface you want to extend:
 
-## Tests
+- [Extending chart templates](/documentation/adding-a-chart-template) - add a new chart type to an existing backend.
+- [Extending semantic types](/documentation/adding-a-semantic-type) - teach Flint a new field meaning that changes formatting, aggregation, scale, or color behavior.
+- [Extending backends](/documentation/adding-a-backend) - add a new rendering target that consumes the shared compiler output.
+
+## Test coverage
 
 - **Smoke tests:** `packages/flint-js/tests/smoke.test.ts`
-- **Visual coverage:** [gallery](/wall) driven by `TEST_GENERATORS` in test-data
+- **Visual coverage:** [Gallery](/wall), driven by `TEST_GENERATORS` in test-data
+- **Shared fixtures:** `shared/test-data/`, consumed by JS and Python tests
 
 ## Release
 
-See [release-process.md](release-process.md). Published package: `packages/flint-js` on npm as `flint-chart`.
+See [release-process.md](release-process.md). The npm package is published from `packages/flint-js` as `flint-chart`.

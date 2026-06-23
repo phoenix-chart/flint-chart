@@ -1,8 +1,8 @@
 # API reference
 
-JavaScript / TypeScript package: **`flint-chart`** (`packages/flint-js`). 
+JavaScript / TypeScript package: **`flint-chart`** (`packages/flint-js`).
 
-Python package: **`flint-py`**: input shape mirrors the JS API.
+Python package: **`flint-py`**. Its input shape mirrors the JS API.
 
 Conceptual background: [Overview](/documentation/overview) · Pipeline: [Architecture](/documentation/architecture)
 
@@ -31,7 +31,7 @@ Conceptual background: [Overview](/documentation/overview) · Pipeline: [Archite
 | **dataSpec** | `semantic_types` | `field → string` or `field → SemanticAnnotation` |
 | **chartSpec** | `chart_spec` | `chartType`, `encodings`, `canvasSize`, `chartProperties` |
 
-`semantic_types` is authored once per dataset and reused across charts; only `chart_spec` changes during exploration.
+Author `semantic_types` once per dataset and reuse it across charts. During most exploration, `chart_spec` is the only part that changes.
 
 ### SemanticAnnotation (inline in `semantic_types`)
 
@@ -44,7 +44,7 @@ interface SemanticAnnotation {
 }
 ```
 
-Bare string shorthand: `"Price"` ≡ `{ semanticType: "Price" }`.
+Bare string shorthand: `"Price"` is equivalent to `{ semanticType: "Price" }`.
 
 ---
 
@@ -70,7 +70,7 @@ const cjsSpec = assembleChartjs(input);
 | `assembleECharts` | ECharts `option` object |
 | `assembleChartjs` | Chart.js configuration |
 
-Unknown `chartType` for a backend throws before render. Check support with `vlGetTemplateDef`, `ecGetTemplateDef`, or `cjsGetTemplateDef`.
+If a backend does not support a `chartType`, the assembler throws before render. Check support with `vlGetTemplateDef`, `ecGetTemplateDef`, or `cjsGetTemplateDef`.
 
 ---
 
@@ -101,7 +101,7 @@ interface ChartAssemblyInput {
 
 ### `semantic_types`
 
-Maps column name → semantic type. Drives encoding type, formatting, aggregation defaults, color class, and layout. See [Semantic Type](/documentation/semantic-types).
+Maps column name → semantic type. This drives encoding type, formatting, aggregation defaults, color class, and layout. See [Semantic Type](/documentation/semantic-types).
 
 ### `chart_spec`
 
@@ -109,13 +109,13 @@ Maps column name → semantic type. Drives encoding type, formatting, aggregatio
 |-------|-------------|
 | `chartType` | Template name — must match a backend registry entry (`"Bar Chart"`, `"Heatmap"`, …) |
 | `encodings` | Channel → encoding map |
-| `baseSize` | **Target** layout size in pixels (default 400×320) — the size the chart aims for with typical data. It may *stretch* past this, up to the ceiling, when data is dense. |
-| `canvasSize` | **Hard ceiling** — the maximum size the chart may ever reach (faceted grids included). Omitted → ceiling is `baseSize × options.maxStretch` (default 2×). Per-dimension caps are `βx = canvasSize.width / baseSize.width`, `βy = canvasSize.height / baseSize.height` (each ≥ 1). The base is clamped to the ceiling, so a `canvasSize` on its own acts as a fixed box the chart fills and shrinks to fit — never overflows. |
+| `baseSize` | **Target** layout size in pixels (default 400×320): the size the chart aims for with typical data. Dense data may stretch past it, up to the ceiling. |
+| `canvasSize` | **Hard ceiling:** the maximum size the chart may ever reach, including faceted grids. If omitted, the ceiling is `baseSize × options.maxStretch` (default 1.5×). Per-dimension caps are `βx = canvasSize.width / baseSize.width`, `βy = canvasSize.height / baseSize.height` (each ≥ 1). The base is clamped to the ceiling, so a `canvasSize` on its own acts as a fixed box the chart fills and shrinks to fit without overflowing. |
 | `chartProperties` | Template-specific toggles (e.g. `orient`, `opacity`) |
 
 > **base vs. canvas, in one line:** `baseSize` is what the chart *aims for*;
-> `canvasSize` is what it *may never exceed*. Set `canvasSize` for a fixed slot,
-> `baseSize` for a comfortable size that may grow for dense data. See the
+> `canvasSize` is what it *may never exceed*. Use `canvasSize` for a fixed slot,
+> and `baseSize` for a comfortable target that may grow for dense data. See the
 > [Example: Auto Layout](/documentation/chart-sizing).
 
 ---
@@ -135,7 +135,7 @@ interface ChartEncoding {
 }
 ```
 
-Explicit `type` overrides semantic inference. Explicit `aggregate` overrides auto-aggregation when enabled.
+Explicit `type` overrides semantic inference. Explicit `aggregate` overrides auto-aggregation when auto-aggregation is enabled.
 
 Common channels: `x`, `y`, `color`, `size`, `shape`, `column`, `row`, `group`, `detail`.
 
@@ -145,7 +145,7 @@ Common channels: `x`, `y`, `color`, `size`, `shape`, `column`, `row`, `group`, `
 interface AssembleOptions {
   addTooltips?: boolean;       // default false
   elasticity?: number;         // discrete stretch exponent (default 0.5)
-  maxStretch?: number;         // default stretch cap when no canvasSize ceiling (default 2)
+  maxStretch?: number;         // default stretch cap when no canvasSize ceiling (default 1.5)
   maxStretchX?: number;        // per-dimension width cap (derived from canvasSize)
   maxStretchY?: number;        // per-dimension height cap (derived from canvasSize)
   facetElasticity?: number;    // facet stretch (default 0.3)
@@ -211,7 +211,7 @@ vlGetTemplateChannels('Scatter Plot');
 
 # §7 Core utilities
 
-Re-exported from `flint-chart` / `flint-chart/core`:
+Re-exported from `flint-chart` and `flint-chart/core`:
 
 | Symbol | Purpose |
 |--------|---------|
@@ -242,7 +242,7 @@ Default strategy priority:
 5. Numeric field — numeric sort, first N
 6. Fallback — first N in data order
 
-Inspect `_warnings` or `ChartWarning` arrays in integration code to surface truncation in UI.
+Inspect `_warnings` or `ChartWarning` arrays in integration code to surface truncation in your UI.
 
 ---
 
@@ -265,5 +265,5 @@ Inspect `_warnings` or `ChartWarning` arrays in integration code to surface trun
 - [Architecture](/documentation/architecture) — three-stage pipeline
 - [Semantic Type](/documentation/semantic-types) — type hierarchy and resolution
 - [Getting started](/tutorials/getting-started) — hands-on walkthrough
-- [Adding a backend](/documentation/adding-a-backend) — new `assemble*()` target
+- [Extending backends](/documentation/adding-a-backend) — new `assemble*()` target
 - [Paper (PDF)](https://github.com/microsoft/flint-chart/blob/main/docs/figs/AgChart.pdf)

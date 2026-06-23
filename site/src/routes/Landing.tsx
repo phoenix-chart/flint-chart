@@ -117,6 +117,9 @@ export function Landing() {
         </section>
         */}
 
+        {/* ---- Interactive example: spec -> chart --------------------- */}
+        <HeroShowcase />
+
         {/* ---- Feature cards (alternating text / visual) -------------- */}
         <section style={sectionStyle}>
           <SectionDivider label="How it works" />
@@ -141,9 +144,6 @@ export function Landing() {
             ))}
           </div>
         </section>
-
-        {/* ---- Interactive example: spec -> chart (below the demos) ---- */}
-        <HeroShowcase />
 
         {/* ---- Closing CTA -------------------------------------------- */}
         <section style={{ ...sectionStyle, paddingBottom: 72, textAlign: 'center' }}>
@@ -271,7 +271,7 @@ const SHOWCASE_EXAMPLES: ShowcaseExample[] = [
   {
     id: 'line',
     label: 'Faceted line chart',
-    caption: 'Monthly active users over the year, with one small-multiple panel per region.',
+    caption: 'Monthly active users by region, laid out as small multiples over time.',
     generator: 'Omni: Line',
     index: 0,
     canvasSize: { width: 300, height: 600 },
@@ -279,46 +279,40 @@ const SHOWCASE_EXAMPLES: ShowcaseExample[] = [
   {
     id: 'heatmap',
     label: 'Diverging heatmap',
-    caption: 'Net new users by region and month, colored from losses to gains around zero.',
+    caption: 'Net user gains and losses by region and month, shown with zero-centered color.',
     generator: 'Omni: Heatmap',
     index: 0,
   },
   {
     id: 'waterfall',
     label: 'Waterfall',
-    caption: 'How monthly gains and losses build up to the running user total over the year.',
+    caption: 'Monthly gains and losses accumulated into the running user total for the year.',
     generator: 'Omni: Waterfall',
     index: 0,
   },
   {
     id: 'sunburst',
     label: 'Sunburst',
-    caption: 'Users broken down across a three-level hierarchy of region, game type, and game.',
+    caption: 'User activity broken into a three-level hierarchy: region, game type, and game.',
     generator: 'Omni: Sunburst',
     index: 0,
   },
   {
     id: 'donut',
     label: 'Donut chart',
-    caption:
-      'Share of films by MPAA rating. The pie becomes a donut just by setting an ' +
-      '\u201CinnerRadius\u201D chart property \u2014 no change to the data or encodings.',
+    caption: 'Film ratings as proportional slices, with an inner radius applied from the chart spec.',
     testCase: moviesDonut(),
   },
   {
     id: 'regression',
     label: 'Regression scatter',
-    caption:
-      'Critic vs. audience scores for every rated film in the dataset. The Regression chart type ' +
-      'fits a trend line over the points to show how strongly the two ratings correlate.',
+    caption: 'Critic and audience scores with a fitted trend line to reveal their relationship.',
     testCase: moviesRegression(),
   },
   {
     id: 'sorted-bar',
     label: 'Sorted bar chart',
-    caption:
-      'Film counts by genre. A sort override on the category axis (sortBy: \u201Cy\u201D, ' +
-      'sortOrder: \u201Cdescending\u201D) orders the bars from the most to the fewest films.',
+    caption: 'Film genres ordered by count, from the most common to the least.',
     testCase: moviesSortedBar(),
   },
 ];
@@ -381,8 +375,7 @@ function HeroShowcase() {
 
   return (
     <section style={sectionStyle}>
-      <SectionDivider label="Examples" />
-      <div style={carouselRowStyle}>
+      <div className="landing-showcase-row" style={carouselRowStyle}>
         <button
           type="button"
           onClick={goPrev}
@@ -456,7 +449,7 @@ function HeroShowcase() {
         </button>
       </div>
       <p style={showcaseCaptionStyle}>
-        <strong style={{ color: siteTheme.text, fontWeight: 600 }}> {example.label}.</strong>{' '}
+        <strong style={{ color: siteTheme.text, fontWeight: 600 }}>{example.label}.</strong>{' '}
         {example.caption}
       </p>
 
@@ -996,15 +989,19 @@ const actionBoxStyle: CSSProperties = {
 
 const leadStyle: CSSProperties = {
   fontSize: 17,
-  color: siteTheme.textMuted,
+  color: siteTheme.text,
   lineHeight: 1.65,
   margin: 0,
-  fontWeight: 300,
+  fontWeight: 400,
 };
 
 const leadHighlightStyle: CSSProperties = {
   fontWeight: 600,
-  color: '#005a9e',
+  color: 'inherit',
+  textDecoration: 'underline',
+  textDecorationColor: 'rgba(0, 120, 212, 0.34)',
+  textDecorationThickness: 2,
+  textUnderlineOffset: 3,
 };
 
 const installLinesStyle: CSSProperties = {
@@ -1022,21 +1019,34 @@ const installLineStyle: CSSProperties = {
 
 const promptMarkStyle: CSSProperties = {
   fontFamily: siteTheme.fontMono,
-  color: '#9aa3ad',
+  color: siteTheme.textMuted,
   userSelect: 'none',
 };
 
 const installLineLinkStyle: CSSProperties = {
-  color: '#005a9e',
+  color: siteTheme.accent,
   fontWeight: 500,
-  textDecoration: 'underline',
-  textUnderlineOffset: 3,
-  transition: 'color 120ms ease, box-shadow 120ms ease',
+  textDecoration: 'none',
+  transition: 'color 120ms ease',
 };
 
 const landingInteractiveStyles = `
   .landing-skill-link:hover {
-    color: #0078d4 !important;
+    color: #005a9e !important;
+  }
+
+  .landing-showcase-row {
+    width: calc(100% + 96px);
+    margin-left: -48px;
+    margin-right: -48px;
+  }
+
+  @media (max-width: 900px) {
+    .landing-showcase-row {
+      width: 100%;
+      margin-left: 0;
+      margin-right: 0;
+    }
   }
 `;
 
@@ -1218,10 +1228,12 @@ function dotStyle(active: boolean): CSSProperties {
 }
 
 const showcaseCaptionStyle: CSSProperties = {
-  margin: '14px auto 0',
+  maxWidth: 760,
+  margin: '16px auto 0',
   textAlign: 'center',
   color: siteTheme.textMuted,
-  fontSize: 13.5,
+  fontSize: 14.5,
+  lineHeight: 1.55,
 };
 
 const specPreStyle: CSSProperties = {
@@ -1402,14 +1414,13 @@ function heroActionLinkStyle(active: boolean): CSSProperties {
     margin: 0,
     textAlign: 'left',
     boxSizing: 'border-box',
-    padding: '3px 8px',
+    padding: '3px 0',
     borderRadius: 4,
     textDecoration: 'none',
     fontSize: 13,
     fontWeight: 500,
-    color: active ? siteTheme.text : siteTheme.accent,
-    background: active ? siteTheme.hover : 'transparent',
-    transform: active ? 'translateX(2px)' : 'translateX(0)',
-    transition: 'background 0.12s ease, color 0.12s ease, transform 0.12s ease',
+    color: active ? '#005a9e' : siteTheme.accent,
+    background: 'transparent',
+    transition: 'color 0.12s ease',
   };
 }

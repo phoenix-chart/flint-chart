@@ -1,6 +1,6 @@
 # Architecture
 
-Flint is a library-agnostic intermediate language for visualization. All `assemble*()` entry points share the same **compiler frontend** and **optimizer**; only the **code generator** is backend-specific.
+Flint is a library-agnostic intermediate language for visualization. Every `assemble*()` entry point uses the same **compiler frontend** and **optimizer**; only the **code generator** changes by backend.
 
 For motivation and spec examples, see [Overview](/documentation/overview). For input types, see [API reference](/documentation/api-reference).
 
@@ -22,12 +22,12 @@ For motivation and spec examples, see [Overview](/documentation/overview). For i
 
 # §1 Design principles
 
-1. **Semantics first** — `semantic_types` guide parsing, aggregation, zero baseline, diverging detection, and format — not raw storage types alone.
-2. **Minimal chart surface** — `chart_spec` supplies chart type and channel bindings (~10 lines). Axes, scales, legends, and step sizes are compiler-derived.
-3. **Dynamic templates** — Each `chartType` maps to a `ChartTemplateDef` whose `instantiate()` consumes the full compilation context and adapts to cardinality and semantics (paper §5.3).
-4. **No UI dependencies** — Pure TypeScript (`packages/flint-js`); Python port (`packages/flint-py`). Usable from agents, notebooks, servers, or this site.
+1. **Semantics first** — `semantic_types` guide parsing, aggregation, zero baseline, diverging detection, and formatting. Raw storage types are only the starting point.
+2. **Minimal chart surface** — `chart_spec` supplies chart type and channel bindings, usually in about 10 lines. Axes, scales, legends, and step sizes are compiler-derived.
+3. **Dynamic templates** — Each `chartType` maps to a `ChartTemplateDef`; its `instantiate()` hook consumes the full compilation context and adapts to cardinality and semantics (paper §5.3).
+4. **No UI dependencies** — The core is pure TypeScript (`packages/flint-js`) with a Python port (`packages/flint-py`), so it can run from agents, notebooks, servers, or this site.
 
-Roughly **90%** of design logic lives in Stages 1–2 and is identical across backends.
+Most design logic lives in Stages 1–2 and is identical across backends.
 
 ---
 
@@ -37,7 +37,7 @@ Roughly **90%** of design logic lives in Stages 1–2 and is identical across ba
 
 | Stage | Role | Implementation | Key outputs |
 |-------|------------|----------------|-------------|
-| **1. Compiler frontend** | Resolve encoding properties | Phase 0 — `resolveChannelSemantics()` | `ChannelSemantics` per channel |
+| **1. Compiler frontend** | Resolve semantic context | Phase 0 — `resolveChannelSemantics()` | `ChannelSemantics` per channel |
 | **2. Optimizer** | Fit layout to canvas | Phase 1 — `computeLayout()`, `filterOverflow()` | `LayoutResult`, truncated data |
 | **3. Code generator** | Emit library-native spec | Phase 2 — `build*Encodings()`, `template.instantiate()` | VL / EC / CJS spec |
 
@@ -79,7 +79,7 @@ Canonical orchestration: `packages/flint-js/src/vegalite/assemble.ts`.
 
 # §3 Stage 1 — Compiler frontend
 
-Resolution happens in two layers (detail: [Semantic Type §4](/documentation/semantic-types#4-compilation-pipeline)):
+Resolution happens in two layers; [Semantic Type §4](/documentation/semantic-types#4-compilation-pipeline) describes the full pipeline.
 
 ### Field properties
 
@@ -87,7 +87,7 @@ Per column, independent of chart: format class, aggregation role, domain shape, 
 
 ### Channel properties
 
-Chart-context grounding: the same `YearMonth` field may be temporal on `x` in a line chart but categorical on `color` in another view. Channel semantics prevent treating year-month integers as quantitative magnitudes.
+Chart-context grounding. The same `YearMonth` field may be temporal on `x` in a line chart but categorical on `color` in another view. Channel semantics prevent year-month integers from being treated as quantitative magnitudes.
 
 **IR:** `ChannelSemantics` — flat, backend-agnostic record consumed by layout and all templates.
 
@@ -97,7 +97,7 @@ Tiered types (T0 → T1 → T2) allow graceful degradation when agents supply co
 
 # §4 Stage 2 — Optimizer
 
-The optimizer receives `baseSize` (the target) and an optional `canvasSize` ceiling, then produces a `LayoutResult` so the chart fits without unreadable compression.
+The optimizer receives `baseSize` (the target) and an optional `canvasSize` ceiling, then produces a `LayoutResult` that keeps the chart readable within the available space.
 
 ### Local optimization
 
@@ -118,7 +118,7 @@ Implementation models: [Auto Layout Algorithm](/documentation/layout-model) — 
 
 # §5 Stage 3 — Code generator
 
-Backend generators translate optimized context into library-native syntax. Each `chartType` registers a **dynamic template**:
+Backend generators translate the optimized context into library-native syntax. Each `chartType` registers a **dynamic template**:
 
 | `ChartTemplateDef` field | Role |
 |--------------------------|------|
@@ -131,7 +131,7 @@ Backend generators translate optimized context into library-native syntax. Each 
 
 Registries: `vlTemplateDefs`, `ecTemplateDefs`, `cjsTemplateDefs`. Lookup: `vlGetTemplateDef(name)`, etc.
 
-New backends add Stage 3 only — frontend and optimizer unchanged. See [Adding a backend](/documentation/adding-a-backend).
+New backends implement Stage 3 only; the frontend and optimizer stay unchanged. See [Extending backends](/documentation/adding-a-backend).
 
 ---
 
@@ -143,13 +143,13 @@ New backends add Stage 3 only — frontend and optimizer unchanged. See [Adding 
 | **dataSpec** | `semantic_types` | Field meaning; reused across charts on the same dataset |
 | **chartSpec** | `chart_spec` | `chartType` + `encodings`; cheap to edit during exploration |
 
-LLM agents typically infer `semantic_types` once, then iterate on `chart_spec` — matching the paper's game-market case study: line → heatmap → grouped bar → waterfall → sunburst on one semantic layer.
+LLM agents typically infer `semantic_types` once, then iterate on `chart_spec`. This matches the paper's game-market case study: line → heatmap → grouped bar → waterfall → sunburst on one semantic layer.
 
 ---
 
 # §7 Overflow and warnings
 
-When discrete cardinality exceeds the canvas budget, the optimizer filters data and attaches `ChartWarning` metadata instead of rendering an unusable chart. Strategy priority and `_warnings` inspection: [API reference §8](/documentation/api-reference#8-overflow-and-warnings).
+When discrete cardinality exceeds the canvas budget, the optimizer filters data and attaches `ChartWarning` metadata instead of rendering an unreadable chart. Strategy priority and `_warnings` inspection are covered in [API reference §8](/documentation/api-reference#8-overflow-and-warnings).
 
 ---
 
@@ -176,4 +176,4 @@ site/               demo site (gallery, editor, documentation)
 - [Semantic Type](/documentation/semantic-types) — type hierarchy and resolution rules
 - [Auto Layout Algorithm](/documentation/layout-model) — stretch and facet models
 - [Paper (PDF)](https://github.com/microsoft/flint-chart/blob/main/docs/figs/AgChart.pdf)
-- [Adding a chart template](/documentation/adding-a-chart-template) — extend Stage 3
+- [Extending chart templates](/documentation/adding-a-chart-template) — extend Stage 3

@@ -1,6 +1,6 @@
 # Auto Layout Algorithm
 
-Physics-based models for automatically sizing chart axes when data overflows the available canvas.
+Physics-based models for automatically sizing chart axes when data outgrows the available canvas.
 
 New to Flint sizing? Start with [Example: Auto Layout](/documentation/chart-sizing), then return here for the complete algorithm.
 
@@ -17,8 +17,8 @@ New to Flint sizing? Start with [Example: Auto Layout](/documentation/chart-sizi
 
 ## Base size and the stretch ceiling
 
-Every model below sizes a chart from **two numbers**: a target it aims for and a
-ceiling it may never exceed.
+Every model below starts from **two numbers**: a target size the chart aims for
+and a ceiling it may never exceed.
 
 | Field | Role in the model | Default |
 |-------|-------------------|---------|
@@ -29,18 +29,18 @@ The stretch multiplier $\beta$ caps how far an axis may grow past the base, and
 is set per dimension:
 
 - **No `canvasSize` (default).** Each dimension may stretch up to `maxStretch`
-  (default **2.0**), i.e. the ceiling is $\text{baseSize} \times \text{maxStretch}$.
+  (default **1.5**), i.e. the ceiling is $\text{baseSize} \times \text{maxStretch}$.
 - **Explicit `canvasSize` ceiling.** The caps become the ceiling-to-base ratio:
 
   $$\beta_x = \max\!\left(1, \frac{\text{canvasSize.width}}{\text{baseSize.width}}\right), \qquad \beta_y = \max\!\left(1, \frac{\text{canvasSize.height}}{\text{baseSize.height}}\right).$$
 
 **Base never exceeds the ceiling.** Before the caps are computed, the base is
 clamped per dimension to the ceiling ($L_0 = \min(\text{baseSize}, \text{canvasSize})$).
-So a `canvasSize` *smaller* than the base (e.g. a fixed slot, with `baseSize`
-left at its default) shrinks $L_0$ to fit the box — the chart compresses and
-degrades text rather than overflowing. With `baseSize` omitted, a lone
-`canvasSize` therefore behaves as a pure **fit-to-box**: $L_0 = \text{canvasSize}$,
-$\beta = 1$, no growth past the box.
+So a `canvasSize` *smaller* than the base (for example, a fixed slot with
+`baseSize` left at its default) shrinks $L_0$ to fit the box. The chart
+compresses and degrades text instead of overflowing. With `baseSize` omitted, a
+lone `canvasSize` behaves as pure **fit-to-box**: $L_0 = \text{canvasSize}$,
+$\beta = 1$, and the chart cannot grow past the box.
 
 The width-driving models (discrete x-axis, gas-pressure x, treemap x-split) use
 $\beta_x$; the height-driving models (discrete y-axis, gas-pressure y, treemap
@@ -53,7 +53,7 @@ single $\beta$, read it as $\beta_x$ or $\beta_y$ for that dimension.
 
 ## Interactive demos
 
-These four models size a chart's axes when the data overflows the canvas. Drag the controls to watch each one respond live — adding items, changing the stretch factor, or resizing the canvas. Every control is explained inside its demo. The math in the sections below is only there if you want to verify the formulas.
+These four models size chart axes when data overflows the canvas. Drag the controls to watch each model respond as you add items, change the stretch factor, or resize the canvas. Every control is explained inside its demo; the sections below give the formulas for readers who want the full derivation.
 
 ### Elastic budget — discrete (banded) axis · [§2](#2-discrete-axis-elastic-budget-model)
 
@@ -145,7 +145,7 @@ area
 
 ## §1.1 Banded vs Non-Banded
 
-The layout model needs to decide **how** to allocate space for each positional axis. This depends on two independent properties:
+The layout model needs to decide **how** to allocate space for each positional axis. Two independent properties drive that decision:
 
 1. **Scale type** — the Vega-Lite encoding type of the field.
 2. **Mark geometry** — whether the mark occupies a fixed-width band or a point-like position.
@@ -200,7 +200,7 @@ For each positional axis (x, y):
 
 ## §1.3 Vega-Lite Implementation Notes
 
-The §2 elastic budget model applies to both discrete-banded and continuous-banded axes, but the **Vega-Lite implementation differs**:
+The §2 elastic budget model applies to both discrete-banded and continuous-banded axes, but the **Vega-Lite implementation differs** by scale type:
 
 ### Discrete banded (nominal / ordinal)
 
@@ -220,7 +220,7 @@ For grouped bars (xOffset / yOffset):
 
 ### Continuous banded (quantitative / temporal + band mark)
 
-VL does **not** support `{ "step": N }` on continuous scales. We handle this in two phases:
+VL does **not** support `{ "step": N }` on continuous scales, so Flint handles this in two phases:
 
 **Phase 1 — Canvas sizing (assemble.ts):**
 
@@ -232,7 +232,7 @@ The `+1` adds half-step padding on each side. The scale domain is extended by ±
 
 **Phase 2 — Mark sizing (postProcessing):**
 
-Since VL won't auto-size bars on a continuous scale:
+Since VL does not auto-size bars on a continuous scale:
 1. Sort unique field values; find `minGap` (smallest consecutive difference).
 2. Convert to pixels: `pixelsPerUnit = subplotDim × (N−1) / (dataRange × N)`.
 3. `markSize = min(stepSize × 0.9, floor(minGap × pixelsPerUnit))`.
@@ -279,9 +279,9 @@ Two competing goals must be balanced:
 | $\ell_0$ | Natural length per item | `defaultStepSize` | ~20 px |
 | $\ell_{\min}$ | Minimum length per item | `minStep` option | 6 px |
 | $\alpha$ | Elasticity exponent | `elasticity` option | 0.5 |
-| $\beta$ | Maximum stretch multiplier | `maxStretch`, or derived from `canvasSize` | 2.0 |
+| $\beta$ | Maximum stretch multiplier | `maxStretch`, or derived from `canvasSize` | 1.5 |
 
-> **Code defaults:** `ElasticStretchParams` in `core/decisions.ts` — `elasticity: 0.5`, `maxStretch: 2`, `minStep: 6`. The `defaultStepSize` is computed dynamically based on canvas size: `round(20 × max(1, sizeRatio) × defaultStepMultiplier)`.
+> **Code defaults:** `elasticity: 0.5`, `minStep: 6`, and `maxStretch: 1.5` when no `canvasSize` ceiling is set. The `defaultStepSize` is computed dynamically based on canvas size: `round(20 × max(1, sizeRatio) × defaultStepMultiplier)`.
 
 ## §2.3 Three Regimes
 
@@ -366,7 +366,7 @@ The linear spring model is more physically intuitive and allows independent tuni
 
 ## §2.6 Grouped Items
 
-Grouped items (e.g., grouped bar with $m$ sub-bars per group) are treated as a special case — the **group** is the unit of compression, not the individual item.
+Grouped items, such as a grouped bar chart with $m$ sub-bars per group, are treated as a special case: the **group** is the unit of compression, not the individual item.
 
 | Parameter | Simple discrete | Grouped bar ($m$ sub-bars) |
 |---|---|---|
@@ -378,7 +378,7 @@ The elastic budget formula is unchanged — only the parameter values change.
 
 **Example:** 15 groups × 3 sub-bars on a 400 px axis:
 - $N = 15$, $\ell_0 = 60$, ideal $= 900 > 400$ → Regime 3.
-- With $\alpha = 0.5$: $p = 900/400 = 2.25$, $s = \min(2, 2.25^{0.5}) = 1.50$.
+- With $\alpha = 0.5$: $p = 900/400 = 2.25$, $s = \min(1.5, 2.25^{0.5}) = 1.50$.
 - Budget $= 400 \times 1.5 = 600$, step $= 600/15 = 40$ px per group.
 
 > **Implementation:** In `computeLayout()`, grouping is detected via the `group` channel. When `xHasGrouping` is true, step is computed per-group with `xStepUnit = 'group'` and a minimum group gap of 3 px is enforced.
@@ -391,7 +391,7 @@ Different mark types have different visual footprints and compression tolerances
 
 | Mark type | $\ell_0$ | $\ell_{\min}$ | Compression tolerance | Rationale |
 |---|---|---|---|---|
-| **Bar** | 20 px | 6 px | Moderate | Width encodes the item — can't shrink too much |
+| **Bar** | 20 px | 6 px | Moderate | Width encodes the item, so it cannot shrink too much |
 | **Stacked bar** | 20 px | 6 px | Low | Stacked segments unreadable when thin |
 | **Grouped bar** ($m$) | $20m$ px | $2m$ px | Low | Losing sub-bar distinction is costly |
 | **Lollipop** | 14 px | 4 px | High | Dot (position) carries encoding, not width |
@@ -407,11 +407,11 @@ Different mark types have different visual footprints and compression tolerances
 3. Marks with **internal structure** (boxplot, candlestick) → higher $\ell_{\min}$.
 4. Marks showing **distribution shape** (histogram) → can be narrower.
 
-> **Note:** Currently, templates primarily adjust layout via `defaultStepMultiplier` (scales $\ell_0$ proportionally) and `overrideDefaultSettings`. Per-mark-type spring stiffness ($\kappa$) is a design aspiration, not yet individually parameterized in the code.
+> **Note:** Templates currently adjust layout mainly through `defaultStepMultiplier` (which scales $\ell_0$ proportionally) and `overrideDefaultSettings`. Per-mark-type spring stiffness ($\kappa$) is a design aspiration, not yet individually parameterized in the code.
 
 ## §2.8 Faceted Charts
 
-Faceting splits one chart into a grid of subplots. The canvas must accommodate $F$ panels, each with its own axis sizing. This section covers **grid layout** (stretch, subplot sizing, wrap). Continuous-axis AR blending within facets is [§3.8](#38-faceted-continuous-layout-per-subplot-baseline--pressure--ar-blend--fit).
+Faceting splits one chart into a grid of subplots. The canvas must accommodate $F$ panels, each with its own axis sizing. This section covers **grid layout**: stretch, subplot sizing, and wrapping. Continuous-axis AR blending within facets is covered in [§3.8](#38-faceted-continuous-layout-per-subplot-baseline--pressure--ar-blend--fit).
 
 ### §2.8.1 Facet stretch factor
 
@@ -419,11 +419,11 @@ The total canvas stretches to accommodate facets:
 
 $$\lambda_f = \min(\beta,\; F^{\alpha_f})$$
 
-where $\alpha_f$ = `facetElasticity` (default 0.3) and $\beta$ = `maxStretch` (default 2.0).
+where $\alpha_f$ = `facetElasticity` (default 0.3) and $\beta$ = `maxStretch` (default 1.5 when no `canvasSize` ceiling is set).
 
 The facet stretch uses a **gentler exponent** ($\alpha_f = 0.3$ vs $\alpha = 0.5$ for discrete items) because each subplot is a self-contained chart — even a small subplot can be readable, whereas a 3 px bar cannot.
 
-> **Implementation:** `computeLayout()` lines ~256–270 in `compute-layout.ts`. Uses `facetElasticityVal = 0.3` and `maxStretchVal = 2`.
+> **Implementation:** `computeLayout()` uses `facetElasticityVal = 0.3` and per-dimension caps from `resolveStretchCaps()`.
 
 ### §2.8.2 Subplot sizing
 
@@ -463,9 +463,9 @@ The gas pressure model (§3) runs within each subplot using $W_{\text{sub}} \tim
 When only a column facet is specified and $F$ exceeds the maximum columns that fit, panels wrap into a 2D grid:
 
 1. **Maximum columns:** $F_{c,\max} = \lfloor \text{effectiveW} / (S_{\min} + \text{gap}) \rfloor$, where $\text{effectiveW} = W_0 \times \beta - \text{fixPad}$.
-2. **Single row:** If $F \leq F_{c,\max}$, all panels fit in one row. No wrapping.
+2. **Single row:** If $F \leq F_{c,\max}$, all panels fit in one row, so no wrapping is needed.
 3. **Wrapping:** Otherwise, start with $F_c = F_{c,\max}$ columns and compute $F_r = \lceil F / F_c \rceil$ rows.
-4. **Widow avoidance:** If the last row would contain exactly 1 panel (a "widow"), reduce $F_c$ by 1 and recompute. Repeat while $F_c > 2$ and widow exists. This redistributes panels more evenly — e.g., 11 panels with maxCols=5 → 5×3 would leave 1 orphan, so try 4×3 (last row has 3).
+4. **Widow avoidance:** If the last row would contain exactly 1 panel (a "widow"), reduce $F_c$ by 1 and recompute. Repeat while $F_c > 2$ and a widow remains. This redistributes panels more evenly: 11 panels with maxCols=5 would produce 5×3 with 1 orphan, so the algorithm tries 4×3 instead, leaving 3 panels in the last row.
 
 The minimum subplot size ($S_{\min}$) is axis-aware:
 - **Discrete/banded axes:** $S_{\min} = \ell_{\min} \times N$ (minStep × value count per axis).
@@ -481,7 +481,7 @@ The minimum subplot size ($S_{\min}$) is axis-aware:
 | $\ell_0$ | Natural step size | ~20 px |
 | $\ell_{\min}$ | Minimum step size | 6 px |
 | $\alpha$ | Elasticity exponent | 0.5 |
-| $\beta$ | Maximum stretch | 2.0 |
+| $\beta$ | Maximum stretch | 1.5 |
 
 ```
 Given: N items, natural length ℓ₀, solid length ℓ_min,
@@ -509,9 +509,9 @@ else:
 
 ## §3.1 Problem
 
-A continuous axis displays $N$ point-like items (scatter dots, line vertices) across a 2D canvas. Unlike discrete items, these marks do not occupy fixed bands — they float at data-determined positions. Each mark has a visual cross-section $\sigma$ (px²).
+A continuous axis displays $N$ point-like items, such as scatter dots or line vertices, across a 2D canvas. Unlike discrete items, these marks do not occupy fixed bands; they sit at data-determined positions. Each mark has a visual cross-section $\sigma$ (px²).
 
-**Why springs don't apply:** Continuous marks don't own slots. A scatter plot with 100 points and one with 10 can both fit in the same canvas — the difference is **density**, not per-item allocation. This is the domain of gas physics.
+**Why springs do not apply:** Continuous marks do not own slots. A scatter plot with 100 points and one with 10 can both fit in the same canvas; the difference is **density**, not per-item allocation. That makes a pressure model a better fit than a per-item spring model.
 
 ## §3.2 Parameters
 
@@ -534,7 +534,7 @@ A continuous axis displays $N$ point-like items (scatter dots, line vertices) ac
 
 ## §3.3 Per-Axis Stretch
 
-Crowding is almost always asymmetric — e.g., on a line chart, X is driven by time points while Y is driven by overlapping series. Each axis is stretched independently.
+Crowding is almost always asymmetric. On a line chart, for example, X is driven by time points while Y is driven by overlapping series. Each axis is stretched independently.
 
 ### Mode 1: Positional (default)
 
@@ -557,7 +557,7 @@ When `seriesCountAxis` is set (`'x'`, `'y'`, or `'auto'`), the designated axis u
 
 $$p_{\text{series}} = \frac{n_{\text{series}} \cdot \sigma}{\text{dim}_0}$$
 
-Here $\sigma$ is used **directly** (not square-rooted) since series count is inherently 1D.
+Here $\sigma$ is used **directly** rather than square-rooted because series count is inherently 1D.
 
 > **Implementation:** `computeGasPressure()` in `core/decisions.ts` (lines ~442–508). The 2D path (both axes continuous) and 1D path (one axis continuous) are handled separately in `computeLayout()` lines ~275–425.
 
@@ -645,13 +645,13 @@ H = H₀ · stretch_y
 
 ### §3.8.1 Problem
 
-When faceted, the gas pressure model must answer: **what canvas does each subplot's data crowd against?**
+When a chart is faceted, the gas pressure model must answer one question first: **what canvas does each subplot's data crowd against?**
 
-Naive approach: run gas pressure against the full canvas, then divide by column/row count. This over-estimates available space — each subplot only gets a fraction. Sub-plots end up too large, exceeding the total budget.
+Naive approach: run gas pressure against the full canvas, then divide by column/row count. This overestimates available space because each subplot only gets a fraction of the canvas. Subplots end up too large and exceed the total budget.
 
-Alternative naive approach: divide the raw canvas by column/row count first, then run gas pressure per-subplot. This under-estimates — it ignores the facet stretch the layout engine will apply, so gas pressure sees an artificially tiny canvas and immediately saturates.
+Alternative naive approach: divide the raw canvas by column/row count first, then run gas pressure per subplot. This underestimates available space because it ignores the facet stretch the layout engine will apply. Gas pressure sees an artificially tiny canvas and immediately saturates.
 
-The correct answer is: **gas pressure runs against the per-subplot canvas that already accounts for facet elasticity** — the same stretch formula used for discrete axes.
+The correct answer is: **gas pressure runs against the per-subplot canvas after facet elasticity has been applied**. This uses the same stretch formula as discrete axes.
 
 ### §3.8.2 Per-Subplot Baseline Canvas
 
@@ -661,9 +661,9 @@ $$W_{\text{sub}} = \max\!\left(S_{\min},\; \frac{W_0 \cdot \lambda_f - \text{fix
 
 where $\lambda_f = \min(\beta,\; F_c^{\,\alpha_f})$ is the facet elasticity stretch (§2.8.1). For a single-panel chart ($F_c = 1$), $W_{\text{sub}} = W_0$.
 
-This gives gas pressure a realistic baseline: the space the subplot will actually occupy before any gas-pressure-driven stretch.
+This gives gas pressure a realistic baseline: the space the subplot will occupy before any additional gas-pressure stretch.
 
-> **Implementation:** `perSubplotCanvasW/H` in `computeLayout()` (~line 410–420). Uses `facetElasticityVal = 0.3` and `maxStretchVal = 2`.
+> **Implementation:** `perSubplotCanvasW/H` in `computeLayout()` (~line 410–420). Uses `facetElasticityVal = 0.3` and per-dimension caps from `resolveStretchCaps()`.
 
 ### §3.8.3 Banking AR (Multi-Scale Slope Optimization)
 
@@ -685,7 +685,7 @@ We use a **multi-scale banking** approach (Heer & Agrawala, 2006) that considers
 
 **For scatter plots** (non-connected): Instead of line slopes, use the standard-deviation ratio $\sigma_x / \sigma_y$ in normalized coordinates, with a dampened response: $\text{AR} = 1 + 0.3 \times (\text{sdRatio} - 1)$.
 
-**No dampening.** The raw combined slope is returned without any multiplicative dampening. The 50/50 blend with gas pressure (§3.8.4) is the sole moderation — applying dampening on top would double-moderate.
+**No extra dampening.** The raw combined slope is returned without multiplicative dampening. The 50/50 blend with gas pressure (§3.8.4) is the sole moderation; adding dampening here would moderate the signal twice.
 
 > **Implementation:** `computeBankingAR()` in `compute-layout.ts` (~line 819). Returns W/H aspect ratio in $[0.5,\; 3.0]$.
 
@@ -727,11 +727,11 @@ $$\text{fitScale} = \min\!\left(\frac{\text{availW}}{\text{idealW}},\; \frac{\te
 
 $$\text{finalW} = \max(S_{\min},\; \text{idealW} \times \text{fitScale}) \qquad \text{finalH} = \max(S_{\min},\; \text{idealH} \times \text{fitScale})$$
 
-The uniform `fitScale` ensures neither axis exceeds its budget AND the blended AR is preserved (except at minimum-size extremes).
+The uniform `fitScale` ensures neither axis exceeds its budget while preserving the blended AR, except at minimum-size extremes.
 
 ### §3.8.7 Worked Example
 
-150 dates × 8 series × 3 column facets (base $400 \times 300$, $\beta = 2.0$, line chart: $\sigma_x = 100$, $\sigma_y = 20$, `seriesCountAxis: auto → Y`, `facetElasticity = 0.3`):
+150 dates × 8 series × 3 column facets, with an explicit $\beta = 2.0$ cap for easy arithmetic (base $400 \times 300$, line chart: $\sigma_x = 100$, $\sigma_y = 20$, `seriesCountAxis: auto → Y`, `facetElasticity = 0.3`):
 
 **Per-subplot baseline:**
 - Facet stretch: $\lambda_f = \min(2, 3^{0.3}) = 1.35$
@@ -760,7 +760,7 @@ The uniform `fitScale` ensures neither axis exceeds its budget AND the blended A
 
 ### §3.9.1 Problem
 
-When one axis is banded (discrete) and the other is continuous — e.g., a bar chart with categories on X and values on Y — the step size from §2 determines the band width, while the continuous axis uses the default canvas height. If there are few categories with a tall canvas, each band becomes excessively elongated (tall, thin bars). This degrades readability: labels crowd, bar proportions look distorted, and the chart wastes vertical space.
+When one axis is banded and the other is continuous, such as a bar chart with categories on X and values on Y, the step size from §2 determines the band width while the continuous axis uses the default canvas height. With few categories on a tall canvas, each band can become excessively elongated. Labels crowd, bar proportions look distorted, and the chart wastes vertical space.
 
 ### §3.9.2 Target Band AR
 
@@ -812,7 +812,7 @@ The result is clamped to $[S_{\min},\; \text{actualDim}]$ — the blend only **s
 
 ## §4.1 Problem
 
-Radial charts (pie, rose, sunburst, radar) arrange data items around a **circle**. The relevant dimension is the **circumference**. When many items crowd the circumference, the chart must grow to keep slices/spokes legible.
+Radial charts (pie, rose, sunburst, radar) arrange data items around a **circle**, so the relevant dimension is the **circumference**. When many items crowd that circumference, the chart grows to keep slices and spokes legible.
 
 **Why axis models don't apply:**
 - **§2 (Spring):** Assumes a 1D axis with endpoints. Radial charts have a closed loop — growing means increasing the **radius**, which increases circumference as $C = 2\pi r$.
@@ -838,7 +838,7 @@ The circumference model maps the spring intuition to polar geometry: treat the c
 
 ## §4.3 Effective Item Count
 
-Different radial chart types have different crowding dynamics, abstracted into a single number $N_{\text{eff}}$.
+Different radial chart types crowd in different ways. The model abstracts those differences into a single number, $N_{\text{eff}}$.
 
 **Uniform slices/spokes** (rose, radar): $N_{\text{eff}} = N$.
 
@@ -846,7 +846,7 @@ Different radial chart types have different crowding dynamics, abstracted into a
 
 $$N_{\text{eff}} = \frac{\sum v_i}{\min(v_i)}$$
 
-This answers: "how many of the smallest slice would fill the entire circle?" Capped at 100 to prevent degenerate cases.
+This answers: "how many of the smallest slice would fill the entire circle?" The result is capped at 100 to prevent degenerate cases.
 
 **Sunburst:** Compute $N_{\text{eff}}$ on the **outer ring** (leaf nodes only) — the most crowded ring.
 
@@ -885,7 +885,7 @@ Both canvas dimensions grow equally (maintaining circular aspect ratio).
 
 ## §4.6 Gauge Faceting
 
-Gauge charts are a special case: each gauge is a single-item radial chart. Multiple gauges are laid out in a facet-style grid computed by the template (since the assembler's facet path doesn't apply to axis-less charts).
+Gauge charts are a special case: each gauge is a single-item radial chart. Multiple gauges are laid out in a facet-style grid computed by the template, because the assembler's facet path does not apply to axis-less charts.
 
 All gauge element sizes scale **continuously** with the computed radius:
 
@@ -935,10 +935,10 @@ H = max(H₀, 2r + 2m)
 
 ## §5.1 Problem
 
-Area-filling charts (treemap) divide a 2D canvas into rectangles whose area encodes value. Unlike Cartesian charts, the fundamental resource is **total area**. When many items crowd the space, every item ends up too small to display labels or be visually distinguishable.
+Area-filling charts, such as treemaps, divide a 2D canvas into rectangles whose area encodes value. Unlike Cartesian charts, the fundamental resource is **total area**. When many items crowd the space, every item becomes too small for labels or visual distinction.
 
 **Why other models don't apply:**
-- **§2 / §3:** Reason about 1D axes independently. Treemap items don't have stable positions on either axis — the squarify algorithm decides the partition on-the-fly.
+- **§2 / §3:** Reason about 1D axes independently. Treemap items do not have stable positions on either axis; the squarify algorithm decides the partition on the fly.
 - **§4:** Reasons about a closed loop. Treemap items occupy 2D area, not angular sectors.
 
 ## §5.2 Parameters
@@ -961,7 +961,7 @@ Uses the same formula as §4.3:
 
 $$N_{\text{eff}} = \min\!\left(100,\; \frac{\sum v_i}{\min(v_i)}\right)$$
 
-This captures the worst case: how many of the smallest item would fill the entire space.
+This captures the worst case: how many copies of the smallest item would fill the entire space.
 
 > **Implementation:** Calls `computeEffectiveBarCount()` from `core/decisions.ts`.
 
@@ -1017,7 +1017,7 @@ Base canvas 400×300, $\ell_{\min} = 30$, $\alpha = 0.5$, $\beta = 2.0$, $b = 1.
 | 50 equal items | 50 | 3.75 | 1.94 | 1.52 | 1.27 | 608 | 381 |
 | Skewed (1 large + 20 tiny) | 100 | 7.50 | 2.74 | 1.87 | 1.46 | 748 | 438 |
 
-**Why biased split?** Treemap squarify algorithms produce nearly square cells when the canvas is square. Giving X more stretch prioritizes horizontal readability: labels inside treemap cells are horizontal, so extra width is more valuable for label fitting.
+**Why biased split?** Treemap squarify algorithms produce nearly square cells when the canvas is square. Giving X more stretch prioritizes horizontal readability: labels inside treemap cells are horizontal, so extra width is more valuable for fitting text.
 
 ## §5.6 Summary
 
@@ -1054,7 +1054,7 @@ H = round(H₀ · s_y)
 
 # §6 Unified Summary
 
-The four models adapt the same core idea — **pressure → elastic stretch → clamped output** — to different geometric contexts:
+The four models adapt the same core idea, **pressure → elastic stretch → clamped output**, to different geometric contexts:
 
 | § | Model | Geometry | Pressure formula | Stretch dimension(s) | Chart types |
 |---|---|---|---|---|---|

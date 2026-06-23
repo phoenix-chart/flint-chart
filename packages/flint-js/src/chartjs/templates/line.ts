@@ -30,7 +30,7 @@ export const cjsLineChartDef: ChartTemplateDef = {
         paramOverrides: { continuousMarkCrossSection: { x: 100, y: 20, seriesCountAxis: 'auto' }, facetAspectRatioResistance: 0.5 },
     }),
     instantiate: (spec, ctx) => {
-        const { channelSemantics, table, chartProperties } = ctx;
+        const { channelSemantics, table, fullTable, chartProperties } = ctx;
         const xCS = channelSemantics.x;
         const yCS = channelSemantics.y;
         const colorField = channelSemantics.color?.field;
@@ -44,6 +44,22 @@ export const cjsLineChartDef: ChartTemplateDef = {
 
         const mapContinuousX = (raw: unknown) =>
             (xIsTemporal ? coerceUnixMsForChartJs(raw) : raw);
+
+        // For a continuous (linear) x-scale, Chart.js auto-computes a "nice"
+        // range that, on large Unix-ms timestamps, balloons far beyond the
+        // data extent and squeezes the plotted line into a narrow band. Pin
+        // the scale to the actual data extent — computed from the full table
+        // so faceted small multiples share one aligned x-domain (matching the
+        // Vega-Lite output).
+        let continuousXExtent: { min: number; max: number } | undefined;
+        if (!xIsDiscrete) {
+            const xNums = (fullTable ?? table)
+                .map((r: any) => mapContinuousX(r[xField]))
+                .filter((v: any): v is number => typeof v === 'number' && Number.isFinite(v));
+            if (xNums.length > 0) {
+                continuousXExtent = { min: Math.min(...xNums), max: Math.max(...xNums) };
+            }
+        }
 
         const categories = xIsDiscrete
             ? extractCategories(table, xField, xCS.ordinalSortOrder)
@@ -74,19 +90,29 @@ export const cjsLineChartDef: ChartTemplateDef = {
                     x: {
                         type: xIsDiscrete ? 'category' : 'linear',
                         title: { display: true, text: xField },
+                        ...(continuousXExtent
+                            ? { min: continuousXExtent.min, max: continuousXExtent.max }
+                            : {}),
                         ticks: {
                             font: { size: 10 },
                             ...(xIsTemporal
                                 ? {
-                                    maxTicksLimit: 8,
+                                    maxTicksLimit: 4,
+                                    autoSkip: true,
+                                    maxRotation: 0,
                                     callback(v: number | string) {
                                         const n = typeof v === 'number' ? v : Number(v);
                                         if (!Number.isFinite(n)) return String(v);
-                                        return new Date(n).toLocaleDateString(undefined, {
-                                            month: 'short',
-                                            day: 'numeric',
-                                            year: 'numeric',
-                                        });
+                                        // Drop the day for spans longer than ~2
+                                        // months so faceted (narrow) panels don't
+                                        // collide long "Apr 18, 2025" labels.
+                                        const spanDays = continuousXExtent
+                                            ? (continuousXExtent.max - continuousXExtent.min) / 86_400_000
+                                            : 0;
+                                        const opts: Intl.DateTimeFormatOptions = spanDays > 60
+                                            ? { month: 'short', year: 'numeric' }
+                                            : { month: 'short', day: 'numeric', year: 'numeric' };
+                                        return new Date(n).toLocaleDateString(undefined, opts);
                                     },
                                 }
                                 : {}),

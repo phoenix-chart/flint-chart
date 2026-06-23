@@ -44,7 +44,6 @@ import { normalizeStaticSeries } from '../core/static-series';
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
-
 /**
  * Assemble a Chart.js config object.
  *
@@ -233,6 +232,7 @@ export function assembleChartjs(input: ChartAssemblyInput): any {
         const facetLegend: Array<{ label: string; color: string }> = [];
 
         const yField = channelSemantics.y?.field;
+        const colorField = channelSemantics.color?.field;
         let sharedYDomain: { min: number; max: number } | undefined;
         if (yField) {
             const nums = values
@@ -244,16 +244,47 @@ export function assembleChartjs(input: ChartAssemblyInput): any {
                 const forceZero = !!channelSemantics.y?.zero?.zero;
                 const min = forceZero ? Math.min(0, rawMin) : rawMin;
                 const max = forceZero ? Math.max(0, rawMax) : rawMax;
-                sharedYDomain = { min, max };
+                // Round to "nice" bounds so the shared top/bottom land on round
+                // tick values. Otherwise Chart.js draws an extra tick at the
+                // exact data extreme (e.g. 517 or 169,877) that overlaps the
+                // adjacent round tick — Vega-Lite always uses nice bounds here.
+                sharedYDomain = niceBounds(min, max);
+            }
+        }
+
+        // Only the leftmost column reserves room for the shared y-axis; inner
+        // columns drop it and reclaim that width (see estimateYAxisGutter).
+        const axisGutter = sharedYDomain ? estimateYAxisGutter(sharedYDomain) : 0;
+
+        // Column wrapping: a column-only facet with more categories than fit in
+        // one row wraps into a 2D grid (matching Vega-Lite / ECharts). The wrap
+        // width comes from the shared facet-grid budget. computeLayout already
+        // sized the panels for this column count, so we only need to restructure
+        // the flat column list into rows. (2D col+row facets never wrap.)
+        const maxColsPerRow = (colField && !rowField)
+            ? (facetGridResult?.columns ?? colValues.length)
+            : colValues.length;
+        const wrapColumnOnly = !!colField && !rowField && maxColsPerRow < colValues.length;
+
+        const gridRows: Array<Array<{ colVal: string; rowVal: string }>> = [];
+        if (wrapColumnOnly) {
+            for (let i = 0; i < colValues.length; i += maxColsPerRow) {
+                gridRows.push(
+                    colValues.slice(i, i + maxColsPerRow).map((cv) => ({ colVal: cv, rowVal: '' })),
+                );
+            }
+        } else {
+            for (let ri = 0; ri < rowValues.length; ri++) {
+                gridRows.push(colValues.map((cv) => ({ colVal: cv, rowVal: rowValues[ri] })));
             }
         }
 
         const panelRows: any[][] = [];
-        for (let ri = 0; ri < rowValues.length; ri++) {
-            const rowVal = rowValues[ri];
+        for (let ri = 0; ri < gridRows.length; ri++) {
             const rowPanels: any[] = [];
-            for (let ci = 0; ci < colValues.length; ci++) {
-                const colVal = colValues[ci];
+            const cells = gridRows[ri];
+            for (let ci = 0; ci < cells.length; ci++) {
+                const { colVal, rowVal } = cells[ci];
                 const panelData = values.filter((r: any) => {
                     if (colField && String(r[colField]) !== colVal) return false;
                     if (rowField && String(r[rowField]) !== rowVal) return false;
@@ -279,7 +310,39 @@ export function assembleChartjs(input: ChartAssemblyInput): any {
                 cjsApplyLayoutToSpec(panelConfig, panelContext, []);
                 if (addTooltipsOpt) cjsApplyTooltips(panelConfig);
                 if (chartTemplate.postProcess) chartTemplate.postProcess(panelConfig, panelContext);
-                if (facetLegend.length === 0 && Array.isArray(panelConfig.data?.datasets)) {
+
+                // Shared y-axis across a facet row: only the leftmost column
+                // draws the y tick labels and axis title. Inner columns hide
+                // them entirely (display:false) and shrink their panel width by
+                // the reclaimed gutter, so panels pack tightly and the layout
+                // scales with the canvas. The renderer pins the leftmost axis
+                // width to `axisGutter` so every panel's plot area stays equal
+                // and the lines line up across the row.
+                if (ci > 0 && panelConfig.options?.scales?.y) {
+                    const yScale = panelConfig.options.scales.y;
+                    yScale.ticks = { ...(yScale.ticks || {}), display: false };
+                    yScale.title = { ...(yScale.title || {}), display: false };
+                    yScale.border = { ...(yScale.border || {}), display: false };
+                    if (typeof panelConfig._width === 'number') {
+                        panelConfig._width = Math.max(40, panelConfig._width - axisGutter);
+                    }
+                }
+
+                // Consistent x-axis labels across facet columns. Faceted small
+                // multiples are narrow, and a continuous/temporal x-axis places
+                // its first tick at the panel's left edge. On the leftmost panel
+                // the y-axis gutter gives the leading label room, but inner
+                // panels (no left gutter) clip it, so Chart.js drops it — leaving
+                // each facet with a different set of date labels. `align: 'inner'`
+                // pulls the first/last tick labels inside the chart area so they
+                // render on every panel, keeping the labels consistent across the
+                // row. Detect a continuous x-axis via the template's tick callback.
+                const xScale = panelConfig.options?.scales?.x;
+                if (xScale && typeof xScale.ticks?.callback === 'function') {
+                    xScale.ticks = { ...(xScale.ticks || {}), align: 'inner' };
+                }
+
+                if (facetLegend.length === 0 && colorField && Array.isArray(panelConfig.data?.datasets)) {
                     for (const ds of panelConfig.data.datasets) {
                         const label = String(ds?.label ?? '').trim();
                         if (!label) continue;
@@ -305,6 +368,8 @@ export function assembleChartjs(input: ChartAssemblyInput): any {
             !!colField,
             !!rowField,
             sharedYDomain,
+            axisGutter,
+            wrapColumnOnly,
         );
         cjsConfig._facetLegend = facetLegend;
     } else {
@@ -328,20 +393,77 @@ export function assembleChartjs(input: ChartAssemblyInput): any {
     return cjsConfig;
 }
 
+/**
+ * Round a [min, max] interval outward to "nice" round numbers so a shared facet
+ * axis lands its endpoints on clean tick values (mirrors Vega-Lite's default
+ * `nice: true`). Without this, Chart.js adds a tick at the exact data extreme,
+ * which overlaps the neighbouring round tick.
+ */
+function niceBounds(min: number, max: number, targetTicks = 5): { min: number; max: number } {
+    if (!(Number.isFinite(min) && Number.isFinite(max)) || max <= min) {
+        return { min, max };
+    }
+    const niceNum = (range: number, round: boolean): number => {
+        const exp = Math.floor(Math.log10(range));
+        const frac = range / 10 ** exp;
+        let niceFrac: number;
+        if (round) {
+            niceFrac = frac < 1.5 ? 1 : frac < 3 ? 2 : frac < 7 ? 5 : 10;
+        } else {
+            niceFrac = frac <= 1 ? 1 : frac <= 2 ? 2 : frac <= 5 ? 5 : 10;
+        }
+        return niceFrac * 10 ** exp;
+    };
+    const step = niceNum(niceNum(max - min, false) / Math.max(1, targetTicks - 1), true);
+    return {
+        min: Math.floor(min / step) * step,
+        max: Math.ceil(max / step) * step,
+    };
+}
+
+/**
+ * Estimate the horizontal space (px) a faceted line/bar y-axis needs for its
+ * tick labels plus the rotated axis title. Only the leftmost facet column draws
+ * this axis; inner columns reclaim the space, so the figure packs tightly and
+ * stays responsive to the canvas size (instead of every panel paying a fixed
+ * ~70px gutter).
+ */
+function estimateYAxisGutter(domain: { min: number; max: number }): number {
+    const fmt = (v: number) => {
+        const r = Math.round(v);
+        return Math.abs(r) >= 1000 ? r.toLocaleString() : String(r);
+    };
+    const chars = Math.max(fmt(domain.min).length, fmt(domain.max).length);
+    // ~6.5px per label char + tick padding (~12) + rotated axis title (~18).
+    return Math.ceil(chars * 6.5) + 30;
+}
+
 function cjsCombineFacetPanels(
     panelRows: any[][],
     hasColHeader: boolean,
     hasRowHeader: boolean,
     sharedYDomain?: { min: number; max: number },
+    axisGutter = 0,
+    colHeaderPerRow = false,
 ): any {
     const rows = panelRows.length;
     const cols = Math.max(1, ...panelRows.map(r => r.length));
     const ref = panelRows[0]?.[0]?.config;
-    const panelW = ref?._width || 400;
     const panelH = ref?._height || 300;
     const gap = 16;
     const colHeaderH = hasColHeader ? 22 : 0;
     const rowHeaderW = hasRowHeader ? 28 : 0;
+
+    // Column widths vary: the leftmost column keeps the y-axis gutter; the rest
+    // are narrower. Sum the first row's actual panel widths for the figure size.
+    const colWidths = Array.from({ length: cols }, (_, ci) =>
+        (panelRows[0]?.[ci]?.config?._width as number) || ref?._width || 400,
+    );
+    const totalPanelsW = colWidths.reduce((a, b) => a + b, 0);
+
+    // Wrapped column-only facets repeat the column-header band above every row;
+    // otherwise there is a single header band across the top.
+    const headerBands = colHeaderPerRow ? rows : (hasColHeader ? 1 : 0);
 
     return {
         _facet: true,
@@ -349,7 +471,9 @@ function cjsCombineFacetPanels(
         _facetRows: rows,
         _facetCols: cols,
         _facetSharedYDomain: sharedYDomain,
-        _width: rowHeaderW + cols * panelW + (cols - 1) * gap,
-        _height: colHeaderH + rows * panelH + (rows - 1) * gap,
+        _facetAxisGutter: axisGutter,
+        _facetColHeaderPerRow: colHeaderPerRow,
+        _width: rowHeaderW + totalPanelsW + (cols - 1) * gap,
+        _height: headerBands * colHeaderH + rows * panelH + (rows - 1) * gap,
     };
 }

@@ -1,7 +1,8 @@
 # agent-skills/
 
-Agent skill for **flint-chart** — teaches LLMs and IDE agents how to
-produce correct, idiomatic `ChartAssemblyInput` JSON.
+Agent skill for **flint-chart** — teaches LLMs and IDE agents how to produce
+correct, idiomatic `ChartAssemblyInput` JSON, then use it in the right
+workflow: MCP rendering, project integration, or backend compilation.
 
 ## How agents should use flint-chart
 
@@ -16,5 +17,12 @@ chart knobs**. The agent contract is:
 That's it. Sizing, zero baselines, color schemes, number formatting,
 sort order — all derived deterministically by the compiler.
 
-See [SKILL.md](SKILL.md) for the full contract, worked examples, and
-the validation checklist.
+When the user wants more than a spec, the skill also tells the agent how to:
+
+- validate and render charts with the Flint MCP server;
+- install `flint-chart` and the needed renderer peer dependencies;
+- call `assembleVegaLite`, `assembleECharts`, or `assembleChartjs` in JS/TS;
+- call `assemble_vegalite` in Python.
+
+See [flint-chart-author/SKILL.md](flint-chart-author/SKILL.md) for the full
+contract, worked examples, and the validation checklist.

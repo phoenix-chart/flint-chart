@@ -55,20 +55,50 @@ describe('grouped boxplot dodging', () => {
     expect(spec.encoding?.yOffset).toBeUndefined();
   });
 
-  it('shrinks the box size so dodged subgroups share one band', () => {
-    const ungrouped = assembleVegaLite({
-      ...makeGroupedBoxplotInput(['Electronics', 'Clothing', 'Food'], ['Male']),
-      chart_spec: {
-        chartType: 'Boxplot',
-        encodings: { x: { field: 'Category' }, y: { field: 'Score' } },
-        baseSize: { width: 500, height: 320 },
-      },
-    } as any) as any;
+  const sizeOf = (s: any) => (typeof s.mark === 'object' ? s.mark.size : undefined);
+  const stepOf = (s: any) => Number(s.width?.step ?? s.height?.step);
+  // Vega-Lite's position band scale reserves ~20% of each step as padding, so a
+  // band's usable drawing width is ~80% of the step. The per-subgroup lane pitch
+  // is therefore (step * 0.8) / subgroups — a box wider than this overlaps its
+  // neighbour inside the same group.
+  const lanePitch = (s: any, subgroups: number) => (stepOf(s) * 0.8) / subgroups;
+
+  it('fills most of each per-subgroup lane without overlapping its neighbour', () => {
+    // With colorActsAsGroup, `width:{step, for:'position'}` makes the step span a
+    // whole category band that Vega-Lite subdivides into one lane per subgroup.
+    // A dodged box must fill most of its lane pitch but stay within it, otherwise
+    // adjacent boxes in a group overlap.
+    const subgroups = 2;
     const grouped = assembleVegaLite(
       makeGroupedBoxplotInput(['Electronics', 'Clothing', 'Food'], ['Male', 'Female']),
     ) as any;
-    const sizeOf = (s: any) => (typeof s.mark === 'object' ? s.mark.size : undefined);
-    expect(sizeOf(grouped)).toBeLessThan(sizeOf(ungrouped));
+    const pitch = lanePitch(grouped, subgroups);
+    expect(sizeOf(grouped) / pitch).toBeGreaterThanOrEqual(0.75);
+    expect(sizeOf(grouped)).toBeLessThan(pitch);
+  });
+
+  it('shrinks the boxes as the subgroup count grows (chart stays compact)', () => {
+    // The band step is budgeted across categories, so adding more color groups
+    // must make each box thinner rather than ballooning the chart width.
+    const two = assembleVegaLite(
+      makeGroupedBoxplotInput(['A', 'B', 'C', 'D'], ['G1', 'G2']),
+    ) as any;
+    const four = assembleVegaLite(
+      makeGroupedBoxplotInput(['A', 'B', 'C', 'D'], ['G1', 'G2', 'G3', 'G4']),
+    ) as any;
+    // Boxes get thinner with more subgroups.
+    expect(sizeOf(four)).toBeLessThan(sizeOf(two));
+    // The band step grows sub-linearly with subgroups (budgeted across
+    // categories), so the chart stays compact instead of ballooning per lane.
+    expect(stepOf(four)).toBeLessThan(stepOf(two) * 2);
+    // Each sub-lane (and thus each box) shrinks as subgroups are added.
+    expect(stepOf(four) / 4).toBeLessThan(stepOf(two) / 2);
+    // Boxes never exceed their lane pitch (no within-group overlap) yet still
+    // fill most of it at both subgroup counts.
+    expect(sizeOf(two)).toBeLessThan(lanePitch(two, 2));
+    expect(sizeOf(four)).toBeLessThan(lanePitch(four, 4));
+    expect(sizeOf(two) / lanePitch(two, 2)).toBeGreaterThanOrEqual(0.75);
+    expect(sizeOf(four) / lanePitch(four, 4)).toBeGreaterThanOrEqual(0.75);
   });
 
   it('uses yOffset when the categorical axis is y (horizontal boxplot)', () => {

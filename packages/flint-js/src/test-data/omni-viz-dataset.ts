@@ -7,7 +7,7 @@
  * (3) composition — ECharts sunburst region → gameType → game (Dec totalUsers).
  *
  * **Detail rows**: Period × Game × Region; `period` is `2025-01` … `2025-12`; ≤24 games, 6 `gameType` values; regions N|E|S|W.
- * MAU stocks use {@link OMNI_VIZ_STOCK_SCALE} so waterfall opening/closing are comparable to monthly net-add on one axis.
+ * MAU stocks use {@link OMNI_VIZ_STOCK_SCALE} so monthly net-add and MAU views stay in a comparable visual range.
  * Net-add seasonality follows {@link narrativeMonthFlowMultiplier} (calendar month): 1–2 increase step-up; 3–5 decrease
  * easing; 6–8 increase fading; 9–10 decrease easing; 11–12 increase.
  */
@@ -68,8 +68,8 @@ export const OMNI_VIZ_GAME_ORDER = [
 ] as const;
 
 /**
- * Pull down initial MAU so portfolio **opening / closing** in the waterfall sit closer to **monthly net-add**
- * magnitudes; otherwise the start/end totals dwarf increase/decrease bars on a shared linear axis.
+ * Pull down initial MAU so portfolio stock views sit closer to **monthly net-add** magnitudes;
+ * otherwise MAU totals can dwarf increase/decrease bars when they share a linear axis.
  */
 const OMNI_VIZ_STOCK_SCALE = 0.1;
 /** Floor for MAU after net flow (keep small when stock scale is low). */
@@ -309,28 +309,20 @@ export function omniVizGroupedBarRegionGameTypeTable(): Record<string, unknown>[
 }
 
 /**
- * Phase 2 — Waterfall: opening MAU → each month’s portfolio net newUsers → closing MAU (year end).
+ * Phase 2 — Waterfall: monthly portfolio net newUsers by period.
+ *
+ * The Waterfall template auto-infers the first period as start, the last period
+ * as end, and the middle periods as deltas when no explicit Type column exists.
  */
 export function omniVizWaterfallTable(): Record<string, unknown>[] {
-    const jan = OMNI_VIZ_MONTHS[0];
-    let opening = 0;
-    let closing = 0;
-    for (const r of OMNI_VIZ_ROWS) {
-        if (r.period === jan) opening += r.totalUsers - r.newUsers;
-        if (r.period === DEC_PERIOD) closing += r.totalUsers;
-    }
     const monthly = new Map<string, number>();
     for (const r of OMNI_VIZ_ROWS) {
         monthly.set(r.period, (monthly.get(r.period) ?? 0) + r.newUsers);
     }
-    const rows: Record<string, unknown>[] = [
-        { Step: 'Opening MAU (year start)', Amount: Math.round(opening), Type: 'start' },
-    ];
-    for (const period of OMNI_VIZ_MONTHS) {
-        rows.push({ Step: period, Amount: monthly.get(period) ?? 0, Type: 'delta' });
-    }
-    rows.push({ Step: 'Closing MAU (year end)', Amount: Math.round(closing), Type: 'end' });
-    return rows;
+    return OMNI_VIZ_MONTHS.map(period => ({
+        period,
+        newUsers: monthly.get(period) ?? 0,
+    }));
 }
 
 /**

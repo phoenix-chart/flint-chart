@@ -22,16 +22,10 @@ const META: Record<string, { type: Type; semanticType: string; levels: any[] }> 
     period: { type: Type.String, semanticType: 'YearMonth', levels: [...OMNI_VIZ_LEVELS.periodStarts] },
     game: { type: Type.String, semanticType: 'Category', levels: [...OMNI_VIZ_LEVELS.games] },
     gameType: { type: Type.String, semanticType: 'Category', levels: [...OMNI_VIZ_LEVELS.gameTypes] },
-    newUsers: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+    newUsers: { type: Type.Number, semanticType: 'Profit', levels: [] },
     totalUsers: { type: Type.Number, semanticType: 'Quantity', levels: [] },
     region: { type: Type.String, semanticType: 'Category', levels: [...OMNI_VIZ_LEVELS.regions] },
 };
-
-const WF_STEPS = [
-    'Opening MAU (year start)',
-    ...OMNI_VIZ_LEVELS.months,
-    'Closing MAU (year end)',
-] as const;
 
 const HEATMAP_NEW_USERS_ANNOTATION: SemanticAnnotation = {
     /** Signed net flow → diverging color with meaningful zero (see color-decisions). */
@@ -96,23 +90,21 @@ export function genOmniVizGroupedBarTests(): TestCase[] {
 export function genOmniVizWaterfallTests(): TestCase[] {
     const data = omniVizWaterfallTable();
     return [{
-        title: 'Phase 2 — Waterfall: portfolio net newUsers month over month',
+        title: 'Phase 2 — Waterfall: monthly portfolio net newUsers',
         description:
-            'Change: x = step (opening → each YYYY-MM → closing); y = Amount. Middle steps are monthly sum(newUsers) across all games/regions; '
-            + 'start/end are opening and December total MAU (portfolio sum). Good for exec-friendly “how we got here”.',
+            'Change: x = period; y = monthly sum(newUsers) across all games/regions. '
+            + 'No explicit type column: the Waterfall template treats first period as start, last period as end, and middle periods as deltas.',
         tags: ['omni-viz', 'phase-2', 'waterfall', 'gallery', 'game-ops'],
         chartType: 'Waterfall Chart',
         data,
-        fields: [makeField('Step'), makeField('Amount'), makeField('Type')],
+        fields: [makeField('period'), makeField('newUsers')],
         metadata: {
-            Step: { type: Type.String, semanticType: 'Category', levels: [...WF_STEPS] },
-            Amount: { type: Type.Number, semanticType: 'Quantity', levels: [] },
-            Type: { type: Type.String, semanticType: 'Category', levels: ['start', 'delta', 'end'] },
+            period: META.period,
+            newUsers: META.newUsers,
         },
         encodingMap: {
-            x: makeEncodingItem('Step'),
-            y: makeEncodingItem('Amount'),
-            color: makeEncodingItem('Type'),
+            x: makeEncodingItem('period', { dtype: 'temporal' }),
+            y: makeEncodingItem('newUsers'),
         },
     }];
 }

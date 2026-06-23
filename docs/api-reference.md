@@ -116,7 +116,7 @@ Maps column name → semantic type. Drives encoding type, formatting, aggregatio
 > **base vs. canvas, in one line:** `baseSize` is what the chart *aims for*;
 > `canvasSize` is what it *may never exceed*. Set `canvasSize` for a fixed slot,
 > `baseSize` for a comfortable size that may grow for dense data. See the
-> [chart sizing demo](/documentation/chart-sizing).
+> [Example: Auto Layout](/documentation/chart-sizing).
 
 ---
 

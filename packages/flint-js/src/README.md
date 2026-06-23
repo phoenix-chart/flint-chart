@@ -200,9 +200,9 @@ interface ChartEncoding {
 interface AssembleOptions {
   addTooltips?: boolean;       // default false
   elasticity?: number;         // axis stretch exponent    (default 0.5)
-  maxStretch?: number;         // axis stretch cap         (default 2)
+  maxStretch?: number;         // axis stretch cap         (default 1.5)
   facetElasticity?: number;    // facet stretch exponent   (default 0.3)
-  maxStretch?: number;         // unified stretch cap     (default 2)
+  maxStretch?: number;         // unified stretch cap     (default 1.5)
   minStep?: number;            // min px per discrete tick (default 6)
   minSubplotSize?: number;     // min facet subplot px     (default 60)
 }

@@ -274,46 +274,56 @@ function genBarData(
     const data: Record<string, any>[] = [];
     const isContinuousColor = colorCh && !colorCh.levels;
 
-    // Determine x-positions
-    let xPositions: any[];
-    if (xCh.dimType === 'N') {
-        xPositions = xCh.levels!;
-    } else if (xCh.dimType === 'T') {
+    // Bars are positioned along the *categorical* axis; the other axis carries
+    // the measured length. For vertical bars that's x (e.g. N×Q); for horizontal
+    // bars the category sits on y (e.g. Q×N), so iterate y to give every
+    // category a bar. When neither axis is discrete (Q×Q) fall back to x.
+    const isCatDim = (d: DimType) => d === 'N' || d === 'T';
+    const useYAsPosition = !isCatDim(xCh.dimType) && isCatDim(yCh.dimType);
+    const posCh = useYAsPosition ? yCh : xCh;
+    const measCh = useYAsPosition ? xCh : yCh;
+
+    // Determine position values along the categorical axis
+    let positions: any[];
+    if (posCh.dimType === 'N') {
+        positions = posCh.levels!;
+    } else if (posCh.dimType === 'T') {
         const nGroups = colorCh?.levels ? colorCh.levels.length : 1;
         const nDates = Math.max(1, Math.floor(entry.n / nGroups));
-        xPositions = genDates(nDates, 2020);
+        positions = genDates(nDates, 2020);
     } else { // Q
         const nGroups = colorCh?.levels ? colorCh.levels.length : 1;
         const nPts = Math.max(1, Math.floor(entry.n / nGroups));
-        xPositions = Array.from({ length: nPts }, (_, i) => i + 1);
+        positions = Array.from({ length: nPts }, (_, i) => i + 1);
     }
 
     if (isContinuousColor) {
-        // Continuous color: multiple rows per x, each with a random color float
-        const rowsPerX = Math.max(1, Math.floor(entry.n / xPositions.length));
-        for (const xVal of xPositions) {
-            for (let r = 0; r < rowsPerX; r++) {
-                const row: Record<string, any> = { [xCh.fieldName]: xVal };
-                row[yCh.fieldName] = genBarYValue(yCh, rand);
+        // Continuous color: multiple rows per position, each a random color float
+        const rowsPerPos = Math.max(1, Math.floor(entry.n / positions.length));
+        for (const posVal of positions) {
+            for (let r = 0; r < rowsPerPos; r++) {
+                const row: Record<string, any> = { [posCh.fieldName]: posVal };
+                row[measCh.fieldName] = genBarYValue(measCh, rand);
                 row[colorCh!.fieldName] = Math.round(rand() * 4000) / 100;
                 data.push(row);
             }
         }
     } else if (colorCh?.levels) {
-        // Discrete color: one row per (x × color)
-        for (const xVal of xPositions) {
+        // Discrete color: one row per (position × color) so every category has a
+        // full set of grouped/stacked bars (no missing combinations).
+        for (const posVal of positions) {
             for (const cVal of colorCh.levels) {
-                const row: Record<string, any> = { [xCh.fieldName]: xVal };
-                row[yCh.fieldName] = genBarYValue(yCh, rand);
+                const row: Record<string, any> = { [posCh.fieldName]: posVal };
+                row[measCh.fieldName] = genBarYValue(measCh, rand);
                 row[colorCh.fieldName] = cVal;
                 data.push(row);
             }
         }
     } else {
         // No color
-        for (const xVal of xPositions) {
-            const row: Record<string, any> = { [xCh.fieldName]: xVal };
-            row[yCh.fieldName] = genBarYValue(yCh, rand);
+        for (const posVal of positions) {
+            const row: Record<string, any> = { [posCh.fieldName]: posVal };
+            row[measCh.fieldName] = genBarYValue(measCh, rand);
             data.push(row);
         }
     }

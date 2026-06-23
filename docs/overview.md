@@ -123,7 +123,7 @@ Full input schema: [API reference](/documentation/api-reference).
 | **Code generator** | Phase 2 — `template.instantiate()` | `vegalite/`, `echarts/`, `chartjs/` |
 
 1. **Frontend** — encoding type, format, aggregation, scale, domain, color, sort from dataSpec + data
-2. **Optimizer** — axis span, band step, facet grid, aspect ratio via physics-based sizing; start with the [chart sizing demo](/documentation/chart-sizing), then use [Auto Layout Algorithm](/documentation/layout-model) for the equations
+2. **Optimizer** — axis span, band step, facet grid, aspect ratio via physics-based sizing; start with [Example: Auto Layout](/documentation/chart-sizing), then use [Auto Layout Algorithm](/documentation/layout-model) for the equations
 3. **Code generator** — dynamic templates per `chartType` emit library-native specs
 
 Pipeline detail: [Architecture](/documentation/architecture).
@@ -144,7 +144,7 @@ Pipeline detail: [Architecture](/documentation/architecture).
 
 ```bash
 npm install flint-chart    # JavaScript / TypeScript
-pip install flint          # Python (Vega-Lite today)
+pip install flint-chart    # Python (Vega-Lite today)
 ```
 
 ```ts

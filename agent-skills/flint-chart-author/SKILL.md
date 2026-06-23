@@ -1,9 +1,9 @@
 ---
 name: flint-chart-author
-description: Author a flint-chart ChartAssemblyInput — pick a chart type, map fields to channels, annotate each field with a semantic type. USE WHEN the user asks to "make a chart", "visualize this data", or "generate a Vega-Lite/ECharts/Chart.js spec" from tabular data. The library deterministically derives sizing, zero baseline, color schemes, and formatting from the semantic types, so DO NOT hand-tune those values.
+description: "Use when: the user asks to make or render charts with flint-chart, visualize tabular data, generate a ChartAssemblyInput, validate/render through MCP, or add Flint to a JS/Python project. Author the semantic spec, install/import Flint only when executable code is needed, and do not hand-tune backend chart JSON."
 ---
 
-# flint-chart: authoring a chart spec
+# flint-chart: authoring and using a chart spec
 
 ## What you produce (and what you do NOT)
 
@@ -21,6 +21,61 @@ or `assembleChartjs` to get a backend spec.
   data gets bound"). Embedding is fine for small tables; just don't
   re-serialize a *large* dataset by hand, since that risks truncation and
   silent value corruption and wastes tokens.
+
+## When the user wants more than a spec
+
+First decide which workflow the user is asking for:
+
+- **Spec authoring only:** return a `ChartAssemblyInput` or its
+  `semantic_types` + `chart_spec` pieces. Do not install packages or write
+  renderer code unless asked.
+- **MCP chart output:** if Flint MCP tools are available, validate before
+  rendering. Use `validate_chart` to check the input, `render_chart` to return
+  PNG or SVG, `compile_chart` when the user wants backend-native JSON, and
+  `list_chart_types` when you need the supported chart catalog.
+- **Project integration:** if the user asks to add Flint to an app, notebook,
+  script, or agentic product, install/import the library and call an assembler
+  in code. Keep the same `ChartAssemblyInput` contract, then let the host render
+  the backend result.
+
+For MCP clients, the server can run with `npx`:
+
+```bash
+npx -y flint-chart-mcp
+```
+
+For JavaScript or TypeScript projects, install Flint first and add only the
+renderer peer dependencies needed by the backend you will render:
+
+```bash
+npm install flint-chart
+npm install vega vega-lite vega-embed  # browser Vega-Lite rendering
+npm install echarts                    # ECharts rendering
+npm install chart.js                   # Chart.js rendering
+```
+
+Then compile with the requested backend:
+
+```ts
+import { assembleChartjs, assembleECharts, assembleVegaLite } from 'flint-chart';
+
+const vegaLiteSpec = assembleVegaLite(input);
+const echartsOption = assembleECharts(input);
+const chartjsConfig = assembleChartjs(input);
+```
+
+For Python, install the package and compile the same input shape to Vega-Lite:
+
+```bash
+pip install flint-chart
+pip install altair  # optional renderer for notebooks or static HTML
+```
+
+```python
+from flint.vegalite import assemble_vegalite
+
+spec = assemble_vegalite(input)
+```
 
 ```ts
 interface ChartAssemblyInput {

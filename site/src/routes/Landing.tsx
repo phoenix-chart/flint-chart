@@ -28,19 +28,6 @@ import overviewImg from '../assets/flint-overview.png';
  * Copy is written to read plainly, with one interactive spec→chart example.
  */
 export function Landing() {
-  const [installCopied, setInstallCopied] = useState(false);
-  const installCommand = 'npm install flint-chart';
-
-  const handleCopyInstall = async () => {
-    try {
-      await navigator.clipboard.writeText(installCommand);
-      setInstallCopied(true);
-      window.setTimeout(() => setInstallCopied(false), 1600);
-    } catch {
-      setInstallCopied(false);
-    }
-  };
-
   return (
     <div style={pageStyle}>
       <style>{landingInteractiveStyles}</style>
@@ -55,36 +42,46 @@ export function Landing() {
             <div style={leadTextColStyle}>
               <p style={leadStyle}>{LEAD_INTRO}</p>
 
-              <p style={installLineStyle}>
-                Install the library with npm:{' '}
-                <span style={installCommandWrapStyle}>
-                  <button
-                    type="button"
-                    className="landing-install-command"
-                    style={installCommandButtonStyle}
-                    onClick={handleCopyInstall}
-                    title={installCopied ? 'Copied' : 'Click to copy npm install command'}
-                    aria-label={installCopied ? 'Copied npm install command' : 'Copy npm install command'}
+              <div style={installLinesStyle}>
+                <div style={installLineStyle}>
+                  <span style={promptMarkStyle}>&gt;</span> Install Flint with{' '}
+                  <Link
+                    to="/documentation/getting-started#javascript-typescript"
+                    className="landing-skill-link"
+                    style={installLineLinkStyle}
                   >
-                    <code style={installCommandCodeStyle}>{installCommand}</code>
-                  </button>
-                  {installCopied && (
-                    <span style={installCopiedTooltipStyle} role="status" aria-live="polite">
-                      Copied!
-                    </span>
-                  )}
-                </span>{' '}
-                · For agent workflows, visit{' '}
-                <a
-                  href={`${GITHUB_REPO}/blob/main/agent-skills/SKILL.md`}
-                  className="landing-skill-link"
-                  style={installLineLinkStyle}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Skill.md
-                </a>
-              </p>
+                    npm
+                  </Link>{' '}
+                  (TypeScript / JavaScript) or{' '}
+                  <Link
+                    to="/documentation/getting-started#python"
+                    className="landing-skill-link"
+                    style={installLineLinkStyle}
+                  >
+                    pip
+                  </Link>{' '}
+                  (Python).
+                </div>
+                <div style={installLineStyle}>
+                  <span style={promptMarkStyle}>&gt;</span> To use Flint in agent workflows, check the{' '}
+                  <Link
+                    to="/documentation/agent-workflows#agent-skill-authoring"
+                    className="landing-skill-link"
+                    style={installLineLinkStyle}
+                  >
+                    agent skill
+                  </Link>{' '}
+                  or{' '}
+                  <Link
+                    to="/documentation/agent-workflows#mcp-server-execution"
+                    className="landing-skill-link"
+                    style={installLineLinkStyle}
+                  >
+                    MCP server
+                  </Link>
+                  .
+                </div>
+              </div>
             </div>
 
             <div style={leadButtonsColStyle}>
@@ -92,7 +89,7 @@ export function Landing() {
                 <HeroActionLink href={GITHUB_REPO} label="GitHub" />
                 <HeroActionLink to="/wall" label="Gallery" />
                 <HeroActionLink to="/documentation/overview" label="Documentation" />
-                <HeroActionLink href={`${GITHUB_REPO}/blob/main/agent-skills/SKILL.md`} label="Skill.md" />
+                <HeroActionLink href={`${GITHUB_REPO}/blob/main/agent-skills/flint-chart-author/SKILL.md`} label="Skill.md" />
                 <HeroActionLink to="/editor" label="Editor" />
               </div>
             </div>
@@ -1010,65 +1007,23 @@ const leadHighlightStyle: CSSProperties = {
   color: '#005a9e',
 };
 
-const installLineStyle: CSSProperties = {
-  display: 'inline-block',
+const installLinesStyle: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 4,
   margin: '20px 0 0',
-  padding: '8px 10px',
-  border: `1px solid ${HAIRLINE}`,
-  borderRadius: siteTheme.radius,
-  background: '#f6f8fa',
+};
+
+const installLineStyle: CSSProperties = {
   color: siteTheme.textMuted,
   fontSize: 15.5,
   lineHeight: 1.65,
 };
 
-const installCommandWrapStyle: CSSProperties = {
-  position: 'relative',
-  display: 'inline-flex',
-  verticalAlign: 'baseline',
-};
-
-const installCommandButtonStyle: CSSProperties = {
-  appearance: 'none',
-  display: 'inline-flex',
-  alignItems: 'center',
-  margin: '0 2px',
-  padding: '1px 6px',
-  border: '1px solid rgba(0, 0, 0, 0.06)',
-  borderRadius: 4,
-  background: 'rgba(0, 0, 0, 0.025)',
-  color: '#57606a',
-  font: 'inherit',
-  lineHeight: 'inherit',
-  boxShadow: 'none',
-  cursor: 'pointer',
-  textAlign: 'left',
-  verticalAlign: 'baseline',
-  transition: 'background 120ms ease, border-color 120ms ease',
-};
-
-const installCommandCodeStyle: CSSProperties = {
+const promptMarkStyle: CSSProperties = {
   fontFamily: siteTheme.fontMono,
-  fontSize: '0.92em',
-  color: '#57606a',
-  background: 'transparent',
-};
-
-const installCopiedTooltipStyle: CSSProperties = {
-  position: 'absolute',
-  left: '50%',
-  bottom: 'calc(100% + 6px)',
-  transform: 'translateX(-50%)',
-  padding: '3px 7px',
-  borderRadius: 4,
-  background: siteTheme.text,
-  color: '#fff',
-  fontSize: 12,
-  fontWeight: 500,
-  lineHeight: 1.3,
-  whiteSpace: 'nowrap',
-  pointerEvents: 'none',
-  zIndex: 2,
+  color: '#9aa3ad',
+  userSelect: 'none',
 };
 
 const installLineLinkStyle: CSSProperties = {
@@ -1080,18 +1035,6 @@ const installLineLinkStyle: CSSProperties = {
 };
 
 const landingInteractiveStyles = `
-  .landing-install-command:hover,
-  .landing-install-command:active {
-    background: rgba(0, 0, 0, 0.045) !important;
-    border-color: rgba(0, 0, 0, 0.10) !important;
-    color: #57606a !important;
-  }
-
-  .landing-install-command:focus-visible {
-    outline: 2px solid rgba(0, 120, 212, 0.35);
-    outline-offset: 2px;
-  }
-
   .landing-skill-link:hover {
     color: #0078d4 !important;
   }

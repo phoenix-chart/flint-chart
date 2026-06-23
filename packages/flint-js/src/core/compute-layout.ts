@@ -144,12 +144,12 @@ interface AxisLayoutInput {
  *
  * The assembler derives `maxStretchX`/`maxStretchY` from the spec's
  * `canvasSize / baseSize` ratio (the hard ceiling). When neither is set,
- * both fall back to the scalar `maxStretch` (default 2) — the legacy
- * symmetric budget. Each cap is clamped to ≥ 1 (a chart never shrinks
- * below its base under "stretch").
+ * both fall back to the scalar `maxStretch` (default {@link DEFAULT_MAX_STRETCH})
+ * — the symmetric budget used when the spec pins no `canvasSize`. Each cap is
+ * clamped to ≥ 1 (a chart never shrinks below its base under "stretch").
  */
 export function resolveStretchCaps(options: AssembleOptions): { x: number; y: number } {
-    const def = options.maxStretch ?? 2;
+    const def = options.maxStretch ?? DEFAULT_MAX_STRETCH;
     return {
         x: Math.max(1, options.maxStretchX ?? def),
         y: Math.max(1, options.maxStretchY ?? def),
@@ -158,6 +158,15 @@ export function resolveStretchCaps(options: AssembleOptions): { x: number; y: nu
 
 /** Default base (target) chart size in pixels when the spec omits `baseSize`. */
 export const DEFAULT_BASE_SIZE = { width: 400, height: 320 } as const;
+
+/**
+ * Default axis stretch cap used when the spec pins no `canvasSize` ceiling.
+ *
+ * Bounds how far a chart may grow past its base size (per dimension) under
+ * layout pressure. 1.5 keeps growth modest; 2× was found to over-stretch
+ * charts in the general (no-ceiling) case.
+ */
+export const DEFAULT_MAX_STRETCH = 1.5;
 
 /**
  * Resolve the effective base (target) size the layout pipeline aims for.
@@ -190,8 +199,8 @@ export function resolveBaseSize(
  * is expected to already be clamped to the ceiling (see {@link resolveBaseSize}),
  * so a ceiling smaller than the spec's base resolves to β = 1 (fit-to-box)
  * rather than an overflow. When no ceiling is given, both caps fall back to
- * `options.maxStretch` (which already reflects any template `paramOverrides`),
- * preserving legacy behavior.
+ * `options.maxStretch` (or {@link DEFAULT_MAX_STRETCH} when that is unset too),
+ * which already reflects any template `paramOverrides`.
  *
  * Assemblers inject the result into `effectiveOptions.maxStretchX/Y` so the
  * whole layout pipeline shares one budget — including faceted grids, whose
@@ -202,7 +211,7 @@ export function deriveStretchCaps(
     ceiling: { width: number; height: number } | undefined,
     options: AssembleOptions,
 ): { maxStretchX: number; maxStretchY: number } {
-    const def = options.maxStretch ?? 2;
+    const def = options.maxStretch ?? DEFAULT_MAX_STRETCH;
     return {
         maxStretchX: ceiling ? Math.max(1, ceiling.width / baseSize.width) : def,
         maxStretchY: ceiling ? Math.max(1, ceiling.height / baseSize.height) : def,
@@ -255,7 +264,7 @@ export function computeLayout(
 
     // Per-dimension stretch ceilings: βx bounds width-related growth,
     // βy bounds height-related growth. Both reduce to `maxStretch`
-    // (default 2) when the spec sets no explicit `canvasSize` ceiling.
+    // (default 1.5) when the spec sets no explicit `canvasSize` ceiling.
     const { x: maxStretchX, y: maxStretchY } = resolveStretchCaps(options);
 
     const defaultChartWidth = canvasSize.width;
@@ -299,7 +308,21 @@ export function computeLayout(
     }
 
     // Detect grouping from 'group' channel + discrete axis
-    const groupField = channelSemantics.group?.field;
+    let groupField = channelSemantics.group?.field;
+    // Some templates (e.g. boxplot) subdivide a band by the COLOR field via an
+    // explicit offset rather than a dedicated 'group' channel. When they opt in,
+    // size the band as a group so total width is budgeted across categories and
+    // each sub-lane shrinks as the subgroup count grows.
+    if (!groupField && declaration.colorActsAsGroup) {
+        const colorCS = channelSemantics.color;
+        const colorType = effectiveTypes.color ?? colorCS?.type;
+        const axisField = isDiscreteType(effectiveTypes.x ?? channelSemantics.x?.type)
+            ? channelSemantics.x?.field
+            : channelSemantics.y?.field;
+        if (colorCS?.field && isDiscreteType(colorType) && colorCS.field !== axisField) {
+            groupField = colorCS.field;
+        }
+    }
     let groupAxis: 'x' | 'y' | undefined;
     if (groupField) {
         nominalCount.group = new Set(table.map((r: any) => r[groupField])).size;

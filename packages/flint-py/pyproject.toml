@@ -1,5 +1,5 @@
 [project]
-name = "flint"
+name = "flint-chart"
 version = "0.1.0"
 description = "Python port of the Flint semantic chart compiler — Vega-Lite backend"
 readme = "README.md"

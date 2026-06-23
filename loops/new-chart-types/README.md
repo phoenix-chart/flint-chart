@@ -26,7 +26,7 @@ Current registered coverage (the baseline each round starts from):
 - Chart.js: the lightweight core set (no plugins).
 
 Read the live counts and names from `site/src/shared/chart-categories.ts` and the
-`agent-skills/SKILL.md` chart table at the start of every round.
+`agent-skills/flint-chart-author/SKILL.md` chart table at the start of every round.
 
 ## Step 0: inventory the baseline
 
@@ -139,7 +139,7 @@ backend, since the idioms and dependency limits differ.
      Chart.js via `@napi-rs/canvas` (register a TTF such as DejaVuSans, set
      `responsive: false`, `animation: false`). Iterate until each renders
      correctly.
-6. **Document.** Update `agent-skills/SKILL.md` (chart table row + the per-backend
+6. **Document.** Update `agent-skills/flint-chart-author/SKILL.md` (chart table row + the per-backend
    coverage notes) so the authoring skill knows the new type and its channels.
    Refresh gallery labels, and append a round entry to `log.md`.
 7. **Ship.** Build flint-js and the site, run the full test suite, then

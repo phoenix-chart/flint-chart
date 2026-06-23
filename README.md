@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 [![Project site](https://img.shields.io/badge/Project_site-gallery_%2B_live_editor-0078D4?style=for-the-badge)](https://microsoft.github.io/flint-chart/)
-[![Agent skill](https://img.shields.io/badge/Agent_skill-SKILL.md-8A2BE2?style=for-the-badge)](agent-skills/SKILL.md)
+[![Agent skill](https://img.shields.io/badge/Agent_skill-SKILL.md-8A2BE2?style=for-the-badge)](agent-skills/flint-chart-author/SKILL.md)
 
 Flint is a visualization intermediate language that allows **AI agents to create
 expressive, good-looking visualizations from simple, human-editable chart specs**.
@@ -29,7 +29,7 @@ specification that is easy for agents to create, easy for people to edit, and
   using an elastic layout model.
 - **Generate simple editable specs.** Flint specs are short enough for agents
   to write reliably and clear enough for people to refine by hand. Switch chart
-  types or rebind encodings, and the compiler cascades the change. The [agent skill](agent-skills/SKILL.md) helps agents generate reliable, good-looking
+  types or rebind encodings, and the compiler cascades the change. The [agent skill](agent-skills/flint-chart-author/SKILL.md) helps agents generate reliable, good-looking
   charts without last-mile low-level refinement issues.
 - **Render across multiple backends.** Compile the same spec to **30+ chart
   types** across **Vega-Lite, ECharts, and Chart.js** through one unified
@@ -49,8 +49,8 @@ specification that is easy for agents to create, easy for people to edit, and
 # JavaScript / TypeScript  (npm package: flint-chart)
 npm install flint-chart
 
-# Python  (PyPI package: flint — Vega-Lite backend)
-pip install flint
+# Python  (PyPI package: flint-chart — Vega-Lite backend)
+pip install flint-chart
 ```
 
 ## Use
@@ -179,7 +179,7 @@ registries, and core utilities.
 ### Use Flint with AI agents
 
 Flint is designed to be driven by AI agents. The
-[**agent skill**](agent-skills/SKILL.md) tells a model exactly what to produce:
+[**agent skill**](agent-skills/flint-chart-author/SKILL.md) tells a model exactly what to produce:
 the `chart_spec` and `semantic_types` (referencing data columns by name). The host
 then calls `assembleVegaLite` / `assembleECharts` / `assembleChartjs` to get the
 backend spec — the model never hand-tunes sizing, color, or formatting.
@@ -190,7 +190,7 @@ backend spec — the model never hand-tunes sizing, color, or formatting.
   reference to host-side data (file path, uploaded CSV, prior tool result).
 - **Chat apps without tools:** the agent embeds a small table inline.
 
-Point your agent at [`agent-skills/SKILL.md`](agent-skills/SKILL.md) (chart-type
+Point your agent at [`agent-skills/flint-chart-author/SKILL.md`](agent-skills/flint-chart-author/SKILL.md) (chart-type
 catalog, channels, and worked examples) to get started.
 
 #### MCP server
@@ -221,7 +221,7 @@ flint-chart/
 │   │       ├── echarts/   ECharts backend
 │   │       ├── chartjs/   Chart.js backend
 │   │       └── test-data/ fixtures + generators (drive tests and the gallery)
-│   ├── flint-py/          PyPI package `flint` (Python port, Vega-Lite backend)
+│   ├── flint-py/          PyPI package `flint-chart` (Python port, Vega-Lite backend)
 │   └── flint-mcp/         npm package `flint-chart-mcp` (MCP render server)
 ├── site/                  Vite + React demo: landing, gallery, editor, docs
 ├── agent-skills/          AI agent skill (SKILL.md)
@@ -240,7 +240,7 @@ flint-chart/
 | Color decisions | [docs/color-decisions.md](docs/color-decisions.md) |
 | API reference | [docs/api-reference.md](docs/api-reference.md) |
 | Extending Flint | [add a chart template](docs/adding-a-chart-template.md) · [add a semantic type](docs/adding-a-semantic-type.md) · [add a backend](docs/adding-a-backend.md) |
-| For AI agents | [agent-skills/SKILL.md](agent-skills/SKILL.md) |
+| For AI agents | [agent-skills/flint-chart-author/SKILL.md](agent-skills/flint-chart-author/SKILL.md) |
 
 ---
 

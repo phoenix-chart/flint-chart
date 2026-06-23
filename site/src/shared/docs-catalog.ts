@@ -23,28 +23,35 @@ export const DOCUMENTATION_GROUPS: DocGroup[] = [
         slug: 'getting-started',
         title: 'Getting started',
         description:
-          'Build your first chart — data, semantic types, encodings, aggregation, and backends.',
+          'Install Flint, then make your first chart from a simple DataSpec and ChartSpec.',
         file: '../../../docs/tutorials/getting-started.md',
       },
       {
-        slug: 'exploring-data',
-        title: 'Exploring data',
+        slug: 'data-story',
+        title: 'Example: a data story',
         description:
-          'Swap fields, change chart types, and compare Vega-Lite, ECharts, and Chart.js.',
-        file: '../../../docs/tutorials/exploring-data.md',
+          'One DataSpec, five bespoke chart designs: switch templates and backends by editing only the ChartSpec.',
+        file: '../../../docs/tutorials/data-story.md',
+      },
+      {
+        slug: 'agent-workflows',
+        title: 'Agent workflows',
+        description:
+          'Use Flint through MCP tools, or embed it as a library inside an agentic product.',
+        file: '../../../docs/tutorials/agent-workflows.md',
       },
       {
         slug: 'chart-sizing',
-        title: 'Chart sizing demo',
+        title: 'Example: Auto Layout',
         description:
-          'See how baseSize, the canvasSize ceiling, stretch, and data density affect chart dimensions.',
+          'See how Flint automatically resizes charts as data gets denser or layout slots get constrained.',
         file: '../../../docs/tutorials/chart-sizing.md',
       },
     ],
   },
   {
     id: 'introduction',
-    label: 'Introduction',
+    label: 'Language design',
     docs: [
       {
         slug: 'overview',
@@ -86,7 +93,7 @@ export const DOCUMENTATION_GROUPS: DocGroup[] = [
   },
   {
     id: 'reference',
-    label: 'Chart reference',
+    label: 'Chart guide',
     docs: [
       {
         slug: 'reference-vegalite',

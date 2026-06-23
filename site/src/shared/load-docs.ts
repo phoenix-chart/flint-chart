@@ -10,6 +10,7 @@ const RAW_MODULES = import.meta.glob<string>(
     eager: true,
   },
 );
+// Tutorials: getting-started, data-story, agent-workflows, exploring-data, chart-sizing.
 
 /** Doc figures under docs/figs/ — resolved to bundled asset URLs. */
 const FIGURE_MODULES = import.meta.glob<string>(['../../../docs/figs/**/*'], {

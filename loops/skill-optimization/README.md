@@ -1,7 +1,7 @@
 # Skill Optimization Loop
 
 How we iteratively test and improve the flint-chart authoring skill
-(`agent-skills/SKILL.md`) so that LLMs reliably produce correct
+(`agent-skills/flint-chart-author/SKILL.md`) so that LLMs reliably produce correct
 `ChartAssemblyInput` JSON from the skill document **alone** (closed-book).
 
 This file describes the *method only*. All scripts, datasets, prompts, and

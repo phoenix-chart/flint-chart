@@ -8,6 +8,7 @@ import 'katex/dist/katex.min.css';
 import { Link, useLocation } from 'react-router-dom';
 import { CodeBlock, PlainTextBlock, resolveCodeLanguage } from './CodeBlock';
 import { SizingPlayground } from './SizingPlayground';
+import { DocChart } from './DocChart';
 import { resolveMarkdownHref, resolveMarkdownImageSrc } from '../shared/load-docs';
 import { DOC_SCROLL_TO_KEY, scrollToHeading } from '../shared/scroll-to-heading';
 import { siteTheme } from '../shared/theme';
@@ -139,6 +140,19 @@ export function MarkdownView({
           : raw === 'area' ? 'area'
           : 'discrete';
         return <SizingPlayground mode={mode} />;
+      }
+
+      // Rendered example chart from a raw ChartAssemblyInput: ```flint-chart [echarts|chartjs]```
+      if (className?.includes('language-flint-chart')) {
+        const newlineAt = text.indexOf('\n');
+        const firstLine = (newlineAt === -1 ? text : text.slice(0, newlineAt)).trim().toLowerCase();
+        const backend =
+          firstLine === 'echarts' ? 'echarts'
+          : firstLine === 'chartjs' ? 'chartjs'
+          : firstLine === 'vegalite' ? 'vegalite'
+          : null;
+        const json = backend ? text.slice(newlineAt + 1) : text;
+        return <DocChart source={json} backend={backend ?? 'vegalite'} />;
       }
 
       const language = resolveCodeLanguage(className);

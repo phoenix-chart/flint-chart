@@ -205,9 +205,9 @@ Two competing goals must be balanced:
 | $\ell_0$ | Natural length per item | `defaultStepSize` | ~20 px |
 | $\ell_{\min}$ | Minimum length per item | `minStep` option | 6 px |
 | $\alpha$ | Elasticity exponent | `elasticity` option | 0.5 |
-| $\beta$ | Maximum stretch multiplier | `maxStretch` option | 2.0 |
+| $\beta$ | Maximum stretch multiplier | `maxStretch` option | 1.5 |
 
-> **Code defaults:** `ElasticStretchParams` in `core/decisions.ts` — `elasticity: 0.5`, `maxStretch: 2`, `minStep: 6`. The `defaultStepSize` is computed dynamically based on canvas size: `round(20 × max(1, sizeRatio) × defaultStepMultiplier)`.
+> **Code defaults:** `ElasticStretchParams` in `core/decisions.ts` — `elasticity: 0.5`, `maxStretch: 1.5`, `minStep: 6`. The `defaultStepSize` is computed dynamically based on canvas size: `round(20 × max(1, sizeRatio) × defaultStepMultiplier)`.
 
 ## §1.3 Three Regimes
 
@@ -345,7 +345,7 @@ The total canvas stretches to accommodate facets:
 
 $$\lambda_f = \min(\beta,\; F^{\alpha_f})$$
 
-where $\alpha_f$ = `facetElasticity` (default 0.3) and $\beta$ = `maxStretch` (default 2.0).
+where $\alpha_f$ = `facetElasticity` (default 0.3) and $\beta$ = `maxStretch` (default 1.5).
 
 The facet stretch uses a **gentler exponent** ($\alpha_f = 0.3$ vs $\alpha = 0.5$ for discrete items) because each subplot is a self-contained chart — even a small subplot can be readable, whereas a 3 px bar cannot.
 

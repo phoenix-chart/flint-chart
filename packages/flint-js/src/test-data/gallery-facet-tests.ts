@@ -59,12 +59,16 @@ export function galleryFacetBarExample(): TestCase {
 }
 
 /**
- * Column-faceted line — monthly revenue trend, one panel per region.
+ * Wrap-faceted line — full-year (12-month) revenue trend, one panel per region.
+ * Ten regions wrap into a 5×2 small-multiples grid rather than a single
+ * side-by-side strip, exercising column-facet wrapping. The `minSubplotSize`
+ * option keeps each panel wide enough for the 12 monthly points to stay legible,
+ * which is what drives the wrap into multiple rows.
  */
 export function galleryFacetLineExample(): TestCase {
     const rand = seededRandom(4202);
-    const regions = ['North', 'Central', 'South'];
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'];
+    const regions = ['North', 'South', 'East', 'West', 'Central', 'Pacific', 'Mountain', 'Atlantic', 'Gulf', 'Midwest'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const data: any[] = [];
     for (const region of regions) {
         let value = 60 + rand() * 60;
@@ -80,8 +84,8 @@ export function galleryFacetLineExample(): TestCase {
     };
     return {
         title: 'Monthly revenue, faceted by region',
-        description: 'Small-multiples line chart — one trend panel per region (column facet).',
-        tags: [...FACET_TAGS, 'line'],
+        description: 'Wrapped small-multiples line chart — a 12-month trend panel per region, wrapping into a 5×2 grid (column facet).',
+        tags: [...FACET_TAGS, 'line', 'wrap'],
         chartType: 'Line Chart',
         data,
         fields: [makeField('Month'), makeField('Revenue'), makeField('Region')],
@@ -91,6 +95,7 @@ export function galleryFacetLineExample(): TestCase {
             Region: meta(Type.String, 'Category', regions),
         },
         encodingMap,
+        assembleOptions: { minSubplotSize: 180 },
     };
 }
 

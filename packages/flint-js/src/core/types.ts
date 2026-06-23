@@ -233,6 +233,16 @@ export interface LayoutDeclaration {
     binnedAxes?: Record<string, boolean | { maxbins?: number }>;
 
     /**
+     * Treat a discrete `color` field as an axis-grouping field for sizing,
+     * even though the template uses the `color` channel rather than `group`.
+     * When set, computeLayout sizes the discrete axis per-band (xStepUnit
+     * 'group') and budgets the band step across categories, so the chart does
+     * not balloon and each sub-lane shrinks as the subgroup count grows.
+     * Used by charts (e.g. boxplot) that dodge by color via an explicit offset.
+     */
+    colorActsAsGroup?: boolean;
+
+    /**
      * Custom overflow strategy for deciding which discrete values to keep
      * when a channel overflows. If not provided, the default strategy is used.
      *
@@ -861,7 +871,7 @@ export interface ChartAssemblyInput {
          * `βy = canvasSize.height / baseSize.height` (each clamped to ≥ 1).
          *
          * When omitted, the ceiling defaults to `baseSize × options.maxStretch`
-         * (default 2×) in each dimension.
+         * (default 1.5×) in each dimension.
          */
         canvasSize?: { width: number; height: number };
         /** Template-specific configurable properties (e.g., bar corner radius, show labels) */

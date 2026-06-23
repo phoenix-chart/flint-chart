@@ -5,7 +5,7 @@
 > PNG or SVG — across Vega-Lite, ECharts, and Chart.js. Rendering is local and
 > **in-process**: your data never leaves the host.
 
-Flint's [agent skill](../../agent-skills/SKILL.md) teaches an agent how to *author*
+Flint's [agent skill](../../agent-skills/flint-chart-author/SKILL.md) teaches an agent how to *author*
 a `ChartAssemblyInput`. This MCP server is the *execution* counterpart: it
 compiles, validates, and renders that one spec.
 

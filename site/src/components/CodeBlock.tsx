@@ -20,6 +20,8 @@ const LANG_ALIASES: Record<string, string> = {
   js: 'javascript',
   sh: 'bash',
   shell: 'bash',
+  jsonc: 'json',
+  json5: 'json',
 };
 
 export function resolveCodeLanguage(className?: string): string | null {

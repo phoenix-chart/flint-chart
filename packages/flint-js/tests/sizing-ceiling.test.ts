@@ -11,7 +11,7 @@ import { deriveStretchCaps, resolveStretchCaps, resolveBaseSize } from '../src/c
  *
  * `baseSize` is the target layout size. The chart may stretch past it up to a
  * ceiling: either an explicit `canvasSize`, or `baseSize × maxStretch`
- * (default 2×) when no ceiling is given. The ceiling is applied per dimension —
+ * (default 1.5×) when no ceiling is given. The ceiling is applied per dimension —
  * βx = canvasSize.width / baseSize.width, βy = canvasSize.height / baseSize.height
  * (each clamped ≥ 1) — and bounds the whole chart, including faceted grids.
  */
@@ -19,17 +19,17 @@ import { deriveStretchCaps, resolveStretchCaps, resolveBaseSize } from '../src/c
 const BASE = { width: 400, height: 320 };
 
 describe('deriveStretchCaps (canvasSize → per-dimension βx/βy)', () => {
-  it('falls back to maxStretch (default 2) when no ceiling is given', () => {
+  it('falls back to maxStretch (default 1.5) when no ceiling is given', () => {
     expect(deriveStretchCaps(BASE, undefined, {})).toEqual({
-      maxStretchX: 2,
-      maxStretchY: 2,
+      maxStretchX: 1.5,
+      maxStretchY: 1.5,
     });
   });
 
   it('honors an explicit maxStretch option as the fallback ceiling', () => {
-    expect(deriveStretchCaps(BASE, undefined, { maxStretch: 1.5 })).toEqual({
-      maxStretchX: 1.5,
-      maxStretchY: 1.5,
+    expect(deriveStretchCaps(BASE, undefined, { maxStretch: 3 })).toEqual({
+      maxStretchX: 3,
+      maxStretchY: 3,
     });
   });
 
@@ -49,8 +49,8 @@ describe('deriveStretchCaps (canvasSize → per-dimension βx/βy)', () => {
 });
 
 describe('resolveStretchCaps (per-dimension override resolution)', () => {
-  it('defaults both dimensions to maxStretch (or 2)', () => {
-    expect(resolveStretchCaps({})).toEqual({ x: 2, y: 2 });
+  it('defaults both dimensions to maxStretch (or 1.5)', () => {
+    expect(resolveStretchCaps({})).toEqual({ x: 1.5, y: 1.5 });
     expect(resolveStretchCaps({ maxStretch: 1.5 })).toEqual({ x: 1.5, y: 1.5 });
   });
 

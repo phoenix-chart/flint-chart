@@ -13,10 +13,10 @@ import { siteTheme } from '../shared/theme';
  *   - `circumference` — radial-pressure model on a pie chart's closed loop
  *   - `area`          — 2D area-pressure model on a treemap
  *
- * Users drag the number of items, the stretch/elasticity (where they apply),
+ * Users drag the number of items, the elasticity (where it applies),
  * and the base size, then watch the assembled plot size respond live. The
- * stretch ceiling shown is baseSize x B (the maxStretch option); a spec may
- * instead pin a hard `canvasSize` ceiling.
+ * default growth ceiling stays internal; a spec may instead pin a hard
+ * `canvasSize` ceiling.
  */
 type Mode = 'discrete' | 'continuous' | 'circumference' | 'area';
 
@@ -42,34 +42,42 @@ function categoryRows(n: number, seed: number): { Category: string; Value: numbe
 
 type BuildArgs = {
   count: number;
+  seriesCount: number;
   canvas: { width: number; height: number };
   elasticity: number;
-  maxStretch: number;
 };
 
-function buildDiscreteInput({ count, canvas, elasticity, maxStretch }: BuildArgs): ChartAssemblyInput {
+function buildDiscreteInput({ count, canvas, elasticity }: BuildArgs): ChartAssemblyInput {
   return {
     data: { values: categoryRows(count, 1234) },
     semantic_types: { Category: 'Category', Value: 'Quantity' },
     chart_spec: { chartType: 'Bar Chart', encodings: { x: 'Category', y: 'Value' }, baseSize: canvas },
-    options: { elasticity, maxStretch },
+    options: { elasticity },
   };
 }
 
-function buildContinuousInput({ count, canvas, elasticity, maxStretch }: BuildArgs): ChartAssemblyInput {
+function buildContinuousInput({ count, seriesCount, canvas, elasticity }: BuildArgs): ChartAssemblyInput {
   const rng = mulberry32(5678);
   const start = Date.UTC(2020, 0, 1);
   const dayMs = 86400000;
-  let v = 100;
-  const values = Array.from({ length: count }, (_, i) => {
-    v += (rng() - 0.5) * 20;
-    return { Date: new Date(start + i * dayMs).toISOString().slice(0, 10), Value: Math.round(v * 100) / 100 };
-  });
+  const values: { Date: string; Series: string; Value: number }[] = [];
+  for (let seriesIndex = 0; seriesIndex < seriesCount; seriesIndex += 1) {
+    let v = 100 + seriesIndex * 18;
+    const drift = (seriesIndex - (seriesCount - 1) / 2) * 0.08;
+    for (let pointIndex = 0; pointIndex < count; pointIndex += 1) {
+      v += (rng() - 0.5) * 20 + drift;
+      values.push({
+        Date: new Date(start + pointIndex * dayMs).toISOString().slice(0, 10),
+        Series: `Series ${seriesIndex + 1}`,
+        Value: Math.round(v * 100) / 100,
+      });
+    }
+  }
   return {
     data: { values },
-    semantic_types: { Date: 'Date', Value: 'Quantity' },
-    chart_spec: { chartType: 'Line Chart', encodings: { x: 'Date', y: 'Value' }, baseSize: canvas },
-    options: { continuousMarkCrossSection: { x: 80, y: 0, elasticity, maxStretch } },
+    semantic_types: { Date: 'Date', Series: 'Category', Value: 'Quantity' },
+    chart_spec: { chartType: 'Line Chart', encodings: { x: 'Date', y: 'Value', color: 'Series' }, baseSize: canvas },
+    options: { continuousMarkCrossSection: { x: 80, y: 0, elasticity } },
   };
 }
 
@@ -89,7 +97,7 @@ function buildAreaInput({ count, canvas }: BuildArgs): ChartAssemblyInput {
   };
 }
 
-type Control = 'stretch' | 'elasticity';
+type Control = 'elasticity';
 
 interface ModeConfig {
   backend: 'vl' | 'echarts';
@@ -99,6 +107,11 @@ interface ModeConfig {
   countMax: number;
   countStep: number;
   countDefault: number;
+  seriesLabel?: string;
+  seriesMin?: number;
+  seriesMax?: number;
+  seriesStep?: number;
+  seriesDefault?: number;
   elasticityDefault: number;
   controls: Control[];
 }
@@ -107,23 +120,25 @@ const MODES: Record<Mode, ModeConfig> = {
   discrete: {
     backend: 'vl',
     build: buildDiscreteInput,
-    countLabel: 'Number of items (N)',
+    countLabel: 'Number of items',
     countMin: 3, countMax: 120, countStep: 1, countDefault: 12,
     elasticityDefault: 0.5,
-    controls: ['stretch', 'elasticity'],
+    controls: ['elasticity'],
   },
   continuous: {
     backend: 'vl',
     build: buildContinuousInput,
-    countLabel: 'Number of points (N)',
+    countLabel: 'Points per series',
     countMin: 8, countMax: 600, countStep: 4, countDefault: 60,
+    seriesLabel: 'Number of series',
+    seriesMin: 1, seriesMax: 12, seriesStep: 1, seriesDefault: 2,
     elasticityDefault: 0.3,
-    controls: ['stretch', 'elasticity'],
+    controls: ['elasticity'],
   },
   circumference: {
     backend: 'vl',
     build: buildCircumferenceInput,
-    countLabel: 'Number of slices (N)',
+    countLabel: 'Number of slices',
     countMin: 2, countMax: 40, countStep: 1, countDefault: 6,
     elasticityDefault: 0.5,
     controls: [],
@@ -131,18 +146,18 @@ const MODES: Record<Mode, ModeConfig> = {
   area: {
     backend: 'echarts',
     build: buildAreaInput,
-    countLabel: 'Number of cells (N)',
+    countLabel: 'Number of cells',
     countMin: 3, countMax: 120, countStep: 1, countDefault: 12,
     elasticityDefault: 0.5,
     controls: [],
   },
 };
 
-const PARAM_HELP: { symbol: string; name: string; desc: string; control: Control | 'count' | 'canvas' }[] = [
-  { symbol: 'N', name: 'Item count', desc: 'how many data marks compete for space — bars, points, slices, or cells.', control: 'count' },
-  { symbol: 'β', name: 'Stretch factor', desc: 'how far the plot may grow past the base size (maxStretch). β = 2 means up to 2× the base width.', control: 'stretch' },
-  { symbol: 'α', name: 'Elasticity', desc: 'how strongly crowding turns into stretch — the power-law exponent. Higher reacts faster.', control: 'elasticity' },
-  { symbol: 'W×H', name: 'Base size', desc: 'the natural target size the layout aims for before any stretch is applied.', control: 'canvas' },
+const PARAM_HELP: { symbol: string; name: string; desc: string; control: Control | 'count' | 'series' | 'canvas' }[] = [
+  { symbol: 'Count', name: 'Data marks', desc: 'how many bars, points, slices, or cells compete for space.', control: 'count' },
+  { symbol: 'Series', name: 'Line groups', desc: 'how many separate lines share the same time axis.', control: 'series' },
+  { symbol: 'elasticity', name: 'Stretch response', desc: 'how quickly extra data turns into extra space. Higher reacts faster.', control: 'elasticity' },
+  { symbol: 'baseSize', name: 'Target size', desc: 'the comfortable size the layout aims for before any growth is applied.', control: 'canvas' },
 ];
 
 function Slider({ label, value, min, max, step, onChange, suffix }: {
@@ -178,18 +193,18 @@ function Slider({ label, value, min, max, step, onChange, suffix }: {
 export function SizingPlayground({ mode }: { mode: Mode }) {
   const cfg = MODES[mode];
   const [count, setCount] = useState(cfg.countDefault);
-  const [maxStretch, setMaxStretch] = useState(2);
+  const [seriesCount, setSeriesCount] = useState(cfg.seriesDefault ?? 1);
   const [elasticity, setElasticity] = useState(cfg.elasticityDefault);
   const [width, setWidth] = useState(480);
   const [height, setHeight] = useState(320);
 
-  const showStretch = cfg.controls.includes('stretch');
+  const showSeries = cfg.seriesLabel != null;
   const showElasticity = cfg.controls.includes('elasticity');
 
   const { spec, resolvedWidth, resolvedHeight, error } = useMemo(() => {
     const canvas = { width, height };
     try {
-      const input = cfg.build({ count, canvas, elasticity, maxStretch });
+      const input = cfg.build({ count, seriesCount, canvas, elasticity });
       const s = (cfg.backend === 'vl' ? assembleVegaLite(input) : assembleECharts(input)) as any;
       return {
         spec: s,
@@ -200,13 +215,13 @@ export function SizingPlayground({ mode }: { mode: Mode }) {
     } catch (err) {
       return { spec: null, resolvedWidth: null, resolvedHeight: null, error: String((err as Error)?.message ?? err) };
     }
-  }, [cfg, count, maxStretch, elasticity, width, height]);
+  }, [cfg, count, seriesCount, elasticity, width, height]);
 
   const stretchedW = resolvedWidth != null ? Math.round((resolvedWidth / width) * 100) : null;
   const help = PARAM_HELP.filter((p) =>
     p.control === 'count' ||
+    (p.control === 'series' && showSeries) ||
     p.control === 'canvas' ||
-    (p.control === 'stretch' && showStretch) ||
     (p.control === 'elasticity' && showElasticity),
   );
 
@@ -231,10 +246,19 @@ export function SizingPlayground({ mode }: { mode: Mode }) {
         }}
       >
         <Slider label={cfg.countLabel} value={count} min={cfg.countMin} max={cfg.countMax} step={cfg.countStep} onChange={setCount} />
-        {showStretch && <Slider label="Stretch factor (β)" value={maxStretch} min={1} max={4} step={0.1} onChange={setMaxStretch} suffix="×" />}
-        {showElasticity && <Slider label="Elasticity (α)" value={elasticity} min={0} max={1} step={0.05} onChange={setElasticity} />}
-        <Slider label="Base width" value={width} min={240} max={720} step={20} onChange={setWidth} suffix=" px" />
-        <Slider label="Base height" value={height} min={160} max={480} step={20} onChange={setHeight} suffix=" px" />
+        {showSeries && (
+          <Slider
+            label={cfg.seriesLabel ?? 'Number of series'}
+            value={seriesCount}
+            min={cfg.seriesMin ?? 1}
+            max={cfg.seriesMax ?? 12}
+            step={cfg.seriesStep ?? 1}
+            onChange={setSeriesCount}
+          />
+        )}
+        {showElasticity && <Slider label="elasticity" value={elasticity} min={0} max={1} step={0.05} onChange={setElasticity} />}
+        <Slider label="baseSize width" value={width} min={240} max={720} step={20} onChange={setWidth} suffix=" px" />
+        <Slider label="baseSize height" value={height} min={160} max={480} step={20} onChange={setHeight} suffix=" px" />
       </div>
 
       <dl
@@ -272,7 +296,6 @@ export function SizingPlayground({ mode }: { mode: Mode }) {
         }}
       >
         <span>base: {width} × {height} px</span>
-        {showStretch && <span>cap (β·width): {Math.round(width * maxStretch)} px</span>}
         {resolvedWidth != null && (
           <span style={{ color: siteTheme.text }}>
             plot width: {resolvedWidth} px{stretchedW != null ? ` (${stretchedW}% of base)` : ''}

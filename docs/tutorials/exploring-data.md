@@ -40,6 +40,36 @@ ECharts / Chart.js) open so you can see which backends support each chart.
 }
 ```
 
+```flint-chart
+{
+  "data": {
+    "values": [
+      { "a": "C", "b": 2 },
+      { "a": "C", "b": 7 },
+      { "a": "C", "b": 4 },
+      { "a": "D", "b": 1 },
+      { "a": "D", "b": 2 },
+      { "a": "D", "b": 6 },
+      { "a": "E", "b": 8 },
+      { "a": "E", "b": 4 },
+      { "a": "E", "b": 7 }
+    ]
+  },
+  "semantic_types": {
+    "a": "Category",
+    "b": "Quantity"
+  },
+  "chart_spec": {
+    "chartType": "Bar Chart",
+    "encodings": {
+      "x": { "field": "a" },
+      "y": { "field": "b", "aggregate": "average" }
+    },
+    "baseSize": { "width": 480, "height": 320 }
+  }
+}
+```
+
 ---
 
 ## Swap fields, keep semantics
@@ -98,6 +128,31 @@ Remove `aggregate` — scatter shows raw rows. Axis treatment for `Category` vs
 Add a time-like column to see temporal semantics:
 
 ```json
+{
+  "data": {
+    "values": [
+      { "month": "2025-01", "value": 12 },
+      { "month": "2025-02", "value": 19 },
+      { "month": "2025-03", "value": 15 },
+      { "month": "2025-04", "value": 22 }
+    ]
+  },
+  "semantic_types": {
+    "month": "YearMonth",
+    "value": "Temperature"
+  },
+  "chart_spec": {
+    "chartType": "Line Chart",
+    "encodings": {
+      "x": { "field": "month" },
+      "y": { "field": "value" }
+    },
+    "baseSize": { "width": 520, "height": 280 }
+  }
+}
+```
+
+```flint-chart
 {
   "data": {
     "values": [
@@ -192,6 +247,35 @@ Add a third field to split bars by group:
 }
 ```
 
+```flint-chart
+{
+  "data": {
+    "values": [
+      { "a": "C", "b": 2, "g": "X" },
+      { "a": "C", "b": 7, "g": "Y" },
+      { "a": "D", "b": 1, "g": "X" },
+      { "a": "D", "b": 6, "g": "Y" },
+      { "a": "E", "b": 8, "g": "X" },
+      { "a": "E", "b": 4, "g": "Y" }
+    ]
+  },
+  "semantic_types": {
+    "a": "Category",
+    "b": "Quantity",
+    "g": "Category"
+  },
+  "chart_spec": {
+    "chartType": "Grouped Bar Chart",
+    "encodings": {
+      "x": { "field": "a" },
+      "y": { "field": "b", "aggregate": "average" },
+      "color": { "field": "g" }
+    },
+    "baseSize": { "width": 480, "height": 320 }
+  }
+}
+```
+
 The compiler assigns a categorical palette from semantic types. You did not pass
 `scale.scheme` or hex colors.
 
@@ -216,7 +300,7 @@ If labels crowd or facets overflow, tune layout via `options` (optional):
 ```
 
 These control the spring / pressure sizing models — see
-[Chart sizing demo](/documentation/chart-sizing) for a quick walkthrough or
+[Example: Auto Layout](/documentation/chart-sizing) for a quick walkthrough or
 [Auto Layout Algorithm](/documentation/layout-model) for the full model. Most
 tutorials and gallery examples work with defaults.
 

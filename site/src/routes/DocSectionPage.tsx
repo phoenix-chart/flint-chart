@@ -1,6 +1,12 @@
 import { useEffect, useRef } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { MarkdownView } from '../components/MarkdownView';
+import {
+  SidebarNav,
+  SidebarNavItem,
+  SidebarNavSection,
+  SIDEBAR_NAV_WIDTH,
+} from '../components/SidebarNav';
 import { SiteShell } from '../components/SiteShell';
 import type { DocSection } from '../shared/docs-catalog';
 import {
@@ -74,80 +80,34 @@ export function DocSectionPage({ section }: { section: DocSection }) {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '220px 1fr',
+            gridTemplateColumns: `${SIDEBAR_NAV_WIDTH}px 1fr`,
             alignItems: 'start',
             width: '100%',
             maxWidth: CONTENT_MAX_WIDTH,
             margin: '0 auto',
           }}
         >
-          <aside
-            ref={sidebarRef}
-            className="app-sidebar"
-            style={{
-              position: 'sticky',
-              top: 0,
-              maxHeight: '100vh',
-              overflowY: 'auto',
-              overflowX: 'hidden',
-              overscrollBehavior: 'contain',
-              background: 'transparent',
-              padding: '18px 0 28px',
-            }}
-          >
-            
-
+          <SidebarNav sidebarRef={sidebarRef}>
             {groups.map((group, gi) => (
-              <div
-                key={group.id}
-                style={{
-                  marginTop: gi === 0 ? 0 : 18,
-                  marginBottom: 4,
-                  paddingTop: gi === 0 ? 0 : 14,
-                  borderTop: gi === 0 ? 'none' : `1px solid ${siteTheme.border}`,
-                }}
-              >
-                <div
-                  style={{
-                    padding: '0 16px 8px',
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: siteTheme.text,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.06em',
-                  }}
-                >
-                  {group.label}
-                </div>
-
+              <SidebarNavSection key={group.id} label={group.label} first={gi === 0}>
                 {group.docs.map((doc) => {
                   const active = doc.slug === activeSlug;
                   return (
-                    <Link
+                    <SidebarNavItem
                       key={doc.slug}
+                      as="link"
+                      compact
+                      active={active}
                       to={`/${section}/${doc.slug}`}
-                      data-doc-nav={doc.slug}
-                      className="doc-nav-link"
-                      style={{
-                        display: 'block',
-                        padding: '7px 16px',
-                        textDecoration: 'none',
-                        fontSize: 13,
-                        color: active ? siteTheme.accent : siteTheme.text,
-                        background: active ? siteTheme.accentBg : 'transparent',
-                        fontWeight: active ? 600 : 400,
-                        borderLeft: active
-                          ? `3px solid ${siteTheme.accent}`
-                          : '3px solid transparent',
-                      }}
+                      dataAttr={{ 'data-doc-nav': doc.slug }}
                     >
                       {doc.title}
-                    </Link>
+                    </SidebarNavItem>
                   );
                 })}
-              </div>
+              </SidebarNavSection>
             ))}
-          </aside>
+          </SidebarNav>
 
           <main style={{ minWidth: 0, padding: '24px 32px 48px' }}>
             {!entry || !markdown ? (

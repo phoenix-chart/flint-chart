@@ -1,56 +1,22 @@
-# Chart sizing demo
+# Example: Auto Layout
 
-Flint sizes every chart from two numbers — a **target** it aims for and a
-**ceiling** it may never exceed. Getting this distinction right is the key to
-predictable layouts, so it is worth a minute up front.
+Flint's auto layout has one goal: fit the chart to its data and container while
+keeping the marks readable. The algorithm uses pressure models and banking to
+adapt the canvas size, mark spacing, aspect ratio, and facet layout as the data
+gets denser.
 
-## `baseSize` vs. `canvasSize`
+The main tradeoff is how much to compress elements inside the chart versus how
+much to stretch the chart beyond its `baseSize`. Stretch is bounded by
+`canvasSize` or the default growth ceiling, so the chart gets more room when it
+needs it without growing without bound.
 
-| Field | Role | Default |
-|-------|------|---------|
-| `baseSize` | **Target** — the size the chart aims for with typical data. The layout engine measures data density ("pressure") against this. | `400 × 320` |
-| `canvasSize` | **Hard ceiling** — the maximum the chart may ever reach, in any dimension (faceted grids included). | none → `baseSize × maxStretch` (default `2×`) |
-
-When data is dense — many categories, points, slices, or facets — Flint
-*stretches* the chart past its base so marks stay readable, but never past the
-ceiling:
-
-```
-                 stretches when data is dense
-   baseSize  ───────────────────────────────▶  canvasSize
-  (target, the size      grows only as needed     (hard ceiling,
-   for typical data)                               never exceeded)
-```
-
-The stretch is bounded per dimension:
-
-$$\beta_x = \frac{\text{canvasSize.width}}{\text{baseSize.width}}, \qquad \beta_y = \frac{\text{canvasSize.height}}{\text{baseSize.height}} \quad (\text{each } \geq 1).$$
-
-What the common combinations do:
-
-- **Neither set** → `400×320` target; may grow up to `800×640` (2×) when dense.
-- **Only `baseSize`** → your target; may grow up to 2× when dense.
-- **Only `canvasSize`** → a **fixed box**: the chart fills it and shrinks to fit
-  when dense, but never overflows. *What you ask for is what you get.*
-- **Both** → aim for `baseSize`, grow toward `canvasSize`, never beyond. A
-  `canvasSize` smaller than `baseSize` shrinks the chart to fit the box.
-
-Rule of thumb: set **`canvasSize`** for a fixed slot ("never bigger than this
-box"); set **`baseSize`** for a comfortable size that may grow for dense data.
-
-This page gives the practical version. The full equations and implementation map live in [Auto Layout Algorithm](/documentation/layout-model).
-
-## When charts grow
-
-Most charts fit their `baseSize`. Growth appears when the base is too small for the data geometry:
-
-- **Banded axes** need enough step size for categories, bins, or grouped bars.
-- **Continuous axes** need enough screen distance for dense points or temporal ticks.
-- **Radial and area charts** need enough circumference or area for slices and tiles.
-
-The compiler first uses the requested `baseSize`, then applies a bounded stretch if the chart would become unreadable. The stretch stops at the ceiling: either an explicit `canvasSize`, or `baseSize × options.maxStretch` (default 2×) when `canvasSize` is omitted. `options.elasticity` controls how quickly pressure turns into extra space. The ceiling bounds the whole chart — including faceted small-multiple grids.
-
----
+Try the four demos first, each showing a different kind of layout pressure:
+[banded axes](#banded-axes) for categories and bins,
+[continuous axes](#continuous-axes) for dense points, time series, and multiple lines,
+[radial charts](#radial-charts) for slices and spokes, and
+[area layouts](#area-layouts) for packed 2D space.
+The demos keep the growth ceiling at the library default so the controls can
+focus on data density, `baseSize`, and `elasticity`.
 
 ## Banded axes
 
@@ -62,7 +28,7 @@ discrete
 
 ## Continuous axes
 
-Scatter, line, and area charts do not allocate one band per row, but dense points still create pressure. Add points below and watch the axis stretch more gradually.
+Scatter, line, and area charts do not allocate one band per row, but dense points and multiple series still create pressure. Add points or series below and watch the axis stretch more gradually.
 
 ```flint-playground
 continuous
@@ -83,6 +49,27 @@ Treemaps and other filled 2D layouts need enough total area for rectangles to st
 ```flint-playground
 area
 ```
+
+## What gets resized
+
+Auto layout changes the space around the same chart: axis spans, band steps,
+facet cells, radial space, filled layout area, and the overall plot area can
+grow or shrink. The data, semantic encodings, colors, and formatting stay the
+same.
+
+## Layout modes
+
+Choose the mode by setting `baseSize`, `canvasSize`, or both:
+
+| Mode | Set | What happens |
+|------|-----|--------------|
+| **Default auto layout** | neither | Flint targets `400 × 320` and may grow when the data is dense. |
+| **Target size** | `baseSize` | Flint aims for your preferred size, but can still grow if readability needs it. |
+| **Fixed slot** | `canvasSize` | Flint fits the chart inside that box and never overflows it. Use this for dashboards and cards with hard dimensions. |
+| **Bounded growth** | both | Flint starts from `baseSize`, grows only when needed, and never exceeds `canvasSize`. |
+
+For the full equations and implementation details, see
+[Auto Layout Algorithm](/documentation/layout-model).
 
 ## Controlling the budget
 
@@ -107,7 +94,7 @@ Use defaults while exploring. Set `baseSize` to change the target, and add a
 }
 ```
 
-Here the chart targets 480×320 and may stretch up to 720×480 (βx = 1.5, βy = 1.5).
+Here the chart targets `480 × 320` and may stretch up to the `720 × 480` ceiling.
 Drop `canvasSize` to let the chart grow to `baseSize × maxStretch`, or lower
 `options.maxStretch` to tighten the default ceiling for fixed dashboard cells.
 

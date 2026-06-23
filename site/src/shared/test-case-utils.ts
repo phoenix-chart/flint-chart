@@ -91,7 +91,6 @@ export function testCaseToAssemblyInput(t: TestCase, canvasSize: CanvasSize = DE
   for (const [k, m] of Object.entries(t.metadata)) semantic_types[k] = m.semanticType;
 
   return {
-    data: { values: t.data },
     semantic_types,
     chart_spec: {
       chartType: t.chartType,
@@ -101,6 +100,9 @@ export function testCaseToAssemblyInput(t: TestCase, canvasSize: CanvasSize = DE
     },
     options: t.assembleOptions,
     semantic_annotations: t.semanticAnnotations,
+    // Data goes last so the compact, frequently-edited spec stays at the top of
+    // the editor and the bulky values array sits at the bottom.
+    data: { values: t.data },
   } as any;
 }
 

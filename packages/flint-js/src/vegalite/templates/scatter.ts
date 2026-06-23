@@ -7,6 +7,17 @@ import {
     detectBandedAxisForceDiscrete,
 } from './utils';
 
+// Fraction of the band/lane step a boxplot box should occupy. An ungrouped box
+// fills most of its category band; a grouped (dodged) box fills most of its
+// per-subgroup lane. The remainder becomes the gap between adjacent boxes.
+const BOXPLOT_BAND_FILL = 0.7;
+const GROUPED_BOXPLOT_LANE_FILL = 0.85;
+// Vega-Lite's default discrete position band scale reserves ~20% of each step as
+// inter-band padding, so only ~80% of the step is usable drawing width. Grouped
+// box sizing must use this usable width when splitting a band into sub-lanes,
+// otherwise the boxes overshoot their lane pitch and overlap within a group.
+const USABLE_BAND_FRACTION = 0.8;
+
 export const scatterPlotDef: ChartTemplateDef = {
     chart: "Scatter Plot",
     template: { mark: "circle", encoding: {} },
@@ -152,6 +163,7 @@ export const boxplotDef: ChartTemplateDef = {
             axisFlags: { [result.axis]: { banded: true } },
             resolvedTypes: result.resolvedTypes,
             paramOverrides: { defaultBandSize: 28 },  // box+whisker needs wider bands
+            colorActsAsGroup: true,  // dodge-by-color → budget band per category, shrink lanes
         };
     },
     instantiate: (spec, ctx) => {
@@ -178,12 +190,26 @@ export const boxplotDef: ChartTemplateDef = {
             }
         }
 
-        // Scale box width to the step size of the discrete axis. When boxes are
-        // dodged, share the band across subgroups so the group fits in one band.
+        // Scale box width to the step size of the discrete axis. With
+        // colorActsAsGroup, computeLayout sizes the axis per *category band*
+        // (xStepUnit 'group') and Vega-Lite gets `width:{step, for:'position'}`,
+        // so each band is subdivided into `subgroups` sub-lanes. Vega-Lite's
+        // position band scale reserves ~20% of every step as inter-band padding,
+        // so only ~80% of the step is actual drawing width — the per-subgroup
+        // pitch is `step * USABLE_BAND_FRACTION / subgroups`. Sizing a box to the
+        // raw `step / subgroups` overshoots that pitch and makes adjacent boxes
+        // in a group overlap; account for the padding, then fill most of the lane
+        // so boxes shrink (and stay separated) as subgroups grow.
         if (hasDiscreteAxis) {
             const boxStep = hasDiscreteX ? layout.xStep : layout.yStep;
-            const boxSize = Math.max(4, Math.round((boxStep * 0.7) / subgroups));
-            spec.mark = setMarkProp(spec.mark, 'size', boxSize);
+            if (subgroups > 1) {
+                const lanePitch = (boxStep * USABLE_BAND_FRACTION) / subgroups;
+                const boxSize = Math.max(2, Math.round(lanePitch * GROUPED_BOXPLOT_LANE_FILL));
+                spec.mark = setMarkProp(spec.mark, 'size', boxSize);
+            } else {
+                const boxSize = Math.max(4, Math.round(boxStep * BOXPLOT_BAND_FILL));
+                spec.mark = setMarkProp(spec.mark, 'size', boxSize);
+            }
         }
     },
 };

@@ -42,7 +42,7 @@ flint-chart/
 │   │   ├── src/echarts/   ECharts backend
 │   │   ├── src/chartjs/   Chart.js backend
 │   │   └── src/test-data/ gallery fixtures
-│   └── flint-py/          PyPI package `flint`
+│   └── flint-py/          PyPI package `flint-chart`
 ├── site/                  landing, gallery, editor, docs browser
 ├── docs/                  architecture + site documentation sources
 ├── agent-skills/          AI agent skill (SKILL.md)

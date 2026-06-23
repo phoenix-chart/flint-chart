@@ -1,4 +1,6 @@
-# Flint: A visualization language for the AI era
+# Flint: A Visualization Language for the AI Era
+
+_A Microsoft Research project._
 
 [![Install](https://img.shields.io/badge/Install-npm_%7C_pip-3776AB)](#install)
 [![npm](https://img.shields.io/npm/v/flint-chart.svg?label=npm%3A%20flint-chart)](https://www.npmjs.com/package/flint-chart)
@@ -8,13 +10,13 @@
 [![Project site](https://img.shields.io/badge/Project_site-gallery_%2B_live_editor-0078D4?style=for-the-badge)](https://microsoft.github.io/flint-chart/)
 [![Agent skill](https://img.shields.io/badge/Agent_skill-SKILL.md-8A2BE2?style=for-the-badge)](agent-skills/flint-chart-author/SKILL.md)
 
-Flint is a visualization intermediate language that allows **AI agents to create
-expressive, good-looking visualizations from simple, human-editable chart specs**.
-Instead of requiring verbose low-level parameters such as scales, axes, spacing,
-and layout, the Flint compiler derives optimized chart settings from the data,
-semantic types, chart type, and encodings. The result is a compact chart
-specification that is easy for agents to create, easy for people to edit, and
-**it can be rendered in different backends (Vega-Lite, ECharts, Chart.js)**.
+Flint is a visualization intermediate language that lets **AI agents create
+expressive, polished visualizations from simple, human-editable chart specs**.
+Instead of asking agents or developers to tune verbose low-level parameters such
+as scales, axes, spacing, and layout, the Flint compiler derives optimized chart
+settings from the data, semantic types, chart type, and encodings. The result is
+a compact chart specification that agents can produce reliably, people can edit
+directly, and multiple backends can render: **Vega-Lite, ECharts, and Chart.js**.
 
 <p align="center">
   <img src="docs/figs/chartwall.png" alt="A wall of charts produced by Flint: bar, line, scatter, heatmap, donut, radar, streamgraph, boxplot, grouped bar, rose, Sankey, and treemap, rendered across Vega-Lite, ECharts, and Chart.js." width="100%">
@@ -29,18 +31,18 @@ specification that is easy for agents to create, easy for people to edit, and
   using an elastic layout model.
 - **Generate simple editable specs.** Flint specs are short enough for agents
   to write reliably and clear enough for people to refine by hand. Switch chart
-  types or rebind encodings, and the compiler cascades the change. The [agent skill](agent-skills/flint-chart-author/SKILL.md) helps agents generate reliable, good-looking
-  charts without last-mile low-level refinement issues.
-- **Render across multiple backends.** Compile the same spec to **30+ chart
-  types** across **Vega-Lite, ECharts, and Chart.js** through one unified
-  interface.
+  types or rebind encodings, and the compiler cascades the change. The
+  [agent skill](agent-skills/flint-chart-author/SKILL.md) gives agents a concrete
+  authoring contract for reliable, polished charts.
+- **Render across multiple backends.** Compile one spec through a unified
+  interface to **30+ chart types** across **Vega-Lite, ECharts, and Chart.js**.
 
 <br/>
 
 <p align="center">
   <img src="docs/figs/workflow.png" alt="One workflow end to end: an agent infers a data spec (semantic types) from a raw table, you write a short chart spec, and Flint compiles it to a faceted line chart — then to a grouped bar, waterfall, heatmap, and sunburst as the spec is edited." width="100%">
 </p>
-<p align="left"><sub>Flint compiles and optimizes high-level data and chart specs into polished visualizations. Because the compiler manages low-level design details, users can move from a faceted line chart to a grouped bar, waterfall, heatmap, or sunburst, or switch rendering engines easily.</sub></p>
+<p align="left"><sub>Flint compiles high-level data and chart specs into optimized visualizations. Because the compiler manages low-level design details, users can move from a faceted line chart to a grouped bar, waterfall, heatmap, or sunburst, or switch rendering engines without rewriting the spec.</sub></p>
 
 
 ## Install
@@ -55,7 +57,7 @@ pip install flint-chart
 
 ## Use
 
-Every backend accepts the **same** `ChartAssemblyInput` and returns that
+Every backend accepts the **same** `ChartAssemblyInput` and returns the target
 library's native spec object.
 
 ### JavaScript / TypeScript
@@ -140,7 +142,7 @@ for* from *the size it may never exceed*:
 | Field | Role | Default |
 |-------|------|---------|
 | `baseSize` | **Target** — the size the chart aims for with typical data. The layout engine measures data density ("pressure") against this. | `400 × 320` |
-| `canvasSize` | **Hard ceiling** — the maximum the chart may ever reach, in any dimension (faceted grids included). | none → `baseSize × maxStretch` (default `2×`) |
+| `canvasSize` | **Hard ceiling** — the maximum the chart may ever reach, in any dimension (faceted grids included). | none → `baseSize × maxStretch` (default `1.5×`) |
 
 When data is dense (many categories, points, slices, or facets), Flint *stretches*
 the chart past its base to keep it readable — but never past the ceiling. The
@@ -156,8 +158,8 @@ per-dimension stretch limits are `βx = canvasSize.width / baseSize.width` and
 
 What the common combinations do:
 
-- **Neither set** → `400×320` target; may grow up to `800×640` (2×) when dense.
-- **Only `baseSize`** → your target; may grow up to 2× when dense.
+- **Neither set** → `400×320` target; may grow up to `600×480` (1.5×) when dense.
+- **Only `baseSize`** → your target; may grow up to 1.5× when dense.
 - **Only `canvasSize`** → a **fixed box**: the chart fills it and shrinks to fit
   when dense, but never overflows. *What you ask for is what you get.*
 - **Both** → aim for `baseSize`, grow toward `canvasSize`, never beyond. A
@@ -169,7 +171,7 @@ Past the ceiling, Flint makes harder tradeoffs (smaller steps, angled labels,
 truncation) — tune those with `options.maxStretch`, `options.elasticity`, and
 related options.
 
-Semantic types span temporal (`DateTime`, `Year`, `Month`), measures (`Quantity`,
+Semantic types cover temporal (`DateTime`, `Year`, `Month`), measures (`Quantity`,
 `Price`, `Percentage`), discrete numerics (`Rank`, `Score`, `ID`), geographic
 (`Latitude`, `Country`, `City`), categorical (`PersonName`, `Status`, `Boolean`),
 ranges (`AgeGroup`, `Bucket`), and fallbacks (`String`, `Number`, `Unknown`). See
@@ -178,11 +180,11 @@ registries, and core utilities.
 
 ### Use Flint with AI agents
 
-Flint is designed to be driven by AI agents. The
-[**agent skill**](agent-skills/flint-chart-author/SKILL.md) tells a model exactly what to produce:
-the `chart_spec` and `semantic_types` (referencing data columns by name). The host
-then calls `assembleVegaLite` / `assembleECharts` / `assembleChartjs` to get the
-backend spec — the model never hand-tunes sizing, color, or formatting.
+Flint is built to fit agent workflows. The
+[**agent skill**](agent-skills/flint-chart-author/SKILL.md) gives a model a concrete output contract:
+produce `chart_spec` and `semantic_types` that reference data columns by name.
+The host then calls `assembleVegaLite` / `assembleECharts` / `assembleChartjs` to
+get the backend spec, so the model does not hand-tune sizing, color, or formatting.
 
 - **Coding agents (Copilot, Cursor, Claude Code):** the agent writes code that
   binds data by reference — `data: { values: rows }` — and calls the assembler.
@@ -190,15 +192,15 @@ backend spec — the model never hand-tunes sizing, color, or formatting.
   reference to host-side data (file path, uploaded CSV, prior tool result).
 - **Chat apps without tools:** the agent embeds a small table inline.
 
-Point your agent at [`agent-skills/flint-chart-author/SKILL.md`](agent-skills/flint-chart-author/SKILL.md) (chart-type
-catalog, channels, and worked examples) to get started.
+Point your agent at [`agent-skills/flint-chart-author/SKILL.md`](agent-skills/flint-chart-author/SKILL.md)
+for the chart-type catalog, channel rules, and worked examples.
 
 #### MCP server
 
 For agents that speak the **Model Context Protocol**, the
 [`flint-chart-mcp`](packages/flint-mcp/README.md) server turns a spec into a
-rendered artifact (PNG/SVG) — `data + spec → image` — entirely in-process, with
-no data upload. Add it to any MCP client (Claude Desktop, Cursor, VS Code):
+rendered PNG or SVG — `data + spec → image` — entirely in-process, with no data
+upload. Add it to any MCP client (Claude Desktop, Cursor, VS Code):
 
 ```json
 { "mcpServers": { "flint": { "command": "npx", "args": ["-y", "flint-chart-mcp"] } } }
@@ -239,7 +241,7 @@ flint-chart/
 | Layout / stretch model | [docs/design-stretch-model.md](docs/design-stretch-model.md) |
 | Color decisions | [docs/color-decisions.md](docs/color-decisions.md) |
 | API reference | [docs/api-reference.md](docs/api-reference.md) |
-| Extending Flint | [add a chart template](docs/adding-a-chart-template.md) · [add a semantic type](docs/adding-a-semantic-type.md) · [add a backend](docs/adding-a-backend.md) |
+| Extending Flint | [Extending chart templates](docs/adding-a-chart-template.md) · [Extending semantic types](docs/adding-a-semantic-type.md) · [Extending backends](docs/adding-a-backend.md) |
 | For AI agents | [agent-skills/flint-chart-author/SKILL.md](agent-skills/flint-chart-author/SKILL.md) |
 
 ---
@@ -247,7 +249,7 @@ flint-chart/
 ## Contributing
 
 Contributions are welcome! See [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md)
-and the [Developer guide](docs/DEVELOPMENT.md).
+and the [Development guide](docs/DEVELOPMENT.md).
 
 ```bash
 git clone https://github.com/microsoft/flint-chart
@@ -265,9 +267,9 @@ Node 18+ is required. The demo site aliases `flint-chart` to
 `packages/flint-js/src`, so library edits hot-reload in the gallery and editor
 without rebuilding `dist/`.
 
-Quick recipes: [add a chart template](docs/adding-a-chart-template.md) ·
-[add a semantic type](docs/adding-a-semantic-type.md) ·
-[add a backend](docs/adding-a-backend.md). Please run
+Quick recipes: [Extending chart templates](docs/adding-a-chart-template.md) ·
+[Extending semantic types](docs/adding-a-semantic-type.md) ·
+[Extending backends](docs/adding-a-backend.md). Please run
 `npm run typecheck && npm run test && npm run lint` before opening a PR.
 
 This project has adopted the

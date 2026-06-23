@@ -37,6 +37,7 @@ export function Landing() {
         {/* ---- Hero ------------------------------------------------------ */}
         <section style={{ ...sectionStyle, paddingTop: 72, paddingBottom: 24 }}>
           <h1 style={heroTitleStyle}>Flint: A Visualization Language for the AI Era</h1>
+          <div style={heroAttributionStyle}>A Microsoft Research project</div>
 
           <div style={leadColumnsStyle}>
             <div style={leadTextColStyle}>
@@ -151,12 +152,12 @@ export function Landing() {
             Start building with Flint.
           </h2>
           <p style={{ margin: '0 0 22px', color: siteTheme.textMuted, fontSize: 16, lineHeight: 1.6 }}>
-            Open source and ready to use. Explore the gallery or jump straight into the editor.
+            Open source and ready to use. Start from GitHub or browse examples in the gallery.
           </p>
           <div style={{ ...ctaRowStyle, marginTop: 0, justifyContent: 'center' }}>
-            <Link to="/editor" style={primaryBtn}>
-              Open the editor
-            </Link>
+            <a href={GITHUB_REPO} style={primaryBtn} target="_blank" rel="noreferrer">
+              View on GitHub
+            </a>
             <Link to="/wall" style={secondaryBtn}>
               Browse the gallery
             </Link>
@@ -950,10 +951,18 @@ const sectionDividerLineStyle: CSSProperties = {
 const heroTitleStyle: CSSProperties = {
   fontSize: 42,
   lineHeight: 1.18,
-  margin: '0 0 32px',
+  margin: '0 0 8px',
   maxWidth: 960,
   fontWeight: 300,
   letterSpacing: '0.01em',
+};
+
+const heroAttributionStyle: CSSProperties = {
+  margin: '0 0 32px',
+  color: siteTheme.textMuted,
+  fontSize: 13,
+  fontWeight: 500,
+  letterSpacing: '0.03em',
 };
 
 const leadColumnsStyle: CSSProperties = {

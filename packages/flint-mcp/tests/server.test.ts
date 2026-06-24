@@ -23,6 +23,11 @@ const barChart = {
   },
 };
 
+function resourceText(content: { uri: string; text?: string; blob?: string }): string {
+  if (typeof content.text === 'string') return content.text;
+  throw new Error(`expected text content for ${content.uri}`);
+}
+
 let client: Client;
 let server: McpServer;
 
@@ -140,7 +145,7 @@ describe('MCP server', () => {
     const uris = resources.map((r) => r.uri);
     expect(uris).toContain('flint://chart-types');
     const read = await client.readResource({ uri: 'flint://chart-types' });
-    const payload = JSON.parse(read.contents[0].text as string);
+    const payload = JSON.parse(resourceText(read.contents[0]));
     expect(Array.isArray(payload)).toBe(true);
     expect(payload.length).toBe(3);
   });
@@ -153,8 +158,9 @@ describe('MCP server', () => {
 
     const read = await client.readResource({ uri: 'flint://agent-skill' });
     expect(read.contents[0].mimeType).toBe('text/markdown');
-    expect(read.contents[0].text).toContain('# flint-chart: authoring and using a chart spec');
-    expect(read.contents[0].text).toContain('validate_chart');
+    const skillText = resourceText(read.contents[0]);
+    expect(skillText).toContain('# flint-chart: authoring and using a chart spec');
+    expect(skillText).toContain('validate_chart');
   });
 
   it('exposes a prompt that embeds the agent skill', async () => {
@@ -166,7 +172,7 @@ describe('MCP server', () => {
     expect(resourceMessage?.content.type).toBe('resource');
     if (resourceMessage?.content.type === 'resource') {
       expect(resourceMessage.content.resource.uri).toBe('flint://agent-skill');
-      expect(resourceMessage.content.resource.text).toContain('ChartAssemblyInput');
+      expect(resourceText(resourceMessage.content.resource)).toContain('ChartAssemblyInput');
     }
   });
 

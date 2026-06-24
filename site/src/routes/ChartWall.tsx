@@ -398,22 +398,40 @@ function WallSidebar({
       </SidebarNavSection>
 
       <SidebarNavSection label="Chart types">
-        {groups.map((group) => (
-          <div key={group.id} style={{ marginTop: 10 }}>
-          {group.sections.map((section) => (
-            <SidebarItem
-              key={section.chart.id}
-              chart={section.chart}
-              active={activeChartId === section.chart.id}
-              onClick={() => onNavigate(section.chart.id)}
-            />
-          ))}
+        {groups.map((group, index) => (
+          <div
+            key={group.id}
+            style={{ ...chartTypeNavGroupStyle, marginTop: index === 0 ? 2 : 16 }}
+          >
+            <div style={chartTypeNavGroupLabelStyle}>{group.label}</div>
+            {group.sections.map((section) => (
+              <SidebarItem
+                key={section.chart.id}
+                chart={section.chart}
+                active={activeChartId === section.chart.id}
+                onClick={() => onNavigate(section.chart.id)}
+              />
+            ))}
           </div>
         ))}
       </SidebarNavSection>
     </SidebarNav>
   );
 }
+
+const chartTypeNavGroupStyle: CSSProperties = {
+  paddingTop: 2,
+};
+
+const chartTypeNavGroupLabelStyle: CSSProperties = {
+  padding: '0 12px 5px 16px',
+  color: siteTheme.textMuted,
+  fontSize: 11,
+  fontWeight: 600,
+  letterSpacing: '0.04em',
+  textTransform: 'uppercase',
+  lineHeight: 1.4,
+};
 
 function SidebarItem({
   chart,
@@ -498,7 +516,7 @@ const ${resultNames[category.id]} = ${category.fn}(input);`;
         style={{
           margin: 0,
           maxWidth: 720,
-          color: siteTheme.textMuted,
+          color: siteTheme.text,
           fontSize: 14,
           lineHeight: 1.65,
         }}
@@ -515,7 +533,7 @@ const ${resultNames[category.id]} = ${category.fn}(input);`;
         style={{
           margin: '10px 0 0',
           maxWidth: 720,
-          color: siteTheme.textMuted,
+          color: siteTheme.text,
           fontSize: 13,
           lineHeight: 1.6,
         }}
@@ -562,7 +580,7 @@ function ChartChip({ link, onNavigate }: { link: ChartLink; onNavigate: (id: str
         ...chartNameChipStyle,
         background: hovered ? siteTheme.accentBg : siteTheme.surface,
         borderColor: hovered ? siteTheme.accent : siteTheme.border,
-        color: hovered ? siteTheme.accent : siteTheme.textMuted,
+        color: hovered ? siteTheme.accent : siteTheme.text,
       }}
     >
       <img src={link.icon} alt="" aria-hidden="true" style={chartNameChipIconStyle} />
@@ -686,7 +704,7 @@ const chartNameChipStyle: CSSProperties = {
   fontFamily: 'inherit',
   fontSize: 11.5,
   lineHeight: 1.4,
-  color: siteTheme.textMuted,
+  color: siteTheme.text,
   background: siteTheme.surface,
   border: `1px solid ${siteTheme.border}`,
   borderRadius: 999,

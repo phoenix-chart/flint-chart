@@ -39,17 +39,11 @@ body {
 }
 
 .app {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 260px;
-  gap: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   padding: 16px;
-  align-items: start;
-}
-
-@media (max-width: 640px) {
-  .app {
-    grid-template-columns: 1fr;
-  }
+  align-items: stretch;
 }
 
 /* --- preview --- */
@@ -111,92 +105,98 @@ body {
   text-transform: lowercase;
 }
 
-.actions {
-  margin-top: 12px;
-}
-
-/* --- config panel --- */
-.panel {
-  border: 1px solid var(--hairline);
-  background: var(--paper);
-}
-
-.panel-head {
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--hairline);
-}
-
-.panel-eyebrow {
-  display: block;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.panel-title {
-  margin: 2px 0 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.panel-empty {
-  margin: 0;
-  padding: 16px 14px;
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.panel-section {
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--hairline);
-}
-
-.panel-section:last-child {
-  border-bottom: none;
-}
-
-.panel-section h3 {
-  margin: 0 0 10px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.field {
+/* --- options bar (muted, inline, below the chart) --- */
+.optionsbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  gap: 10px 22px;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.035);
+  border-radius: 10px;
+  color: var(--muted);
+}
+
+.optionsbar-spacer {
+  flex: 1 1 auto;
+}
+
+.opt-empty {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.opt {
+  display: inline-flex;
+  align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  margin: 0;
 }
 
-.field:last-child {
-  margin-bottom: 0;
-}
-
-.field-label {
-  color: var(--ink);
-  flex: 0 0 auto;
+.opt-label {
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 .control-inline {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  flex: 1 1 auto;
-  justify-content: flex-end;
+  gap: 6px;
 }
 
 .control-readout {
-  min-width: 40px;
-  text-align: right;
+  min-width: 1.5em;
+  text-align: left;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
+}
+
+/* toggle switch (binary options) */
+.switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.switch input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.switch-track {
+  width: 30px;
+  height: 16px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.18);
+  transition: background 120ms ease;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+}
+
+.switch-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--paper);
+  transition: transform 120ms ease;
+}
+
+.switch input:checked + .switch-track {
+  background: var(--accent);
+}
+
+.switch input:checked + .switch-track .switch-thumb {
+  transform: translateX(14px);
+}
+
+.switch input:focus-visible + .switch-track {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 select,
@@ -207,16 +207,15 @@ input[type='range'] {
 }
 
 select {
-  flex: 1 1 auto;
   max-width: 160px;
   padding: 3px 6px;
   background: var(--paper);
   border: 1px solid var(--hairline);
-  border-radius: 0;
+  border-radius: 4px;
 }
 
 input[type='range'] {
-  flex: 1 1 auto;
+  width: 110px;
   accent-color: var(--accent);
 }
 
@@ -224,20 +223,26 @@ input[type='checkbox'] {
   accent-color: var(--accent);
 }
 
-button {
+/* inline text-link actions in the bar */
+.bar-link {
   font-family: inherit;
   font-size: 12px;
-  padding: 6px 12px;
-  color: var(--paper);
-  background: var(--accent);
-  border: 1px solid var(--accent);
-  border-radius: 0;
+  padding: 4px 8px;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
   cursor: pointer;
+  white-space: nowrap;
 }
 
-button:disabled {
+.bar-link:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.bar-link:disabled {
   color: var(--muted);
-  background: var(--paper);
   border-color: var(--hairline);
   cursor: default;
 }

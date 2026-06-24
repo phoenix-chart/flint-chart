@@ -43,9 +43,14 @@ examples/**/.vite/
 agents/**/dist/
 agents/**/node_modules/
 
-# Lockfile policy: keep root lockfile, ignore example/agent lockfiles
+# Lockfile policy: keep ONLY the root lockfile. Workspace members (and
+# example/agent dirs) are governed by the root lock; nested lockfiles are
+# redundant for `npm ci` at the root and drift out of sync. Packages are still
+# published separately via `npm publish` (which reads package.json, not locks).
 examples/**/package-lock.json
 agents/**/package-lock.json
+packages/*/package-lock.json
+site/package-lock.json
 
 # Python
 __pycache__/

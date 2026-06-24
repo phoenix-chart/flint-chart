@@ -37,10 +37,14 @@ First decide which workflow the user is asking for:
 - **Spec authoring only:** return a `ChartAssemblyInput` or its
   `semantic_types` + `chart_spec` pieces. Do not install packages or write
   renderer code unless asked.
-- **MCP chart output:** if Flint MCP tools are available, validate before
-  rendering. Use `validate_chart` to check the input, `render_chart` to return
-  PNG or SVG, `compile_chart` when the user wants backend-native JSON, and
-  `list_chart_types` when you need the supported chart catalog.
+- **MCP chart output:** if Flint MCP tools are available, **default to
+  `create_chart_view`** whenever the user asks to see a chart — it opens an
+  interactive, live-rendered view with a customization panel, and it validates
+  the spec for you. Only fall back to `render_chart` (PNG/SVG) when the host has
+  no App UI support or the user explicitly wants a static image. Use
+  `validate_chart` to check a spec without rendering, `compile_chart` when the
+  user wants backend-native JSON, and `list_chart_types` when you need the
+  supported chart catalog.
 - **Project integration, only when the user asks for code:** add Flint to an
   app, notebook, script, or agentic product, install/import the library, and
   call an assembler in code. Keep the same `ChartAssemblyInput` contract, then
@@ -213,6 +217,25 @@ properties"). Required channels are noted.
 | `"Choropleth"` | id, color, detail | `id` = geographic key |
 
 **Donut chart:** use `"Pie Chart"` with `chartProperties.innerRadius > 0`.
+
+**Choosing a bar chart (most common mix-up).** All three take one discrete
+category on `x` (or `y`) plus one measure. They differ in how a **second**
+category is shown — and each reads that second category from a **different
+channel**:
+
+- `"Bar Chart"` — no second category. One bar per `x` value. A `color`
+  encoding just tints the bars (or stacks segments if multiple rows share an
+  `x`). It has **no `group` channel**, so a `group` encoding is silently
+  ignored.
+- `"Stacked Bar Chart"` — second category on `color`, drawn as **stacked**
+  segments within each bar (totals matter). Tune with `stackMode`
+  (`stacked` / `normalize` / `layered`).
+- `"Grouped Bar Chart"` — second category on the **`group`** channel, drawn as
+  **side-by-side (dodged)** bars within each `x` cluster (compare values
+  directly). Put the clustering category on `group`, *not* `color`.
+
+Rule of thumb: comparing parts-to-whole → Stacked; comparing values
+side-by-side → Grouped (use `group`); single series → Bar.
 
 **Backend coverage.** Vega-Lite supports all of the above. Other backends
 support a subset (verify if targeting a non-VL backend):

@@ -7,7 +7,13 @@
     <link rel="icon" href="data:," />
     <style>
       html, body, #root { margin: 0; padding: 0; height: 100%; }
-      body { font: 14px/1.5 Arial, Roboto, 'Helvetica Neue', sans-serif; color: #1f2328; background: #ffffff; }
+      body {
+        font: 14px/1.5 'Inter Variable', Inter, -apple-system, 'Segoe UI', system-ui, Roboto, 'Helvetica Neue', Arial, sans-serif;
+        color: #1f2328;
+        background: #ffffff;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
       a { color: #0969da; }
 
       /* Thin, flat, low-contrast scrollbars (sidebars, panels, page). */

@@ -174,7 +174,7 @@ export function ChartCodeModal({
           >
             <div style={{ fontSize: 14, fontWeight: 600 }}>{titles[index] ?? 'No example'}</div>
             {testCase?.description && (
-              <div style={{ fontSize: 12, color: siteTheme.textMuted, lineHeight: 1.5 }}>
+              <div style={{ fontSize: 12, color: siteTheme.text, lineHeight: 1.5 }}>
                 {testCase.description}
               </div>
             )}

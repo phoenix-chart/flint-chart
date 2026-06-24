@@ -66,10 +66,12 @@
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@napi-rs/canvas": "^1.0.0",
     "@resvg/resvg-js": "^2.6.2",
+    "canvas": "^3.2.3",
     "chart.js": "^4.4.0",
     "echarts": "^6.0.0",
     "flint-chart": "^0.1.0",
     "vega": "^6.0.0",
+    "vega-interpreter": "^2.2.1",
     "vega-lite": "^6.0.0",
     "zod": "^3.25.1"
   },

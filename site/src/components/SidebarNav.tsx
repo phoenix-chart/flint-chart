@@ -28,7 +28,7 @@ export function SidebarNav({ sidebarRef, children, style }: SidebarNavProps) {
         overflowX: 'hidden',
         overscrollBehavior: 'contain',
         background: 'transparent',
-        padding: '18px 0 28px',
+        padding: '20px 14px 28px',
         boxSizing: 'border-box',
         ...style,
       }}
@@ -51,7 +51,7 @@ export function SidebarNavSection({
     <section
       style={{
         marginTop: first ? 0 : 18,
-        marginBottom: 4,
+        marginBottom: 6,
         paddingTop: first ? 0 : 14,
         borderTop: first ? 'none' : `1px solid ${siteTheme.border}`,
       }}
@@ -66,7 +66,6 @@ type SidebarNavItemProps = {
   active: boolean;
   children: ReactNode;
   as?: 'button' | 'link';
-  compact?: boolean;
   icon?: string;
   onClick?: () => void;
   to?: string;
@@ -77,7 +76,6 @@ export function SidebarNavItem({
   active,
   children,
   as = 'button',
-  compact = false,
   icon,
   onClick,
   to = '#',
@@ -89,20 +87,22 @@ export function SidebarNavItem({
     alignItems: 'center',
     gap: icon ? 9 : 0,
     width: '100%',
-    minHeight: compact ? 30 : 32,
-    padding: compact ? '7px 16px' : '6px 16px',
+    minHeight: 31,
+    marginBottom: 0,
+    padding: '5px 12px 5px 16px',
     border: 0,
-    borderLeft: `3px solid ${active ? siteTheme.accent : 'transparent'}`,
+    borderRadius: 10,
     textAlign: 'left',
     textDecoration: 'none',
-    background: active ? siteTheme.accentBg : hovered ? '#eef1f4' : 'transparent',
-    color: active ? siteTheme.accent : siteTheme.text,
+    background: active ? 'rgba(31, 35, 40, 0.10)' : hovered ? 'rgba(31, 35, 40, 0.06)' : 'transparent',
+    color: siteTheme.text,
     cursor: 'pointer',
     font: 'inherit',
     fontSize: 13,
-    lineHeight: 1.35,
+    lineHeight: 1.4,
     fontWeight: active ? 600 : 400,
     boxSizing: 'border-box',
+    transition: 'background-color 120ms ease, color 120ms ease',
   };
   const itemContent = (
     <>
@@ -146,10 +146,9 @@ export function SidebarNavItem({
 }
 
 const sidebarNavHeadingStyle: CSSProperties = {
-  padding: '0 16px 8px',
-  fontSize: 11,
-  fontWeight: 700,
-  letterSpacing: '0.05em',
-  textTransform: 'uppercase',
-  color: siteTheme.textMuted,
+  padding: '0 12px 6px 16px',
+  fontSize: 13.5,
+  fontWeight: 600,
+  letterSpacing: 0,
+  color: siteTheme.text,
 };

@@ -102,12 +102,15 @@ export function createServer(options: CreateServerOptions = {}): McpServer {
     {
       instructions:
         'Flint compiles one semantic chart spec (ChartAssemblyInput) into ' +
-        'Vega-Lite, ECharts, or Chart.js. Use render_chart to get a PNG/SVG ' +
-        'artifact, compile_chart for the backend spec JSON, validate_chart to ' +
-        'check a spec, list_chart_types to discover chart types and their ' +
-        'channels, and create_chart_view to open an interactive, customizable ' +
-        'chart view in hosts that support MCP App UIs. Before authoring specs, ' +
-        'read the flint://agent-skill resource or use the author_flint_chart prompt.',
+        'Vega-Lite, ECharts, or Chart.js. By DEFAULT, prefer create_chart_view ' +
+        'to return an interactive, customizable chart whenever the host ' +
+        'supports MCP App UIs — it renders the chart live and lets the user ' +
+        'tweak it. Fall back to render_chart for a static PNG/SVG artifact only ' +
+        'when the host has no App UI support or the user explicitly wants a ' +
+        'static image. Use compile_chart for the backend spec JSON, ' +
+        'validate_chart to check a spec, and list_chart_types to discover chart ' +
+        'types and their channels. Before authoring specs, read the ' +
+        'flint://agent-skill resource or use the author_flint_chart prompt.',
     },
   );
 
@@ -117,9 +120,11 @@ export function createServer(options: CreateServerOptions = {}): McpServer {
     {
       title: 'Render chart',
       description:
-        'Compile a Flint chart spec for a backend and render it to an image ' +
+        'Compile a Flint chart spec for a backend and render it to a STATIC image ' +
         '(PNG) or vector (SVG), returned inline. Rendering is local/in-process. ' +
-        'The chartjs backend supports PNG only.',
+        'The chartjs backend supports PNG only. Prefer create_chart_view instead ' +
+        'when the host supports MCP App UIs; use render_chart for a static ' +
+        'artifact or when no App UI is available.',
       inputSchema: {
         ...assemblyInputShape,
         backend: backendEnum,
@@ -240,11 +245,14 @@ export function createServer(options: CreateServerOptions = {}): McpServer {
     {
       title: 'Create interactive chart view',
       description:
-        'Open an interactive Flint chart view: renders the spec live as SVG and ' +
+        'PREFERRED DEFAULT for showing a chart when the host supports MCP App ' +
+        'UIs. Open an interactive Flint chart view: renders the spec live as SVG ' +
+        'and ' +
         'offers a customization panel (chart type, channel bindings, chart ' +
         'properties, sort) built from Flint\'s option model. Rendering and edits ' +
         'happen entirely in the host UI (Vega-Lite); no data leaves the host. ' +
-        'Use this when the user wants to see and tweak a chart, not just a static image.',
+        'Use this whenever the user wants to see a chart, not just when they ask ' +
+        'to tweak it; fall back to render_chart only for a static image.',
       inputSchema: { ...assemblyInputShape },
       _meta: { ui: { resourceUri: CHART_VIEW_RESOURCE_URI } },
     },

@@ -151,7 +151,7 @@ export function Landing() {
           <h2 style={{ fontSize: 26, margin: '0 0 8px', fontWeight: 500 }}>
             Start building with Flint.
           </h2>
-          <p style={{ margin: '0 0 22px', color: siteTheme.textMuted, fontSize: 16, lineHeight: 1.6 }}>
+          <p style={{ margin: '0 0 22px', color: siteTheme.text, fontSize: 16, lineHeight: 1.6 }}>
             Open source and ready to use. Start from GitHub or browse examples in the gallery.
           </p>
           <div style={{ ...ctaRowStyle, marginTop: 0, justifyContent: 'center' }}>
@@ -953,8 +953,8 @@ const heroTitleStyle: CSSProperties = {
   lineHeight: 1.18,
   margin: '0 0 8px',
   maxWidth: 960,
-  fontWeight: 300,
-  letterSpacing: '0.01em',
+  fontWeight: 700,
+  letterSpacing: '-0.02em',
 };
 
 const heroAttributionStyle: CSSProperties = {
@@ -1021,7 +1021,7 @@ const installLinesStyle: CSSProperties = {
 };
 
 const installLineStyle: CSSProperties = {
-  color: siteTheme.textMuted,
+  color: siteTheme.text,
   fontSize: 15.5,
   lineHeight: 1.65,
 };
@@ -1093,7 +1093,7 @@ const overviewCaptionStyle: CSSProperties = {
   margin: '14px auto 0',
   maxWidth: 760,
   textAlign: 'center',
-  color: siteTheme.textMuted,
+  color: siteTheme.text,
   fontSize: 13.5,
   lineHeight: 1.6,
 };
@@ -1196,7 +1196,7 @@ const showcaseHeadingStyle: CSSProperties = {
 
 const showcaseIntroTextStyle: CSSProperties = {
   fontSize: 15.5,
-  color: siteTheme.textMuted,
+  color: siteTheme.text,
   lineHeight: 1.65,
   margin: 0,
 };
@@ -1240,7 +1240,7 @@ const showcaseCaptionStyle: CSSProperties = {
   maxWidth: 760,
   margin: '16px auto 0',
   textAlign: 'center',
-  color: siteTheme.textMuted,
+  color: siteTheme.text,
   fontSize: 14.5,
   lineHeight: 1.55,
 };
@@ -1249,8 +1249,8 @@ const specPreStyle: CSSProperties = {
   margin: 0,
   padding: '4px 16px 16px',
   fontFamily: siteTheme.fontMono,
-  fontSize: 11,
-  lineHeight: 1.5,
+  fontSize: 12.5,
+  lineHeight: 1.55,
   color: siteTheme.text,
   background: PAPER,
   overflowX: 'auto',
@@ -1360,7 +1360,7 @@ const featureTitleStyle: CSSProperties = {
 
 const featureBodyStyle: CSSProperties = {
   fontSize: 16,
-  color: siteTheme.textMuted,
+  color: siteTheme.text,
   lineHeight: 1.7,
   margin: 0,
 };
@@ -1383,7 +1383,7 @@ const featureExampleStyle: CSSProperties = {
   borderLeft: `2px solid ${HAIRLINE}`,
   fontSize: 14,
   lineHeight: 1.6,
-  color: siteTheme.textMuted,
+  color: siteTheme.text,
 };
 
 const codeStyle: CSSProperties = {

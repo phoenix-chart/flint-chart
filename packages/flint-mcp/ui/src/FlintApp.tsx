@@ -47,7 +47,7 @@ function ControlRow(props: {
     const step = spec.step ?? ((spec.max - spec.min) / 100 || 1);
     const num = typeof value === 'number' ? value : spec.min;
     control = (
-      <div className="control-inline">
+      <span className="control-inline">
         <input
           type="range"
           min={spec.min}
@@ -57,7 +57,7 @@ function ControlRow(props: {
           onChange={(e) => onChange(Number(e.target.value))}
         />
         <span className="control-readout">{Number(num).toLocaleString()}</span>
-      </div>
+      </span>
     );
   } else if (spec.type === 'discrete') {
     const current = valueKey(value);
@@ -76,33 +76,40 @@ function ControlRow(props: {
     );
   } else {
     control = (
-      <input
-        type="checkbox"
-        checked={Boolean(value)}
-        onChange={(e) => onChange(e.target.checked)}
-      />
+      <span className="switch">
+        <input
+          type="checkbox"
+          checked={Boolean(value)}
+          onChange={(e) => onChange(e.target.checked)}
+        />
+        <span className="switch-track" aria-hidden="true">
+          <span className="switch-thumb" />
+        </span>
+      </span>
     );
   }
 
   return (
-    <label className="field">
-      <span className="field-label">{label}</span>
+    <label className="opt">
+      <span className="opt-label">{label}</span>
       {control}
     </label>
   );
 }
 
-function ConfigPanel(props: {
+function OptionsBar(props: {
   input: ChartAssemblyInput;
   model: PanelModel;
   onInput: (next: ChartAssemblyInput) => void;
+  onSend: () => void;
+  sent: boolean;
 }) {
-  const { input, model, onInput } = props;
+  const { input, model, onInput, onSend, sent } = props;
 
-  // Lean panel: surface only Flint's dynamic low-level options — visual chart
-  // properties plus encoding actions (sort, …) — mirroring Data Formulator's
-  // quick-config bar. Deliberately no chart-type switch or field→channel
-  // binding; the agent owns those, the panel just fine-tunes the result.
+  // Lean bar: surface only Flint's dynamic low-level options — visual chart
+  // properties plus encoding actions (sort, …) — inline below the chart,
+  // mirroring Data Formulator's quick-config strip. Deliberately no chart-type
+  // switch or field→channel binding; the agent owns those, the bar fine-tunes.
   const controls: { key: string; label: string; spec: ControlSpec; value: unknown }[] = [
     ...model.properties.map((option: ChartOption) => ({
       key: option.key,
@@ -119,31 +126,33 @@ function ConfigPanel(props: {
   ];
 
   return (
-    <div className="panel">
-      <div className="panel-head">
-        <span className="panel-eyebrow">Options</span>
-        <h3 className="panel-title">{input.chart_spec.chartType}</h3>
-      </div>
+    <div className="optionsbar" role="toolbar" aria-label={`${input.chart_spec.chartType} options`}>
       {controls.length === 0 ? (
-        <p className="panel-empty">No adjustable options for this chart.</p>
+        <span className="opt-empty">No adjustable options for this chart.</span>
       ) : (
-        <section className="panel-section">
-          {controls.map((control) => (
-            <ControlRow
-              key={control.key}
-              label={control.label}
-              spec={control.spec}
-              value={control.value}
-              onChange={(v) => onInput(setProperty(input, control.key, v))}
-            />
-          ))}
-        </section>
+        controls.map((control) => (
+          <ControlRow
+            key={control.key}
+            label={control.label}
+            spec={control.spec}
+            value={control.value}
+            onChange={(v) => onInput(setProperty(input, control.key, v))}
+          />
+        ))
       )}
+      <span className="optionsbar-spacer" />
+      <button className="bar-link" onClick={onSend} disabled={sent}>
+        {sent ? 'Copied to chat' : 'Copy spec to chat'}
+      </button>
     </div>
   );
 }
 
-function FlintAppInner(props: { app: App; input: ChartAssemblyInput; hostContext?: McpUiHostContext }) {
+function FlintAppInner(props: {
+  app: App;
+  input: ChartAssemblyInput;
+  hostContext?: McpUiHostContext;
+}) {
   const { app, input, hostContext } = props;
   const [current, setCurrent] = useState<ChartAssemblyInput>(input);
   const [render, setRender] = useState<FlintRenderResult | null>(null);
@@ -227,15 +236,15 @@ function FlintAppInner(props: { app: App; input: ChartAssemblyInput; hostContext
             ))}
           </ul>
         )}
-
-        <div className="actions">
-          <button onClick={handleSend} disabled={sent}>
-            {sent ? 'Sent to chat' : 'Insert updated spec into chat'}
-          </button>
-        </div>
       </div>
 
-      <ConfigPanel input={current} model={model} onInput={setCurrent} />
+      <OptionsBar
+        input={current}
+        model={model}
+        onInput={setCurrent}
+        onSend={handleSend}
+        sent={sent}
+      />
     </main>
   );
 }

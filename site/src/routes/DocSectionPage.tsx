@@ -96,7 +96,6 @@ export function DocSectionPage({ section }: { section: DocSection }) {
                     <SidebarNavItem
                       key={doc.slug}
                       as="link"
-                      compact
                       active={active}
                       to={`/${section}/${doc.slug}`}
                       dataAttr={{ 'data-doc-nav': doc.slug }}

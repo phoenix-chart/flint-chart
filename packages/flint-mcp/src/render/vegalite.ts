@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-import { DEFAULT_FONT_FAMILY } from './fonts.js';
+import { CHART_FONT_FAMILY, registerCanvasFonts } from './fonts.js';
 import { svgToResult } from './svg.js';
 import type { RenderResult, RenderFormat } from './types.js';
 
@@ -28,10 +28,16 @@ export async function renderVegaLite(
   const vega = await import('vega');
   const vegaLite = await import('vega-lite');
 
-  // Ensure a deterministic, bundled default font for axis/legend text.
+  // Register the bundled Arial-metric font with node-canvas so Vega measures
+  // label widths the same way the browser does (see fonts.ts). Must run before
+  // the View lays out / measures text below.
+  registerCanvasFonts();
+
+  // Apply an Arial/sans-serif chart font so the export matches the live app
+  // preview and standard web rendering (not the bundled DejaVu Sans).
   const config = {
     ...(spec.config ?? {}),
-    font: spec.config?.font ?? DEFAULT_FONT_FAMILY,
+    font: spec.config?.font ?? CHART_FONT_FAMILY,
   };
   const vlSpec = { ...spec, config };
 

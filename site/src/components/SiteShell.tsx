@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { CONTENT_MAX_WIDTH, GITHUB_REPO, siteTheme } from '../shared/theme';
 
@@ -42,11 +43,12 @@ export function SiteNavBar(_props: { flush?: boolean } = {}) {
         flexShrink: 0,
       }}
     >
-      <Link to="/" style={brandStyle}>
-        flint-chart
-      </Link>
+      <BrandLink />
 
       <nav style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1 }}>
+        <NavLink to="/" active={pathname === '/'}>
+          About
+        </NavLink>
         <NavLink to="/wall" active={pathname.startsWith('/wall') || pathname.startsWith('/gallery')}>
           Gallery
         </NavLink>
@@ -66,28 +68,33 @@ export function SiteNavBar(_props: { flush?: boolean } = {}) {
       </nav>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <a
-          href={GITHUB_REPO}
-          style={{ ...navLinkStyle, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-          target="_blank"
-          rel="noreferrer"
-        >
-          <GitHubIcon />
-          GitHub
-        </a>
+        <GitHubLink />
       </div>
     </header>
   );
 }
 
 function NavLink({ to, active, children }: { to: string; active: boolean; children: ReactNode }) {
+  const [hovered, setHovered] = useState(false);
+  const underline = active || hovered;
   return (
     <Link
       to={to}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{
         ...navLinkStyle,
-        color: active ? siteTheme.accent : siteTheme.textMuted,
-        fontWeight: active ? 600 : 400,
+        // MCP-style: inactive tabs are a lighter gray and darken on hover.
+        color: active || hovered ? siteTheme.text : siteTheme.navInactive,
+        // Keep a uniform font weight so the text metrics never shift; fake the
+        // bold on the active tab with a hairline text-shadow (MCP's trick).
+        textShadow: active ? '-0.2px 0 0 currentColor, 0.2px 0 0 currentColor' : undefined,
+        textDecorationLine: underline ? 'underline' : 'none',
+        textDecorationThickness: underline ? 2 : undefined,
+        textUnderlineOffset: underline ? 6 : undefined,
+        // Active gets a solid dark underline; hover shows a lighter gray one.
+        textDecorationColor: active ? siteTheme.text : 'rgba(0, 0, 0, 0.22)',
+        transition: 'color 120ms ease, text-decoration-color 120ms ease',
       }}
     >
       {children}
@@ -103,6 +110,48 @@ function NavLinkExternal({ href, label }: { href: string; label: string }) {
   );
 }
 
+function BrandLink() {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <Link
+      to="/"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        ...brandStyle,
+        color: hovered ? siteTheme.accent : siteTheme.text,
+        transition: 'color 120ms ease',
+      }}
+    >
+      flint-chart
+    </Link>
+  );
+}
+
+function GitHubLink() {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <a
+      href={GITHUB_REPO}
+      target="_blank"
+      rel="noreferrer"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        ...navLinkStyle,
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        color: hovered ? siteTheme.accent : siteTheme.text,
+        transition: 'color 120ms ease',
+      }}
+    >
+      <GitHubIcon />
+      GitHub
+    </a>
+  );
+}
+
 function GitHubIcon() {
   return (
     <svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor" aria-hidden="true">
@@ -113,15 +162,15 @@ function GitHubIcon() {
 
 const brandStyle: CSSProperties = {
   color: siteTheme.text,
-  textDecoration: 'none',
+  textDecorationLine: 'none',
   fontWeight: 300,
   fontSize: 17,
   letterSpacing: '0.03em',
 };
 
 const navLinkStyle: CSSProperties = {
-  color: siteTheme.textMuted,
-  textDecoration: 'none',
+  color: siteTheme.text,
+  textDecorationLine: 'none',
   fontSize: 13,
   letterSpacing: '0.01em',
 };

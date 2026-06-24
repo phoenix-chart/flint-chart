@@ -11,6 +11,7 @@ import { assembleVegaLite } from 'flint-chart';
 import type { ChartAssemblyInput } from 'flint-chart';
 import { compile } from 'vega-lite';
 import { parse, View, Error as VegaError } from 'vega';
+import { expressionInterpreter } from 'vega-interpreter';
 
 /** Recursively drop Flint's private `_`-prefixed annotation keys. */
 function stripPrivate<T>(node: T): T {
@@ -51,8 +52,12 @@ export async function renderFlintSvg(
   const vlSpec = stripPrivate(raw);
 
   const compiled = compile(vlSpec as never).spec;
-  const runtime = parse(compiled as never, { background } as never);
-  const view = new View(runtime, { renderer: 'none' });
+  // Parse with `ast: true` and render through Vega's CSP-safe expression
+  // interpreter. The default Vega runtime compiles expressions with
+  // `new Function`, which violates strict webview CSPs (no 'unsafe-eval', e.g.
+  // VS Code's MCP App host). The interpreter evaluates the AST instead.
+  const runtime = parse(compiled as never, { background } as never, { ast: true } as never);
+  const view = new View(runtime, { renderer: 'none', expr: expressionInterpreter });
   view.logLevel(VegaError);
   await view.runAsync();
   const svg = await view.toSVG();

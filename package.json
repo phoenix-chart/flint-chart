@@ -36,5 +36,9 @@
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "^4.0.0",
     "@swc/core-linux-x64-gnu": "1.15.33"
+  },
+  "overrides": {
+    "esbuild": "^0.28.1",
+    "js-yaml": "^4.2.0"
   }
 }

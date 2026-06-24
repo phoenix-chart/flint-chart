@@ -74,7 +74,7 @@ export function Landing() {
                   </Link>{' '}
                   or{' '}
                   <Link
-                    to="/documentation/agent-workflows#mcp-server-execution"
+                    to="/mcp"
                     className="landing-skill-link"
                     style={installLineLinkStyle}
                   >
@@ -88,6 +88,7 @@ export function Landing() {
             <div style={leadButtonsColStyle}>
               <div style={actionBoxStyle}>
                 <HeroActionLink href={GITHUB_REPO} label="GitHub" />
+                <HeroActionLink to="/mcp" label="MCP Server" />
                 <HeroActionLink to="/wall" label="Gallery" />
                 <HeroActionLink to="/documentation/overview" label="Documentation" />
                 <HeroActionLink href={`${GITHUB_REPO}/blob/main/agent-skills/flint-chart-author/SKILL.md`} label="Skill.md" />

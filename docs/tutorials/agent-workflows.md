@@ -54,6 +54,9 @@ scales, or layout math.
 For chart output inside an agent workflow, run the MCP server. It gives the
 agent local tools plus the context it needs to use them correctly:
 
+For a shorter setup overview with the interactive app experience, see the
+[MCP server page](/mcp).
+
 | Tool | Use it for |
 |------|------------|
 | `create_chart_view` | Preferred default when the host supports MCP Apps: open an interactive chart view with a live SVG preview and chart options. |

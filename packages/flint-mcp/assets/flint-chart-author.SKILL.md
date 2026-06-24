@@ -25,12 +25,10 @@ or `assembleChartjs` to get a backend spec.
   filtering, joins, pivots, derived columns, or long/wide reshaping beyond
   Flint's built-in static-series fold, use a coding, notebook, SQL, or data tool
   first. Then author the Flint spec against the transformed table.
-- **Style after Flint, only when needed.** Prefer Flint `chart_spec` and
-  `semantic_types` for chart structure. If the user asks for a visual style or
-  presentation tweak that Flint does not express, create the chart with Flint
-  first, compile to Vega-Lite, make a narrow style edit to that Vega-Lite spec,
-  then render it with a host-side Vega-Lite renderer. Do not feed modified
-  Vega-Lite JSON back to `render_chart`.
+- **Style after Flint, only when needed.** Author structure in Flint. For a
+  presentation tweak Flint does not express (a reference line, annotation, or
+  shaded band), use the Vega-Lite escape hatch — see "Post-Flint style
+  customization". Never feed edited Vega-Lite JSON back to `render_chart`.
 
 ## When the user wants more than a spec
 
@@ -132,34 +130,34 @@ and `semantic_types`.
 
 ## Data transformation before charting
 
-Flint is a chart compiler, not a data-wrangling layer. Before writing the spec,
-check whether the user's data is already in the shape the chart needs.
+Flint is a chart compiler, not a data-wrangling layer. If the chart needs grouped
+totals, time buckets, filters, joins, pivots, derived ratios, or a long-form
+table, transform the data first with a host tool, then bind the prepared table
+(see "How data gets bound"). Pick semantic types and channels for the transformed
+columns, not for columns that no longer exist.
 
-- If the chart needs grouped totals, time buckets, filters, joins, pivots,
-  derived ratios, or a long-form table, transform the data first with the tools
-  available in the host environment.
-- If using MCP, you may embed the transformed rows directly, or save a prepared
-  `.json`, `.csv`, or `.tsv` under an allowed data root and reference it by
-  `data.url`.
-- If writing application or notebook code, write the data loading/transformation
-  code first, then pass the resulting runtime variable as `data.values`.
+**Sanity-read the values first — don't chart blind.** Inspect the actual data
+with your data tool (distinct values per category column, min/max per measure),
+not just the column names, and watch for:
 
-After transformation, pick semantic types and channels for the transformed
-columns, not for columns that no longer exist in the chart-ready table.
+- **Embedded totals.** A category column may mix an aggregate level with its
+  parts (e.g. `all` alongside `cage-free`/`caged`, or a `Total` region). Charting
+  the total with its parts double-counts and flattens the parts — keep one or the
+  other on a stacked/grouped/colored channel, not both.
+- **Units.** Check whether a rate is a fraction (0–1) or already a percent
+  (0–100) before tagging it `Percentage`; don't scale twice.
+- **One real entity.** If your breakdown column has a single distinct value, the
+  per-group chart collapses to one mark — the intended breakdown is likely a
+  different column.
 
 ## Post-Flint style customization
 
-Stay at the Flint level for chart structure. Data semantics, chart type, channel
-field mappings, transforms, sizing, and supported chart properties should be
-handled in the Flint input. Flint specs remain portable across backends and can
-be regenerated safely.
-
-Use backend JSON only after a valid Flint chart exists, and only for narrow
-style/presentation changes that Flint does not currently expose, such as exact
-axis or legend styling, mark styling, title details, annotations, or final layout
-polish. Do not use backend JSON to change the data story, chart type, field
-mappings, or transformations; go back to data preparation or the Flint spec for
-those changes.
+Stay at the Flint level for structure (data, chart type, channels, transforms,
+sizing, properties) — Flint specs stay portable and regenerate safely. Drop to
+backend JSON only after a valid Flint chart exists, and only for a narrow
+presentation change Flint does not expose (exact axis/legend/mark styling,
+titles, annotations, reference lines, layout polish). Never use it to change the
+data, chart type, field mappings, or transforms — fix those upstream.
 
 For a Vega-Lite-specific style tweak:
 
@@ -266,20 +264,12 @@ folds them into long form and synthesizes a series/legend field:
 
 All array fields must be quantitative, and you cannot also bind `color`
 when using the array form (the fold owns the color/legend). This is the
-**only** built-in reshape — there is no `transforms`/`fold` property. If a
-chart needs a shape the data doesn't have (long-vs-wide, an aggregate the
-encodings can't express, a derived/computed column, a pivot, a join):
-
-- **If you're writing code**, reshape the data first with a normal data
-  library — pandas/polars in Python, or Arquero/`Array.map`/SQL in JS —
-  and pass the transformed rows in via `data: { values: rows }`. flint
-  deliberately does **not** try to be a data-wrangling layer.
-- **If you have tools/MCP servers available**, use them — a code-execution
-  or data/SQL/MCP tool to reshape, aggregate, or fetch the data, then feed
-  the result into the spec. 
-- **Otherwise** (no runtime and no tools to transform in), surface the gap
-  to the developer rather than inventing a transform property that doesn't
-  exist.
+**only** built-in reshape — there is no `transforms`/`fold` property. For any
+other shape (long↔wide, an aggregate the encodings can't express, a derived
+column, a pivot, a join), reshape the data first with a host tool — pandas/polars,
+Arquero/`Array.map`/SQL, or a data/MCP tool — and pass the result as
+`data.values`. If you have no way to transform, surface the gap to the developer
+rather than inventing a transform property that does not exist.
 
 ## Step 3 — annotate with semantic types
 
@@ -514,11 +504,9 @@ User: "Show each rep's sales against their quota."
 - **Don't invent transforms.** The only built-in reshape is the array form
   on `x`/`y`. If the data shape is wrong for the chart, say so and ask the
   host to reshape it.
-- **Don't invent field names.** Reference only columns that exist in the
-  dataset, spelled exactly. For wide-format data (one column per measure)
-  feeding a chart that cannot use the `x`/`y` array fold (for example pie or
-  arc, which bind `theta`/`color`), reshape to long upstream rather than
-  guessing category/value column names that are not present.
+- **Don't invent field names.** Reference only columns that exist, spelled
+  exactly. If the data is the wrong shape for the chart, reshape it upstream
+  rather than guessing column names that aren't there.
 - **Don't set `type`/`aggregate`/`sortOrder`** unless intent conflicts
   with the default.
 - **Don't pass colors, font sizes, axis tick counts** — the compiler
@@ -539,3 +527,5 @@ Before returning, verify:
    Candlestick→`open/high/low/close`, Pie→`size`+`color`).
 5. Any `chartProperties` keys are valid for that chart type and in range.
 6. You did **not** inline large data or hand-tune derived styling.
+7. The data carries no embedded total/subtotal level (e.g. an `all` / `total`
+   row) mixed with its components on a stacked, grouped, or colored channel.

@@ -3,6 +3,11 @@
 
 import { readFileSync } from 'node:fs';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import {
+  registerAppResource,
+  registerAppTool,
+  RESOURCE_MIME_TYPE,
+} from '@modelcontextprotocol/ext-apps/server';
 import { z } from 'zod';
 
 import { renderChart } from './render/index.js';
@@ -24,8 +29,27 @@ export const VERSION = '0.1.0';
 export const AGENT_SKILL_RESOURCE_URI = 'flint://agent-skill';
 const AGENT_SKILL_ASSET = new URL('../assets/flint-chart-author.SKILL.md', import.meta.url);
 
+/** URI linking the chart-view tool to its bundled UI resource. */
+export const CHART_VIEW_RESOURCE_URI = 'ui://flint-chart/chart-view.html';
+const CHART_VIEW_ASSET = new URL('../assets/flint-app.html', import.meta.url);
+
+/** Shown when the UI bundle has not been built yet (e.g. during `test`). */
+const CHART_VIEW_PLACEHOLDER = `<!DOCTYPE html><html><head><meta charset="utf-8">\
+<title>Flint Chart</title></head><body style="font-family:Arial,sans-serif;color:#6b6b6b;\
+padding:24px">Flint chart view UI is not built. Run <code>npm run build:ui</code> in \
+packages/flint-mcp to generate it.</body></html>`;
+
 function readAgentSkill(): string {
   return readFileSync(AGENT_SKILL_ASSET, 'utf8');
+}
+
+/** Read the bundled chart-view HTML, tolerating a not-yet-built asset. */
+function readChartViewHtml(): string {
+  try {
+    return readFileSync(CHART_VIEW_ASSET, 'utf8');
+  } catch {
+    return CHART_VIEW_PLACEHOLDER;
+  }
 }
 
 export interface CreateServerOptions {
@@ -80,9 +104,10 @@ export function createServer(options: CreateServerOptions = {}): McpServer {
         'Flint compiles one semantic chart spec (ChartAssemblyInput) into ' +
         'Vega-Lite, ECharts, or Chart.js. Use render_chart to get a PNG/SVG ' +
         'artifact, compile_chart for the backend spec JSON, validate_chart to ' +
-        'check a spec, and list_chart_types to discover chart types and their ' +
-        'channels. Before authoring specs, read the flint://agent-skill resource ' +
-        'or use the author_flint_chart prompt.',
+        'check a spec, list_chart_types to discover chart types and their ' +
+        'channels, and create_chart_view to open an interactive, customizable ' +
+        'chart view in hosts that support MCP App UIs. Before authoring specs, ' +
+        'read the flint://agent-skill resource or use the author_flint_chart prompt.',
     },
   );
 
@@ -206,6 +231,61 @@ export function createServer(options: CreateServerOptions = {}): McpServer {
         return errorResult(err);
       }
     },
+  );
+
+  // --- create_chart_view (MCP App: interactive chart + config UI) ---------
+  registerAppTool(
+    server,
+    'create_chart_view',
+    {
+      title: 'Create interactive chart view',
+      description:
+        'Open an interactive Flint chart view: renders the spec live as SVG and ' +
+        'offers a customization panel (chart type, channel bindings, chart ' +
+        'properties, sort) built from Flint\'s option model. Rendering and edits ' +
+        'happen entirely in the host UI (Vega-Lite); no data leaves the host. ' +
+        'Use this when the user wants to see and tweak a chart, not just a static image.',
+      inputSchema: { ...assemblyInputShape },
+      _meta: { ui: { resourceUri: CHART_VIEW_RESOURCE_URI } },
+    },
+    async (args: any) => {
+      try {
+        const input = toAssemblyInput(args as AssemblyInputArgs);
+        const summary = validateChart(input, 'vegalite', dataSourceOptions);
+        const size = summary.computedSize
+          ? `${summary.computedSize.width}×${summary.computedSize.height}px`
+          : 'auto size';
+        const note = summary.valid
+          ? `Interactive chart view ready: ${summary.chartType} (${size})` +
+            (summary.warnings.length ? `, ${summary.warnings.length} warning(s)` : '')
+          : `Chart spec has errors: ${summary.errors.map((e) => e.message).join('; ')}`;
+        return {
+          content: [{ type: 'text' as const, text: note }],
+          // Fallback render payload for hosts that surface structuredContent to
+          // the UI; the UI primarily reads the tool arguments via ontoolinput.
+          structuredContent: { input: input as unknown as Record<string, unknown> },
+          ...(summary.valid ? {} : { isError: true }),
+        };
+      } catch (err) {
+        return errorResult(err);
+      }
+    },
+  );
+
+  registerAppResource(
+    server,
+    'chart-view',
+    CHART_VIEW_RESOURCE_URI,
+    { mimeType: RESOURCE_MIME_TYPE },
+    async () => ({
+      contents: [
+        {
+          uri: CHART_VIEW_RESOURCE_URI,
+          mimeType: RESOURCE_MIME_TYPE,
+          text: readChartViewHtml(),
+        },
+      ],
+    }),
   );
 
   // --- chart-types resource (browsable catalog) ---------------------------

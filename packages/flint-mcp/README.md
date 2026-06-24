@@ -25,6 +25,17 @@ renders **locally**.
 | `compile_chart` | spec + `backend` | backend-native spec JSON + warnings |
 | `validate_chart` | spec + `backend` | validity, warnings/errors, computed size |
 | `list_chart_types` | `backend?` | chart types + encoding channels per backend |
+| `create_chart_view` | spec | interactive chart **UI** (MCP App): live SVG preview + customization panel |
+
+## MCP App: interactive chart view
+
+In hosts that support MCP App UIs (e.g. Claude Desktop), `create_chart_view`
+opens an interactive view that renders the spec live (Vega-Lite → SVG) and shows
+a customization panel built from Flint's own option model — chart type, channel
+bindings, chart properties (corner radius, stack mode, donut hole, …), and
+encoding actions (sort). Rendering and edits run entirely in the host UI; no
+data leaves the host. The UI is a single self-contained HTML bundle served as
+the `ui://flint-chart/chart-view.html` resource and built with `npm run build:ui`.
 
 ## Resources and prompt
 
@@ -32,6 +43,7 @@ renders **locally**.
 |---|---|---|
 | `flint://agent-skill` | resource | Bundled Flint authoring instructions for generating valid `ChartAssemblyInput` specs. |
 | `flint://chart-types` | resource | Browsable chart-type catalog and encoding channels across backends. |
+| `ui://flint-chart/chart-view.html` | resource | Bundled UI for the `create_chart_view` MCP App (live chart + customization panel). |
 | `author_flint_chart` | prompt | Embeds the bundled skill so prompt-aware clients can load the chart-spec rules before tool calls. |
 
 For best results, have your MCP client include `flint://agent-skill` or run the

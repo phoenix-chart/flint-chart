@@ -50,6 +50,7 @@ describe('MCP server', () => {
     const names = tools.map((t) => t.name).sort();
     expect(names).toEqual([
       'compile_chart',
+      'create_chart_view',
       'list_chart_types',
       'render_chart',
       'validate_chart',
@@ -163,8 +164,30 @@ describe('MCP server', () => {
     expect(skillText).toContain('validate_chart');
   });
 
-  it('exposes a prompt that embeds the agent skill', async () => {
-    const { prompts } = await client.listPrompts();
+  it('registers the create_chart_view MCP App tool linked to its UI resource', async () => {
+    const { tools } = await client.listTools();
+    const view = tools.find((t) => t.name === 'create_chart_view');
+    expect(view).toBeTruthy();
+    expect((view as any)._meta?.ui?.resourceUri).toBe('ui://flint-chart/chart-view.html');
+
+    const res: any = await client.callTool({
+      name: 'create_chart_view',
+      arguments: { ...barChart },
+    });
+    expect(res.isError).toBeFalsy();
+    expect(res.structuredContent?.input?.chart_spec?.chartType).toBe('Bar Chart');
+    expect(res.content[0].text).toContain('Bar Chart');
+  });
+
+  it('serves the chart-view UI resource', async () => {
+    const { resources } = await client.listResources();
+    expect(resources.map((r) => r.uri)).toContain('ui://flint-chart/chart-view.html');
+    const read = await client.readResource({ uri: 'ui://flint-chart/chart-view.html' });
+    const html = resourceText(read.contents[0]);
+    expect(html.toLowerCase()).toContain('<!doctype html>');
+  });
+
+  it('exposes a prompt that embeds the agent skill', async () => {    const { prompts } = await client.listPrompts();
     expect(prompts.map((p) => p.name)).toContain('author_flint_chart');
 
     const prompt = await client.getPrompt({ name: 'author_flint_chart' });

@@ -49,6 +49,9 @@ export function SiteNavBar(_props: { flush?: boolean } = {}) {
         <NavLink to="/" active={pathname === '/'}>
           About
         </NavLink>
+        <NavLink to="/mcp" active={pathname.startsWith('/mcp')}>
+          MCP Server
+        </NavLink>
         <NavLink to="/wall" active={pathname.startsWith('/wall') || pathname.startsWith('/gallery')}>
           Gallery
         </NavLink>

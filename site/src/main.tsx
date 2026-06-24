@@ -5,6 +5,7 @@ import { HashRouter, Routes, Route, Navigate, useParams } from 'react-router-dom
 import { Landing } from './routes/Landing';
 import { ChartWall } from './routes/ChartWall';
 import { Editor } from './routes/Editor';
+import { McpServer } from './routes/McpServer';
 import { DocSectionPage } from './routes/DocSectionPage';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -17,6 +18,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="/gallery" element={<Navigate to="/wall" replace />} />
         <Route path="/gallery/:chartId" element={<Navigate to="/wall" replace />} />
         <Route path="/editor" element={<Editor />} />
+        <Route path="/mcp" element={<McpServer />} />
         {/* Tutorials merged into Documentation as the "Quick start" group. */}
         <Route path="/tutorials" element={<Navigate to="/documentation/getting-started" replace />} />
         <Route path="/tutorials/:slug" element={<TutorialRedirect />} />

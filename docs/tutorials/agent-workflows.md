@@ -4,8 +4,8 @@ Flint can sit in an agent workflow in two different ways.
 
 - **I want an agent to create good-looking charts powered by Flint.** Use Flint as a chart tool in
   a chat app, VS Code, Claude, Cursor, or another MCP client. Ask the agent to
-  validate a chart request, render a PNG or SVG, try a different chart type, or
-  switch backend if needed.
+  open an interactive chart view, validate a chart request, render a PNG or SVG,
+  try a different chart type, or switch backend if needed.
 - **I want to build Flint into my own agentic product.** Import Flint into an
   app, notebook, service, or system like Data Formulator. Your agent may
   generate a spec, but your product owns the workflow: storing specs, building
@@ -20,7 +20,8 @@ you will use it directly if you are building on top of Flint.
 
 Use this workflow when you are in chat, VS Code, Claude, Cursor, or another MCP
 client and mostly want chart output. The spec can stay mostly invisible. Your
-main loop is: ask for a chart, validate it, render it, then ask for changes.
+main loop is: ask for a chart, let the agent open a chart view, then ask for
+changes or request a static artifact when you need one.
 
 ### Give the agent the Flint skill
 
@@ -32,7 +33,7 @@ When you use the MCP server, the same instructions are also available through
 the server as `flint://agent-skill`, and through the `author_flint_chart` prompt
 for clients that support MCP prompts. That keeps the rendering tools and the
 authoring contract together: the agent can load the Flint rules before it calls
-`validate_chart`, `render_chart`, or `compile_chart`.
+`create_chart_view`, `validate_chart`, `render_chart`, or `compile_chart`.
 
 The skill teaches the agent the semantic chart contract and the operational
 steps around it:
@@ -41,22 +42,23 @@ steps around it:
 - choose a supported `chartType`;
 - map fields to channels like `x`, `y`, `color`, `column`, or `size`;
 - return a valid `ChartAssemblyInput`;
-- validate and render with MCP tools when chart output is requested;
+- validate, preview, and render with MCP tools when chart output is requested;
 - install/import Flint and call assemblers when the task is project integration.
 
 The boundary stays the same: the agent works through Flint's semantic input. It
 should not hand-write Vega-Lite marks, ECharts series, axis formats, color
 scales, or layout math.
 
-### Add the MCP renderer
+### Add the MCP server
 
-For preview images inside an agent workflow, run the MCP server. It gives the
+For chart output inside an agent workflow, run the MCP server. It gives the
 agent local tools plus the context it needs to use them correctly:
 
 | Tool | Use it for |
 |------|------------|
+| `create_chart_view` | Preferred default when the host supports MCP Apps: open an interactive chart view with a live SVG preview and chart options. |
 | `validate_chart` | Check whether the input is valid and see warnings. |
-| `render_chart` | Render PNG or SVG locally. |
+| `render_chart` | Render a static PNG or SVG locally when you need an artifact or the host has no App UI. |
 | `compile_chart` | Return the backend-native Vega-Lite, ECharts, or Chart.js spec. |
 | `list_chart_types` | Inspect supported chart types and channels. |
 
@@ -64,6 +66,7 @@ agent local tools plus the context it needs to use them correctly:
 |--------------------|------------|
 | `flint://agent-skill` | Load the bundled chart-author instructions. |
 | `flint://chart-types` | Inspect the supported chart catalog. |
+| `ui://flint-chart/chart-view.html` | Bundled UI resource used by `create_chart_view` in MCP App hosts. |
 | `author_flint_chart` | Start from a prompt that embeds the skill. |
 
 Most MCP clients can run it with `npx`, no global install:
@@ -93,7 +96,9 @@ Most MCP clients can run it with `npx`, no global install:
 }
 ```
 
-Rendering is local and in-process. Inline data stays on your machine.
+Rendering is local and in-process. Inline data stays on your machine. In hosts
+that support MCP Apps, `create_chart_view` opens the interactive Flint view
+inline in the conversation; chart rendering and edits happen in the host UI.
 
 To let the MCP server read local data files by `data.url`, add an allowed data
 root. Files outside that root are rejected, and remote URLs are not fetched.
@@ -110,6 +115,18 @@ root. Files outside that root are rejected, and remote URLs are not fetched.
 }
 ```
 
+### MCP App: interactive chart view
+
+When the MCP client supports MCP Apps, `create_chart_view` is the default way to
+show a chart. The tool opens a live Vega-Lite SVG preview with Flint chart
+options, so the user can inspect the result, tweak supported settings, and send
+the revised Flint spec back into the conversation.
+
+Use `create_chart_view` when the user asks to see a chart, compare a design, or
+iterate visually. Use `render_chart` only when the user needs a static PNG/SVG
+artifact or the host does not support MCP App UIs. Use `compile_chart` when the
+user needs the backend-native JSON instead of a rendered chart.
+
 ### How the MCP loop works
 
 The normal loop is:
@@ -122,10 +139,13 @@ The normal loop is:
    embedded `data.values`, or a local `data.url` file under an allowed data root.
 4. The agent writes the Flint `semantic_types` and `chart_spec`.
 5. The agent calls `validate_chart` and fixes any schema, field, chart-type, or
-   backend warnings.
-6. The agent calls `render_chart` for PNG/SVG output, or `compile_chart` when you
-  want Vega-Lite, ECharts, or Chart.js JSON.
-7. The MCP client returns the image, SVG, or spec artifact to the user.
+   backend warnings when it needs a separate validation pass.
+6. The agent calls `create_chart_view` to open the interactive chart when the
+   host supports MCP Apps. Otherwise, it calls `render_chart` for PNG/SVG output.
+7. The agent calls `compile_chart` when you want Vega-Lite, ECharts, or Chart.js
+   JSON instead of a rendered chart.
+8. The MCP client returns the chart view, image, SVG, or spec artifact to the
+   user.
 
 There are three data-binding cases to keep separate:
 
@@ -162,7 +182,13 @@ Load flint://agent-skill or run the author_flint_chart prompt.
 I have rows with columns: month, product, revenue, profit.
 Create a monthly revenue trend by product.
 Validate it with validate_chart.
-Render a PNG with render_chart using the vegalite backend.
+Open it with create_chart_view if this client supports MCP Apps.
+```
+
+When you need a static artifact, ask for that explicitly:
+
+```text
+Use the same Flint chart, but render a PNG with render_chart using the vegalite backend.
 ```
 
 The agent may show a `ChartAssemblyInput`, or it may only show the rendered

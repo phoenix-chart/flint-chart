@@ -22,7 +22,7 @@ When the user wants more than a spec, the skill also tells the agent how to:
 - validate and render charts with the Flint MCP server;
 - install `flint-chart` and the needed renderer peer dependencies;
 - call `assembleVegaLite`, `assembleECharts`, or `assembleChartjs` in JS/TS;
-- call `assemble_vegalite` in Python.
+- use the Python package when it is published in a later release.
 
 See [flint-chart-author/SKILL.md](flint-chart-author/SKILL.md) for the full
 contract, worked examples, and the validation checklist.

@@ -14,7 +14,7 @@ execution counterpart: it compiles, validates, and renders that one spec.
 Most chart MCP servers expose one tool per chart type (26+ tools) because every
 chart has a different schema, and they upload your config to a remote render
 service. Flint has **one schema** (`ChartAssemblyInput`) spanning ~40 chart
-types × multiple backends, so this server exposes **four verb tools** and
+types × multiple backends, so this server exposes **five focused tools** and
 renders **locally**.
 
 ## Tools
@@ -47,8 +47,8 @@ the `ui://flint-chart/chart-view.html` resource and built with `npm run build:ui
 | `author_flint_chart` | prompt | Embeds the bundled skill so prompt-aware clients can load the chart-spec rules before tool calls. |
 
 For best results, have your MCP client include `flint://agent-skill` or run the
-`author_flint_chart` prompt before asking the agent to call `render_chart`,
-`compile_chart`, or `validate_chart`.
+`author_flint_chart` prompt before asking the agent to call `create_chart_view`,
+`render_chart`, `compile_chart`, or `validate_chart`.
 
 Data can be provided in two ways:
 

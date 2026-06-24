@@ -73,6 +73,9 @@ df-reference/
 docs/HANDOFF.md
 docs/flint-spinout-plan.md
 
+# Local-only maintainer runbooks
+maintainer-notes/
+
 # Local-only working decision sessions (design docs, not shipped)
 design-docs/
 

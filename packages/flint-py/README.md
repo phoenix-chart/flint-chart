@@ -4,6 +4,10 @@ A Python port of the flint-chart semantic chart compiler. It takes the same
 `ChartAssemblyInput` shape as the TypeScript `assembleVegaLite()` function
 and produces an identical Vega-Lite specification.
 
+> Status: source-only preview. PyPI publishing is planned for a later release
+> and is skipped for the first public launch while compatibility tests are being
+> stabilized.
+
 The project mirrors the TypeScript source tree under `packages/flint-js/src/`:
 
 ```

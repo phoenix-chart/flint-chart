@@ -1,6 +1,7 @@
 # Flint: A Visualization Language for the AI Era
 
-[![Install](https://img.shields.io/badge/Install-npm_%7C_pip-3776AB)](#install)
+[![Install](https://img.shields.io/badge/Install-npm-3776AB)](#install)
+[![PyPI](https://img.shields.io/badge/PyPI-planned-lightgrey)](#python-planned)
 [![npm](https://img.shields.io/npm/v/flint-chart.svg?label=npm%3A%20flint-chart)](https://www.npmjs.com/package/flint-chart)
 [![CI](https://github.com/microsoft/flint-chart/actions/workflows/ci.yml/badge.svg)](https://github.com/microsoft/flint-chart/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -49,9 +50,15 @@ directly, and multiple backends can render: **Vega-Lite, ECharts, and Chart.js**
 # JavaScript / TypeScript  (npm package: flint-chart)
 npm install flint-chart
 
-# Python  (PyPI package: flint-chart — Vega-Lite backend)
-pip install flint-chart
+# MCP server for agents  (npm package: flint-chart-mcp)
+npx -y flint-chart-mcp
 ```
+
+### Python planned
+
+The Python port is currently a source-only preview in this repo. PyPI publishing
+is planned for a later release and is skipped for the first public launch while
+the compatibility suite is being stabilized.
 
 ## Setup for Agent workflows
 
@@ -90,11 +97,11 @@ before calling the tools. Add it to any MCP client (Claude Desktop, Cursor, VS C
 { "mcpServers": { "flint": { "command": "npx", "args": ["-y", "flint-chart-mcp"] } } }
 ```
 
-It exposes four Flint-focused tools: `render_chart`, `compile_chart`,
-`validate_chart`, and `list_chart_types`. Direct MCP rendering accepts embedded
-`data.values`. To render local JSON/CSV/TSV files by `data.url`, start the
-server with allowed data roots such as `--data-roots ./data` or
-`FLINT_MCP_DATA_ROOTS=./data`.
+It exposes five Flint-focused tools: `create_chart_view`, `render_chart`,
+`compile_chart`, `validate_chart`, and `list_chart_types`. Direct MCP rendering
+accepts embedded `data.values`. To render local JSON/CSV/TSV files by
+`data.url`, start the server with allowed data roots such as `--data-roots
+./data` or `FLINT_MCP_DATA_ROOTS=./data`.
 
 ## Use the API
 
@@ -136,21 +143,10 @@ const config = assembleChartjs({
 });
 ```
 
-### Python
+### Python planned
 
-```python
-from flint.vegalite import assemble_vegalite
-
-spec = assemble_vegalite({
-    "data": {"values": rows},
-    "semantic_types": {"weight": "Quantity", "mpg": "Quantity"},
-    "chart_spec": {
-        "chartType": "Scatter Plot",
-        "encodings": {"x": {"field": "weight"}, "y": {"field": "mpg"}},
-        "baseSize": {"width": 400, "height": 300},
-    },
-})
-```
+Python support will use the same `ChartAssemblyInput` shape. The package and
+usage docs will be published with a later PyPI release.
 
 ### The chart spec
 
@@ -200,7 +196,7 @@ flint-chart/
 │   │       ├── echarts/   ECharts backend
 │   │       ├── chartjs/   Chart.js backend
 │   │       └── test-data/ fixtures + generators (drive tests and the gallery)
-│   ├── flint-py/          PyPI package `flint-chart` (Python port, Vega-Lite backend)
+│   ├── flint-py/          Python port preview (PyPI package planned later)
 │   └── flint-mcp/         npm package `flint-chart-mcp` (MCP render server)
 ├── site/                  Vite + React demo: landing, gallery, editor, docs
 ├── agent-skills/          AI agent skill (SKILL.md)
@@ -231,13 +227,12 @@ and the [Development guide](docs/DEVELOPMENT.md).
 ```bash
 git clone https://github.com/microsoft/flint-chart
 cd flint-chart
-npm install            # root workspaces: packages/flint-js + site
+npm install            # root workspaces: packages/flint-js + flint-mcp + site
 
-npm run typecheck      # typecheck packages/flint-js
-npm run test           # Vitest (packages/flint-js)
-npm run build          # build packages/flint-js → dist/
+npm run typecheck      # typecheck packages/flint-js + packages/flint-mcp
+npm run test           # Vitest (packages/flint-js + packages/flint-mcp)
+npm run build          # build packages/flint-js + packages/flint-mcp
 npm run site           # demo site (gallery + editor) at http://localhost:5274/
-npm run test:py        # Python compatibility tests (requires uv)
 ```
 
 Node 18+ is required. The demo site aliases `flint-chart` to

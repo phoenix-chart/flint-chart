@@ -1,6 +1,6 @@
 ---
 name: flint-chart-author
-description: "Use when: the user asks to make or render charts with flint-chart, visualize tabular data, generate a ChartAssemblyInput, validate/render through MCP, or add Flint to a JS/Python project. Author the semantic spec, transform data before Flint when needed, install/import Flint only when executable code is needed, and reserve backend-specific style tweaks for after compiling from Flint."
+description: "Use when: the user asks to make or render charts with flint-chart, visualize tabular data, generate a ChartAssemblyInput, validate/render through MCP, or add Flint to a JS/TS project. Author the semantic spec, transform data before Flint when needed, install/import Flint only when executable code is needed, and reserve backend-specific style tweaks for after compiling from Flint."
 ---
 
 # flint-chart: authoring and using a chart spec
@@ -76,18 +76,8 @@ const echartsOption = assembleECharts(input);
 const chartjsConfig = assembleChartjs(input);
 ```
 
-For Python, install the package and compile the same input shape to Vega-Lite:
-
-```bash
-pip install flint-chart
-pip install altair  # optional renderer for notebooks or static HTML
-```
-
-```python
-from flint.vegalite import assemble_vegalite
-
-spec = assemble_vegalite(input)
-```
+Python support is planned for a later release. Until the PyPI package is
+published, use the npm package or MCP server for released workflows.
 
 ```ts
 interface ChartAssemblyInput {
@@ -112,7 +102,7 @@ Use the binding mode that matches the runtime. Do not mix them.
 1. **Direct MCP rendering: embed rows.** When calling `render_chart`,
   `compile_chart`, or `validate_chart`, the tool arguments are JSON. If the
   data is small or already transformed by another tool, pass it as
-  `data: { values: [...] }`. Do not pass JavaScript/Python variable names in
+  `data: { values: [...] }`. Do not pass runtime variable names in
   MCP tool calls — the MCP server cannot see your local variables.
 2. **Direct MCP rendering: reference a local file only when configured.**
   The `flint-chart-mcp` server can load `data: { url: "..." }` from local

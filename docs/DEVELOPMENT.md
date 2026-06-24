@@ -12,7 +12,7 @@ Use this page to set up **flint-chart** locally, run the common checks, and find
 ```bash
 git clone https://github.com/microsoft/flint-chart
 cd flint-chart
-npm install    # root workspace: packages/flint-js, site, agent-skills
+npm install    # root workspace: packages/flint-js, packages/flint-mcp, site
 ```
 
 ## Daily commands
@@ -21,12 +21,12 @@ Run these from the **repository root**:
 
 | Command | What it does |
 |---------|----------------|
-| `npm run typecheck` | Typecheck `packages/flint-js` |
-| `npm run test` | Vitest in `packages/flint-js` |
-| `npm run build` | Build `packages/flint-js` → `dist/` |
+| `npm run typecheck` | Build/typecheck `packages/flint-js` and typecheck `packages/flint-mcp` |
+| `npm run test` | Vitest in `packages/flint-js` and `packages/flint-mcp` |
+| `npm run build` | Build `packages/flint-js` and `packages/flint-mcp` |
 | `npm run site` | Demo site at http://localhost:5274/ |
 | `npm run site:build` | Production build → `site/dist/` |
-| `npm run mcp:build` | Build MCP server workspace |
+| `npm run build:mcp` | Build MCP server workspace |
 
 The demo site aliases `flint-chart` to `packages/flint-js/src` through Vite, so library edits hot-reload in the gallery and editor without rebuilding `dist/`.
 
@@ -41,7 +41,8 @@ flint-chart/
 │   │   ├── src/echarts/   ECharts backend
 │   │   ├── src/chartjs/   Chart.js backend
 │   │   └── src/test-data/ gallery fixtures
-│   └── flint-py/          PyPI package `flint-chart`
+│   ├── flint-py/          Python port preview (PyPI package planned later)
+│   └── flint-mcp/         npm package `flint-chart-mcp`
 ├── site/                  landing, gallery, editor, docs browser
 ├── docs/                  architecture + site documentation sources
 ├── agent-skills/          AI agent skill (SKILL.md)
@@ -69,7 +70,3 @@ Start with the guide that matches the surface you want to extend:
 - **Smoke tests:** `packages/flint-js/tests/smoke.test.ts`
 - **Visual coverage:** [Gallery](/wall), driven by `TEST_GENERATORS` in test-data
 - **Shared fixtures:** `shared/test-data/`, consumed by JS and Python tests
-
-## Release
-
-See [release-process.md](release-process.md). The npm package is published from `packages/flint-js` as `flint-chart`.

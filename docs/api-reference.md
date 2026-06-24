@@ -2,7 +2,8 @@
 
 JavaScript / TypeScript package: **`flint-chart`** (`packages/flint-js`).
 
-Python package: **`flint-py`**. Its input shape mirrors the JS API.
+Python port: **`packages/flint-py`** is a source preview. Its input shape
+mirrors the JS API, but PyPI publishing is planned for a later release.
 
 Conceptual background: [Overview](/documentation/overview) · Pipeline: [Architecture](/documentation/architecture)
 

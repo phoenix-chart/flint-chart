@@ -59,4 +59,4 @@ are minor; bug fixes are patch.
 
 ## Release process
 
-See [docs/release-process.md](../docs/release-process.md).
+Releases are handled by project maintainers.

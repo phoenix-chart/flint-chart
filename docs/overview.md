@@ -144,7 +144,9 @@ Pipeline detail: [Architecture](/documentation/architecture).
 
 ```bash
 npm install flint-chart    # JavaScript / TypeScript
-pip install flint-chart    # Python (Vega-Lite today)
+npx -y flint-chart-mcp     # MCP server for agents
+
+# Python/PyPI is planned for a later release.
 ```
 
 ```ts

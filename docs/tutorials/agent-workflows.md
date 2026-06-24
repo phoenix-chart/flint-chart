@@ -328,18 +328,9 @@ const echartsOption = assembleECharts(input);
 const chartjsConfig = assembleChartjs(input);
 ```
 
-In Python, the shape is the same:
-
-```bash
-pip install flint-chart
-pip install altair  # optional renderer for notebooks or static HTML
-```
-
-```python
-from flint.vegalite import assemble_vegalite
-
-spec = assemble_vegalite(input)
-```
+Python support will use the same input shape, but it is planned for a later
+release and is not part of the first public launch. For now, use the npm package
+or MCP server in released workflows.
 
 The product decides which renderer to mount, how to size the chart, how to store
 the spec, and whether users can edit the chart request directly.

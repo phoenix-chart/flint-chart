@@ -25,7 +25,7 @@ For motivation and spec examples, see [Overview](/documentation/overview). For i
 1. **Semantics first** — `semantic_types` guide parsing, aggregation, zero baseline, diverging detection, and formatting. Raw storage types are only the starting point.
 2. **Minimal chart surface** — `chart_spec` supplies chart type and channel bindings, usually in about 10 lines. Axes, scales, legends, and step sizes are compiler-derived.
 3. **Dynamic templates** — Each `chartType` maps to a `ChartTemplateDef`; its `instantiate()` hook consumes the full compilation context and adapts to cardinality and semantics (paper §5.3).
-4. **No UI dependencies** — The core is pure TypeScript (`packages/flint-js`) with a Python port (`packages/flint-py`), so it can run from agents, notebooks, servers, or this site.
+4. **No UI dependencies** — The core is pure TypeScript (`packages/flint-js`), so it can run from agents, notebooks, servers, or this site. A Python package is planned for a later release.
 
 Most design logic lives in Stages 1–2 and is identical across backends.
 
@@ -163,7 +163,7 @@ packages/flint-js/src/
 ├── chartjs/        Stage 3 — Chart.js templates + assembleChartjs
 └── test-data/      gallery fixtures (TEST_GENERATORS)
 
-packages/flint-py/  Python port (Vega-Lite backend today)
+packages/flint-py/  Python port preview (package planned later)
 site/               demo site (gallery, editor, documentation)
 ```
 

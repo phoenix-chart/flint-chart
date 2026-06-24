@@ -24,20 +24,11 @@ stack:
 npm install vega vega-lite vega-embed
 ```
 
-### Python
+### Python planned
 
-Install the Python package:
-
-```bash
-pip install flint-chart
-```
-
-For notebooks or static HTML output, Altair can render the Vega-Lite spec Flint
-returns:
-
-```bash
-pip install altair
-```
+The Python package is planned for a later release and is not included in the
+first public launch. Use the JavaScript/TypeScript package or MCP server today;
+the Python port remains available from source for contributors.
 
 ## Your first Flint spec
 
@@ -161,13 +152,7 @@ const chartjsConfig = assembleChartjs(input);
 const echartsOption = assembleECharts(input);
 ```
 
-In Python, the shape is the same:
-
-```python
-from flint.vegalite import assemble_vegalite
-
-spec = assemble_vegalite(input)
-```
+Python support will use the same input shape and is planned for a later release.
 
 ## What to read next
 

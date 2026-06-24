@@ -2,7 +2,7 @@
 
 **Flint** is a semantics-driven intermediate language (IL) for data visualization. You declare what each field *means* and the chart you want; the compiler derives scales, axes, aggregation, formatting, layout, and color, then emits Vega-Lite, ECharts, or Chart.js.
 
-If you're new to Flint, start with [Getting started](/tutorials/getting-started), then come back here for the architecture and API map.
+If you're new to Flint, start with [Getting started](/documentation/getting-started), then come back here for the architecture and API map.
 
 ---
 
@@ -167,7 +167,7 @@ const spec = assembleVegaLite({
 
 | Page | Use for |
 |------|---------|
-| [Getting started](/tutorials/getting-started) | Step-by-step first chart |
+| [Getting started](/documentation/getting-started) | Step-by-step first chart |
 | [Gallery](/wall) | Every template + multi-backend preview |
 | [Editor](/editor) | Paste JSON, switch Vega-Lite / ECharts / Chart.js |
 

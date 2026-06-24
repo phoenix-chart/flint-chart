@@ -72,6 +72,12 @@ export const DOCUMENTATION_GROUPS: DocGroup[] = [
         file: '../../../docs/design-semantics.md',
       },
       {
+        slug: 'color-decisions',
+        title: 'Color decisions',
+        description: 'Scheme families, ColorDecision, and per-backend palette selection.',
+        file: '../../../docs/color-decisions.md',
+      },
+      {
         slug: 'layout-model',
         title: 'Auto Layout Algorithm',
         description: 'Spring, gas-pressure, radial, and area sizing models.',
@@ -83,12 +89,6 @@ export const DOCUMENTATION_GROUPS: DocGroup[] = [
         description: 'ChartAssemblyInput, assemblers, encodings, options, and exports.',
         file: '../../../docs/api-reference.md',
       },
-      // {
-      //   slug: 'color-decisions',
-      //   title: 'Color decisions',
-      //   description: 'Scheme families, ColorDecision, and per-backend palette selection.',
-      //   file: '../../../docs/color-decisions.md',
-      // },
     ],
   },
   {

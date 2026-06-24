@@ -28,6 +28,12 @@ The chart-author skill lives in this repo at [agent-skills/flint-chart-author/SK
 Use it anywhere your coding agent can load Markdown instructions: VS Code
 Copilot, Claude Code, Cursor, or another agent shell.
 
+When you use the MCP server, the same instructions are also available through
+the server as `flint://agent-skill`, and through the `author_flint_chart` prompt
+for clients that support MCP prompts. That keeps the rendering tools and the
+authoring contract together: the agent can load the Flint rules before it calls
+`validate_chart`, `render_chart`, or `compile_chart`.
+
 The skill teaches the agent the semantic chart contract and the operational
 steps around it:
 
@@ -45,7 +51,7 @@ scales, or layout math.
 ### Add the MCP renderer
 
 For preview images inside an agent workflow, run the MCP server. It gives the
-agent four local tools:
+agent local tools plus the context it needs to use them correctly:
 
 | Tool | Use it for |
 |------|------------|
@@ -53,6 +59,12 @@ agent four local tools:
 | `render_chart` | Render PNG or SVG locally. |
 | `compile_chart` | Return the backend-native Vega-Lite, ECharts, or Chart.js spec. |
 | `list_chart_types` | Inspect supported chart types and channels. |
+
+| Resource or prompt | Use it for |
+|--------------------|------------|
+| `flint://agent-skill` | Load the bundled chart-author instructions. |
+| `flint://chart-types` | Inspect the supported chart catalog. |
+| `author_flint_chart` | Start from a prompt that embeds the skill. |
 
 Most MCP clients can run it with `npx`, no global install:
 
@@ -83,12 +95,55 @@ Most MCP clients can run it with `npx`, no global install:
 
 Rendering is local and in-process. Inline data stays on your machine.
 
+To let the MCP server read local data files by `data.url`, add an allowed data
+root. Files outside that root are rejected, and remote URLs are not fetched.
+
+```jsonc
+// Claude Desktop / Cursor, with local file references enabled
+{
+  "mcpServers": {
+    "flint": {
+      "command": "npx",
+      "args": ["-y", "flint-chart-mcp", "--data-roots", "./data"]
+    }
+  }
+}
+```
+
+### How the MCP loop works
+
+The normal loop is:
+
+1. The client loads `flint://agent-skill` or runs the `author_flint_chart`
+   prompt.
+2. The agent inspects the available data. If needed, it uses another coding,
+   notebook, SQL, or data tool to clean, aggregate, or reshape the table first.
+3. The agent binds data in the form the MCP server can actually render:
+   embedded `data.values`, or a local `data.url` file under an allowed data root.
+4. The agent writes the Flint `semantic_types` and `chart_spec`.
+5. The agent calls `validate_chart` and fixes any schema, field, chart-type, or
+   backend warnings.
+6. The agent calls `render_chart` for PNG/SVG output, or `compile_chart` when you
+   want Vega-Lite, ECharts, or Chart.js JSON.
+7. The MCP client returns the image, SVG, or spec artifact to the user.
+
+There are three data-binding cases to keep separate:
+
+- **MCP with small or prepared rows:** pass rows directly as
+  `data: { values: [...] }` in the tool call.
+- **MCP with a prepared local file:** save `.json`, `.csv`, or `.tsv` under a
+  configured data root, then pass `data: { url: "sales.csv" }` or a file URL.
+- **Generated application or notebook code:** load data into a real runtime
+  variable such as `rows`, then call Flint with `data: { values: rows }`. This
+  variable pattern belongs in generated code; it is not valid inside a direct
+  MCP tool call.
+
 ### Ask for chart output
 
 Start with a concrete request. For example:
 
 ```text
-Use the Flint chart authoring skill.
+Load flint://agent-skill or run the author_flint_chart prompt.
 
 I have rows with columns: month, product, revenue, profit.
 Create a monthly revenue trend by product.
@@ -262,9 +317,9 @@ charge of the surrounding experience.
 
 ## Next steps
 
-- [Getting started](/tutorials/getting-started) explains the DataSpec and
+- [Getting started](/documentation/getting-started) explains the DataSpec and
   ChartSpec shape with a tiny first chart.
-- [Example: a data story](/tutorials/data-story) shows a larger workflow where
+- [Example: a data story](/documentation/data-story) shows a larger workflow where
   one source dataset becomes several chart designs.
 - [MCP server README](https://github.com/microsoft/flint-chart/tree/main/packages/flint-mcp)
   has the full tool reference and CLI options.

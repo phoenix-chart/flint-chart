@@ -236,7 +236,7 @@ specs.
 
 ## Next steps
 
-- [Getting started](/tutorials/getting-started) introduces DataSpec and ChartSpec
+- [Getting started](/documentation/getting-started) introduces DataSpec and ChartSpec
   with a tiny first chart.
 - [Gallery](/wall) shows every chart template and backend combination.
 - [Semantic Type](/documentation/semantic-types) explains how semantic labels

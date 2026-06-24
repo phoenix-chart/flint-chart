@@ -822,11 +822,13 @@ export interface ChartWarning {
  */
 export interface ChartAssemblyInput {
     /**
-     * Data source — either inline rows or a URL to fetch.
+    * Data source — either inline rows or a reference the host can resolve.
      *
      * - `{ values: any[] }` — an array of row objects (like Vega-Lite `data.values`).
-     * - `{ url: string }`   — a URL pointing to a JSON or CSV resource.
-     *   The assembler will resolve this internally before processing.
+    * - `{ url: string }`   — a URL or path reference to JSON/CSV data.
+    *   Hosts that need local semantic/layout decisions should resolve this to
+    *   rows before assembly. The MCP renderer supports local JSON/CSV/TSV
+    *   files under configured data roots; it does not fetch remote URLs.
      *
      * At least one of `values` or `url` must be provided.
      */

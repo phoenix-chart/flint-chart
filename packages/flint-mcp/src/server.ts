@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+import { readFileSync } from 'node:fs';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 
@@ -20,9 +21,18 @@ import {
 /** Package version, kept in lockstep with the npm release. */
 export const VERSION = '0.1.0';
 
+export const AGENT_SKILL_RESOURCE_URI = 'flint://agent-skill';
+const AGENT_SKILL_ASSET = new URL('../assets/flint-chart-author.SKILL.md', import.meta.url);
+
+function readAgentSkill(): string {
+  return readFileSync(AGENT_SKILL_ASSET, 'utf8');
+}
+
 export interface CreateServerOptions {
   /** Restrict which backends are exposed (default: all supported). */
   enabledBackends?: SupportedBackend[];
+  /** Directories from which local data.url references may be read. */
+  dataRoots?: string[];
 }
 
 type JsonContent = { content: { type: 'text'; text: string }[]; isError?: boolean };
@@ -59,6 +69,7 @@ export function resolveBackends(options: CreateServerOptions = {}): SupportedBac
  */
 export function createServer(options: CreateServerOptions = {}): McpServer {
   const backends = resolveBackends(options);
+  const dataSourceOptions = { dataRoots: options.dataRoots };
   const backendEnum = z
     .enum(backends as [SupportedBackend, ...SupportedBackend[]])
     .describe(`Rendering backend. One of: ${backends.join(', ')}.`);
@@ -71,7 +82,8 @@ export function createServer(options: CreateServerOptions = {}): McpServer {
         'Vega-Lite, ECharts, or Chart.js. Use render_chart to get a PNG/SVG ' +
         'artifact, compile_chart for the backend spec JSON, validate_chart to ' +
         'check a spec, and list_chart_types to discover chart types and their ' +
-        'channels. Author specs as taught in the Flint agent skill (SKILL.md).',
+        'channels. Before authoring specs, read the flint://agent-skill resource ' +
+        'or use the author_flint_chart prompt.',
     },
   );
 
@@ -110,6 +122,7 @@ export function createServer(options: CreateServerOptions = {}): McpServer {
           format: args.format,
           scale: args.scale,
           background: args.background,
+          dataRoots: dataSourceOptions.dataRoots,
         });
         const note =
           `${res.backend} · ${res.format} · ${res.width}×${res.height}px` +
@@ -148,7 +161,7 @@ export function createServer(options: CreateServerOptions = {}): McpServer {
     async (args: any) => {
       try {
         const input = toAssemblyInput(args as AssemblyInputArgs);
-        return jsonResult(compileChart(input, args.backend as RenderBackend));
+        return jsonResult(compileChart(input, args.backend as RenderBackend, dataSourceOptions));
       } catch (err) {
         return errorResult(err);
       }
@@ -168,7 +181,7 @@ export function createServer(options: CreateServerOptions = {}): McpServer {
     async (args: any) => {
       try {
         const input = toAssemblyInput(args as AssemblyInputArgs);
-        return jsonResult(validateChart(input, args.backend as RenderBackend));
+        return jsonResult(validateChart(input, args.backend as RenderBackend, dataSourceOptions));
       } catch (err) {
         return errorResult(err);
       }
@@ -211,6 +224,63 @@ export function createServer(options: CreateServerOptions = {}): McpServer {
           uri: uri.href,
           mimeType: 'application/json',
           text: JSON.stringify(listChartTypes(), null, 2),
+        },
+      ],
+    }),
+  );
+
+  // --- agent-skill resource + prompt -------------------------------------
+  server.registerResource(
+    'agent-skill',
+    AGENT_SKILL_RESOURCE_URI,
+    {
+      title: 'Flint chart-author skill',
+      description:
+        'Bundled Flint authoring instructions for generating ChartAssemblyInput specs.',
+      mimeType: 'text/markdown',
+      annotations: { audience: ['assistant'], priority: 1 },
+    },
+    async (uri) => ({
+      contents: [
+        {
+          uri: uri.href,
+          mimeType: 'text/markdown',
+          text: readAgentSkill(),
+        },
+      ],
+    }),
+  );
+
+  server.registerPrompt(
+    'author_flint_chart',
+    {
+      title: 'Author a Flint chart',
+      description:
+        'Load the Flint chart-author skill before generating, validating, compiling, or rendering Flint charts.',
+    },
+    async () => ({
+      description: 'Use the bundled Flint chart-author skill to produce valid Flint specs.',
+      messages: [
+        {
+          role: 'user' as const,
+          content: {
+            type: 'resource' as const,
+            resource: {
+              uri: AGENT_SKILL_RESOURCE_URI,
+              mimeType: 'text/markdown',
+              text: readAgentSkill(),
+            },
+          },
+        },
+        {
+          role: 'user' as const,
+          content: {
+            type: 'text' as const,
+            text:
+              'Use these Flint instructions when creating chart specs. Generate ChartAssemblyInput ' +
+              'inputs with chart_spec and semantic_types, validate before rendering when tools are available, ' +
+              'and call the Flint MCP tools only after the spec follows the authoring contract.',
+          },
         },
       ],
     }),

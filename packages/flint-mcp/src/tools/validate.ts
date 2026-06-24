@@ -3,6 +3,7 @@
 
 import type { ChartAssemblyInput, ChartWarning } from 'flint-chart';
 import { assembleForBackend } from '../render/assemble.js';
+import type { DataSourceOptions } from '../render/data-source.js';
 import type { RenderBackend } from '../render/types.js';
 
 export interface ValidateResult {
@@ -26,10 +27,11 @@ export interface ValidateResult {
 export function validateChart(
   input: ChartAssemblyInput,
   backend: RenderBackend,
+  options: DataSourceOptions = {},
 ): ValidateResult {
   const chartType = input?.chart_spec?.chartType ?? '(unknown)';
   try {
-    const { warnings, width, height } = assembleForBackend(backend, input);
+    const { warnings, width, height } = assembleForBackend(backend, input, options);
     const errors = warnings.filter((w) => w.severity === 'error');
     return {
       backend,

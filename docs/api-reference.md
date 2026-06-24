@@ -264,6 +264,6 @@ Inspect `_warnings` or `ChartWarning` arrays in integration code to surface trun
 - [Overview](/documentation/overview) — dataSpec + chartSpec motivation
 - [Architecture](/documentation/architecture) — three-stage pipeline
 - [Semantic Type](/documentation/semantic-types) — type hierarchy and resolution
-- [Getting started](/tutorials/getting-started) — hands-on walkthrough
+- [Getting started](/documentation/getting-started) — hands-on walkthrough
 - [Extending backends](/documentation/adding-a-backend) — new `assemble*()` target
 - [Paper (PDF)](https://github.com/microsoft/flint-chart/blob/main/docs/figs/AgChart.pdf)

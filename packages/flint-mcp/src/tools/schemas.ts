@@ -17,9 +17,11 @@ export const dataSchema = z
     url: z
       .string()
       .optional()
-      .describe('Remote data URL. Disabled by default in this server; pass inline values instead.'),
+      .describe(
+        'Local JSON/CSV/TSV file reference under a configured MCP data root. Remote URLs are disabled.',
+      ),
   })
-  .describe('Data source. Provide inline `values`.');
+  .describe('Data source. Provide inline `values`, or local `url` when the MCP server has data roots configured.');
 
 export const chartSpecSchema = z
   .object({

@@ -1,6 +1,6 @@
 # Exploring data with flint-chart
 
-This tutorial continues from [Getting started](/tutorials/getting-started). You
+This tutorial continues from [Getting started](/documentation/getting-started). You
 already have a bar chart of average `b` by category `a`. Now we explore how
 **semantic types** and **chart type** changes propagate through the compiler —
 without hand-editing axis, scale, or legend blocks.
@@ -331,5 +331,5 @@ Workflow:
 | Author a new template | [Extending chart templates](/documentation/adding-a-chart-template) |
 | Local dev setup | [Development](/documentation/development) |
 
-Return to [Getting started](/tutorials/getting-started) if you want to rebuild
+Return to [Getting started](/documentation/getting-started) if you want to rebuild
 the tutorial dataset from scratch.

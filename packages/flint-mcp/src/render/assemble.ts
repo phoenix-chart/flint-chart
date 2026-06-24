@@ -8,6 +8,10 @@ import {
   type ChartAssemblyInput,
   type ChartWarning,
 } from 'flint-chart';
+import {
+  resolveDataSource,
+  type DataSourceOptions,
+} from './data-source.js';
 import type { RenderBackend } from './types.js';
 
 /** Maximum number of inline data rows accepted (DoS guard). */
@@ -37,33 +41,44 @@ export interface AssembleResult {
 }
 
 /**
- * Validate caller-supplied input before it reaches an assembler.
- *
- * v1 policy: inline data only. Remote `data.url` fetching is deferred behind a
- * future allowlist to avoid SSRF, so it is rejected here with a clear message.
+ * Validate caller-supplied input before it reaches an assembler. Inline rows
+ * pass through directly. Local `data.url` references are resolved only when the
+ * server has explicit data roots; remote URLs stay blocked.
  */
-export function validateInput(input: ChartAssemblyInput): void {
+export function validateInput(
+  input: ChartAssemblyInput,
+  options: DataSourceOptions = {},
+): void {
+  prepareInput(input, options);
+}
+
+/** Resolve data references and validate caller-supplied input. */
+export function prepareInput(
+  input: ChartAssemblyInput,
+  options: DataSourceOptions = {},
+): ChartAssemblyInput {
   if (input == null || typeof input !== 'object') {
     throw new Error('input must be a ChartAssemblyInput object');
   }
-  const data: any = (input as any).data;
-  if (data == null || typeof data !== 'object') {
+  const resolvedInput = resolveDataSource(input, {
+    ...options,
+    maxDataRows: MAX_DATA_ROWS,
+  });
+  const resolvedData: any = (resolvedInput as any).data;
+  if (resolvedData == null || typeof resolvedData !== 'object') {
     throw new Error('input.data is required (provide { values: [...] })');
   }
-  if (typeof data.url === 'string') {
+  if (!Array.isArray(resolvedData.values)) {
     throw new Error(
-      'remote data.url fetching is disabled in this server; pass inline data.values instead',
+      'input.data must provide inline values or a local data.url under configured data roots',
     );
   }
-  if (!Array.isArray(data.values)) {
-    throw new Error('input.data.values must be an array of row objects');
-  }
-  if (data.values.length > MAX_DATA_ROWS) {
+  if (resolvedData.values.length > MAX_DATA_ROWS) {
     throw new Error(
-      `input.data.values has ${data.values.length} rows, exceeding the limit of ${MAX_DATA_ROWS}`,
+      `input.data.values has ${resolvedData.values.length} rows, exceeding the limit of ${MAX_DATA_ROWS}`,
     );
   }
-  const cs: any = (input as any).chart_spec;
+  const cs: any = (resolvedInput as any).chart_spec;
   if (cs == null || typeof cs !== 'object' || typeof cs.chartType !== 'string') {
     throw new Error('input.chart_spec.chartType is required');
   }
@@ -80,6 +95,7 @@ export function validateInput(input: ChartAssemblyInput): void {
       }
     }
   }
+  return resolvedInput;
 }
 
 /**
@@ -90,13 +106,14 @@ export function validateInput(input: ChartAssemblyInput): void {
 export function assembleForBackend(
   backend: RenderBackend,
   input: ChartAssemblyInput,
+  options: DataSourceOptions = {},
 ): AssembleResult {
   const assemble = ASSEMBLERS[backend];
   if (!assemble) {
     throw new Error(`unknown backend: ${backend}`);
   }
-  validateInput(input);
-  const spec = assemble(input);
+  const resolvedInput = prepareInput(input, options);
+  const spec = assemble(resolvedInput);
   const warnings: ChartWarning[] = Array.isArray(spec?._warnings)
     ? spec._warnings
     : [];

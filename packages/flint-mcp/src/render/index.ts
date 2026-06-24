@@ -29,6 +29,12 @@ export {
   MAX_CANVAS_DIM,
   MAX_DATA_ROWS,
 } from './assemble.js';
+export {
+  MAX_DATA_FILE_BYTES,
+  resolveDataRoots,
+  resolveDataSource,
+  type DataSourceOptions,
+} from './data-source.js';
 
 const DEFAULT_BACKGROUND = '#ffffff';
 
@@ -64,7 +70,9 @@ export async function renderChart(
     );
   }
 
-  const { spec, warnings, width, height } = assembleForBackend(backend, input);
+  const { spec, warnings, width, height } = assembleForBackend(backend, input, {
+    dataRoots: options.dataRoots,
+  });
 
   // Extract sizing before stripping Flint's private annotation keys. Vega-Lite
   // carries its own real `width`/`height`; the `_`-prefixed keys are Flint

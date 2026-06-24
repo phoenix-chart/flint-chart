@@ -1,4 +1,7 @@
 import { describe, it, expect } from 'vitest';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import type { ChartAssemblyInput } from 'flint-chart';
 import { renderChart } from '../src/render/index.js';
 
@@ -60,5 +63,32 @@ describe('input guards', () => {
       data: { url: 'http://169.254.169.254/latest/meta-data/' },
     } as unknown as ChartAssemblyInput;
     await expect(renderChart(bad, 'vegalite')).rejects.toThrow(/url fetching is disabled/i);
+  });
+
+  it('rejects local data.url without configured data roots', async () => {
+    const bad = {
+      ...sales,
+      data: { url: 'sales.csv' },
+    } as unknown as ChartAssemblyInput;
+    await expect(renderChart(bad, 'vegalite')).rejects.toThrow(/data.url references require/i);
+  });
+
+  it('loads local CSV data.url from configured data roots', async () => {
+    const dataRoot = mkdtempSync(join(tmpdir(), 'flint-mcp-data-'));
+    try {
+      writeFileSync(join(dataRoot, 'sales.csv'), 'region,revenue\nNorth,120\nSouth,90\n');
+      const input = {
+        ...sales,
+        data: { url: 'sales.csv' },
+      } as unknown as ChartAssemblyInput;
+      const res = await renderChart(input, 'vegalite', {
+        format: 'svg',
+        dataRoots: [dataRoot],
+      });
+      expect(res.mimeType).toBe('image/svg+xml');
+      expect(res.svg).toContain('<svg');
+    } finally {
+      rmSync(dataRoot, { recursive: true, force: true });
+    }
   });
 });

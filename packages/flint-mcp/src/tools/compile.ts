@@ -3,6 +3,7 @@
 
 import type { ChartAssemblyInput, ChartWarning } from 'flint-chart';
 import { assembleForBackend, stripPrivateKeys } from '../render/assemble.js';
+import type { DataSourceOptions } from '../render/data-source.js';
 import type { RenderBackend } from '../render/types.js';
 
 export interface CompileResult {
@@ -23,8 +24,9 @@ export interface CompileResult {
 export function compileChart(
   input: ChartAssemblyInput,
   backend: RenderBackend,
+  options: DataSourceOptions = {},
 ): CompileResult {
-  const { spec, warnings, width, height } = assembleForBackend(backend, input);
+  const { spec, warnings, width, height } = assembleForBackend(backend, input, options);
   stripPrivateKeys(spec);
   return {
     backend,

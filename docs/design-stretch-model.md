@@ -23,7 +23,7 @@ and a ceiling it may never exceed.
 | Field | Role in the model | Default |
 |-------|-------------------|---------|
 | `baseSize` | **Target.** The rest length $L_0$ / base canvas $W_0 \times H_0$ that every "pressure = demand ÷ supply" ratio below is measured against. | $400 \times 320$ |
-| `canvasSize` | **Hard ceiling.** The maximum stretched size, in any dimension (facet grids included). | none → $\text{baseSize} \times \text{maxStretch}$ (default $2\times$) |
+| `canvasSize` | **Hard ceiling.** The maximum stretched size, in any dimension (facet grids included). | none → $\text{baseSize} \times \text{maxStretch}$ (default $1.5\times$) |
 
 The stretch multiplier $\beta$ caps how far an axis may grow past the base, and
 is set per dimension:

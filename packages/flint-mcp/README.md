@@ -5,9 +5,9 @@
 > PNG or SVG — across Vega-Lite, ECharts, and Chart.js. Rendering is local and
 > **in-process**: your data never leaves the host.
 
-Flint's [agent skill](../../agent-skills/flint-chart-author/SKILL.md) teaches an agent how to *author*
-a `ChartAssemblyInput`. This MCP server is the *execution* counterpart: it
-compiles, validates, and renders that one spec.
+Flint's [bundled agent skill](assets/flint-chart-author.SKILL.md) teaches an agent how to *author*
+a `ChartAssemblyInput`. This MCP server exposes that skill and acts as the
+execution counterpart: it compiles, validates, and renders that one spec.
 
 ## Why a small tool surface
 
@@ -26,7 +26,23 @@ renders **locally**.
 | `validate_chart` | spec + `backend` | validity, warnings/errors, computed size |
 | `list_chart_types` | `backend?` | chart types + encoding channels per backend |
 
-A browsable `flint://chart-types` resource exposes the full catalog.
+## Resources and prompt
+
+| Name | Kind | Purpose |
+|---|---|---|
+| `flint://agent-skill` | resource | Bundled Flint authoring instructions for generating valid `ChartAssemblyInput` specs. |
+| `flint://chart-types` | resource | Browsable chart-type catalog and encoding channels across backends. |
+| `author_flint_chart` | prompt | Embeds the bundled skill so prompt-aware clients can load the chart-spec rules before tool calls. |
+
+For best results, have your MCP client include `flint://agent-skill` or run the
+`author_flint_chart` prompt before asking the agent to call `render_chart`,
+`compile_chart`, or `validate_chart`.
+
+Data can be provided in two ways:
+
+- **Embedded rows:** pass `data: { values: [...] }` directly in the MCP tool call.
+- **Local file references:** pass `data: { url: "..." }` for a `.json`, `.csv`, or
+  `.tsv` file under a configured data root. Remote URLs are not fetched.
 
 `backend` is one of `vegalite`, `echarts`, `chartjs`. The `chartjs` backend
 renders **PNG only** (its engine has no SVG output).
@@ -52,6 +68,20 @@ npx -y flint-chart-mcp
 }
 ```
 
+To let MCP tools render local files referenced by `data.url`, add an allowed
+data root:
+
+```json
+{
+  "mcpServers": {
+    "flint": {
+      "command": "npx",
+      "args": ["-y", "flint-chart-mcp", "--data-roots", "./data"]
+    }
+  }
+}
+```
+
 Works with Claude Desktop, Cursor, VS Code, and any MCP client that speaks
 **stdio**.
 
@@ -61,6 +91,9 @@ Works with Claude Desktop, Cursor, VS Code, and any MCP client that speaks
 --transport <stdio>   Transport (only "stdio" is supported). Default: stdio.
 --backends <list>     Comma-separated subset of vegalite,echarts,chartjs.
                       Overridden by FLINT_MCP_BACKENDS if set.
+--data-roots <list>   Comma-separated directories local data.url files may read.
+                      Overridden by FLINT_MCP_DATA_ROOTS if set.
+--data-root <dir>     Add one allowed local data root. May be repeated.
 -v, --version         Print version.
 -h, --help            Print help.
 ```
@@ -69,6 +102,12 @@ Gate the exposed backends at deploy time:
 
 ```bash
 FLINT_MCP_BACKENDS=vegalite,echarts npx -y flint-chart-mcp
+```
+
+Allow local file references for MCP rendering:
+
+```bash
+npx -y flint-chart-mcp --data-roots ./data
 ```
 
 ## Example `render_chart` call
@@ -122,8 +161,9 @@ result) is applied so the semantic layout shows up in the artifact.
 
 ## Security & limits
 
-- **No remote upload.** All rendering is in-process; inline data stays on the host.
-- **Inline data only.** `data.url` fetching is disabled to avoid SSRF.
+- **No remote upload.** All rendering is in-process; data stays on the host.
+- **Explicit local data roots.** `data.url` can read local `.json`, `.csv`, or
+  `.tsv` files only under configured roots. Remote URLs are disabled to avoid SSRF.
 - **DoS guards.** Row count and canvas dimensions are capped for hostile specs.
 
 ## Development

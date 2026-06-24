@@ -1,7 +1,5 @@
 # Flint: A Visualization Language for the AI Era
 
-_A Microsoft Research project._
-
 [![Install](https://img.shields.io/badge/Install-npm_%7C_pip-3776AB)](#install)
 [![npm](https://img.shields.io/npm/v/flint-chart.svg?label=npm%3A%20flint-chart)](https://www.npmjs.com/package/flint-chart)
 [![CI](https://github.com/microsoft/flint-chart/actions/workflows/ci.yml/badge.svg)](https://github.com/microsoft/flint-chart/actions/workflows/ci.yml)
@@ -55,7 +53,49 @@ npm install flint-chart
 pip install flint-chart
 ```
 
-## Use
+## Setup for Agent workflows
+
+Flint gives agents a small chart contract: the agent generates a `chart_spec`
+and `semantic_types`, and Flint compiles that spec into Vega-Lite, ECharts,
+Chart.js, PNG, or SVG output.
+
+Use the setup that matches your environment:
+
+- **Coding agents and IDEs:** ask Copilot, Cursor, Claude Code, or another
+  coding agent to read [`agent-skills/flint-chart-author/SKILL.md`](agent-skills/flint-chart-author/SKILL.md),
+  then add a Flint chart to your app, notebook, or script. Generated code can
+  bind runtime variables such as `rows` directly.
+- **Chat products with tool support:** connect the
+  [`flint-chart-mcp`](packages/flint-mcp/README.md) server, pass the user's data
+  context to the agent, and have the client load `flint://agent-skill` or the
+  `author_flint_chart` prompt before asking it to render or compile a chart.
+  MCP calls can embed rows or reference local data files under configured data roots.
+- **Plain chat or model APIs:** include the Flint skill instructions in the
+  prompt and ask the model for a Flint spec. Compile the result later with
+  `flint-chart` or the MCP server.
+
+The agent skill contains the chart-type catalog, channel rules, and worked
+examples that keep generated specs consistent.
+
+### MCP server
+
+For agents that speak the **Model Context Protocol**, the
+[`flint-chart-mcp`](packages/flint-mcp/README.md) server turns a spec into a
+rendered PNG or SVG — `data + spec → image` — entirely in-process, with no data
+upload. It also exposes the bundled authoring skill as `flint://agent-skill`
+and an `author_flint_chart` prompt, so the agent can load the chart-spec rules
+before calling the tools. Add it to any MCP client (Claude Desktop, Cursor, VS Code):
+
+```json
+{ "mcpServers": { "flint": { "command": "npx", "args": ["-y", "flint-chart-mcp"] } } }
+```
+
+It exposes four verb tools: `render_chart`, `compile_chart`, `validate_chart`,
+and `list_chart_types`. Direct MCP rendering accepts embedded `data.values`.
+To render local JSON/CSV/TSV files by `data.url`, start the server with allowed
+data roots such as `--data-roots ./data` or `FLINT_MCP_DATA_ROOTS=./data`.
+
+## Use the API
 
 Every backend accepts the **same** `ChartAssemblyInput` and returns the target
 library's native spec object.
@@ -73,7 +113,6 @@ const spec = assembleVegaLite({
     encodings: { x: { field: 'weight' }, y: { field: 'mpg' }, color: { field: 'origin' } },
     baseSize: { width: 400, height: 300 },
   },
-  options: { maxStretch: 1.5 }, // cap automatic layout growth at 1.5x
 });
 // → a ready-to-render Vega-Lite spec
 ```
@@ -122,54 +161,24 @@ interface ChartAssemblyInput {
     chartType: string;                          // e.g. "Scatter Plot"
     encodings: Record<string, ChartEncoding>;   // channel -> encoding
     baseSize?: { width: number; height: number };   // target layout size, default 400x320
-    canvasSize?: { width: number; height: number }; // optional hard ceiling on stretch
+    canvasSize?: { width: number; height: number }; // optional maximum rendered size
     chartProperties?: Record<string, any>;      // per-chart tuning (optional)
   };
-  options?: AssembleOptions;                     // global layout tuning (rarely needed)
+  options?: AssembleOptions;                     // advanced assembly options (rarely needed)
 }
 ```
 
 | Key | What it is |
 |-----|------------|
-| `data` | `{ values: [...] }` (inline rows) or `{ url: "..." }` (JSON/CSV URL) |
+| `data` | `{ values: [...] }` (inline rows) or `{ url: "..." }` (host-resolved JSON/CSV reference) |
 | `semantic_types` | Per-field meaning, e.g. `{ revenue: "Price", country: "Country" }` — drives all derived config |
 | `chart_spec` | What to draw: chart type, channel→field encodings, base/canvas size, properties |
-| `options` | Layout tuning (stretch elasticity, step sizes, tooltips, …) |
+| `options` | Advanced layout and tooltip options |
 
-**Sizing: base size vs. canvas size.** Flint separates *the size a chart aims
-for* from *the size it may never exceed*:
-
-| Field | Role | Default |
-|-------|------|---------|
-| `baseSize` | **Target** — the size the chart aims for with typical data. The layout engine measures data density ("pressure") against this. | `400 × 320` |
-| `canvasSize` | **Hard ceiling** — the maximum the chart may ever reach, in any dimension (faceted grids included). | none → `baseSize × maxStretch` (default `1.5×`) |
-
-When data is dense (many categories, points, slices, or facets), Flint *stretches*
-the chart past its base to keep it readable — but never past the ceiling. The
-per-dimension stretch limits are `βx = canvasSize.width / baseSize.width` and
-`βy = canvasSize.height / baseSize.height` (each clamped to `≥ 1`).
-
-```
-                 stretches when data is dense
-   baseSize  ───────────────────────────────▶  canvasSize
-  (target, the size      grows only as needed     (hard ceiling,
-   for typical data)                               never exceeded)
-```
-
-What the common combinations do:
-
-- **Neither set** → `400×320` target; may grow up to `600×480` (1.5×) when dense.
-- **Only `baseSize`** → your target; may grow up to 1.5× when dense.
-- **Only `canvasSize`** → a **fixed box**: the chart fills it and shrinks to fit
-  when dense, but never overflows. *What you ask for is what you get.*
-- **Both** → aim for `baseSize`, grow toward `canvasSize`, never beyond. A
-  `canvasSize` smaller than `baseSize` shrinks the chart to fit the box.
-
-Rule of thumb: set **`canvasSize`** for a fixed slot ("never bigger than this
-box"); set **`baseSize`** for a comfortable size that may grow for dense data.
-Past the ceiling, Flint makes harder tradeoffs (smaller steps, angled labels,
-truncation) — tune those with `options.maxStretch`, `options.elasticity`, and
-related options.
+Most users can omit sizing entirely or set `baseSize` for the intended chart
+size. Use `canvasSize` when the chart must fit a fixed slot. Flint handles dense
+data and labels automatically; see [Example: Auto Layout](docs/tutorials/chart-sizing.md)
+and [Auto Layout Algorithm](docs/design-stretch-model.md) for details.
 
 Semantic types cover temporal (`DateTime`, `Year`, `Month`), measures (`Quantity`,
 `Price`, `Percentage`), discrete numerics (`Rank`, `Score`, `ID`), geographic
@@ -177,39 +186,6 @@ Semantic types cover temporal (`DateTime`, `Year`, `Month`), measures (`Quantity
 ranges (`AgeGroup`, `Bucket`), and fallbacks (`String`, `Number`, `Unknown`). See
 the [API reference](docs/api-reference.md) for the full list, the template
 registries, and core utilities.
-
-### Use Flint with AI agents
-
-Flint is built to fit agent workflows. The
-[**agent skill**](agent-skills/flint-chart-author/SKILL.md) gives a model a concrete output contract:
-produce `chart_spec` and `semantic_types` that reference data columns by name.
-The host then calls `assembleVegaLite` / `assembleECharts` / `assembleChartjs` to
-get the backend spec, so the model does not hand-tune sizing, color, or formatting.
-
-- **Coding agents (Copilot, Cursor, Claude Code):** the agent writes code that
-  binds data by reference — `data: { values: rows }` — and calls the assembler.
-- **Chat apps with a render/MCP tool:** the agent passes the spec plus a
-  reference to host-side data (file path, uploaded CSV, prior tool result).
-- **Chat apps without tools:** the agent embeds a small table inline.
-
-Point your agent at [`agent-skills/flint-chart-author/SKILL.md`](agent-skills/flint-chart-author/SKILL.md)
-for the chart-type catalog, channel rules, and worked examples.
-
-#### MCP server
-
-For agents that speak the **Model Context Protocol**, the
-[`flint-chart-mcp`](packages/flint-mcp/README.md) server turns a spec into a
-rendered PNG or SVG — `data + spec → image` — entirely in-process, with no data
-upload. Add it to any MCP client (Claude Desktop, Cursor, VS Code):
-
-```json
-{ "mcpServers": { "flint": { "command": "npx", "args": ["-y", "flint-chart-mcp"] } } }
-```
-
-It exposes four verb tools: `render_chart`, `compile_chart`, `validate_chart`,
-and `list_chart_types`.
-
----
 
 ## Repository overview
 
@@ -238,7 +214,7 @@ flint-chart/
 | Overview & concepts | [docs/overview.md](docs/overview.md) · [live docs](https://microsoft.github.io/flint-chart/#/documentation/overview) |
 | Architecture | [docs/architecture.md](docs/architecture.md) |
 | Semantic-type design | [docs/design-semantics.md](docs/design-semantics.md) |
-| Layout / stretch model | [docs/design-stretch-model.md](docs/design-stretch-model.md) |
+| Auto Layout Algorithm | [docs/design-stretch-model.md](docs/design-stretch-model.md) |
 | Color decisions | [docs/color-decisions.md](docs/color-decisions.md) |
 | API reference | [docs/api-reference.md](docs/api-reference.md) |
 | Extending Flint | [Extending chart templates](docs/adding-a-chart-template.md) · [Extending semantic types](docs/adding-a-semantic-type.md) · [Extending backends](docs/adding-a-backend.md) |

@@ -1,4 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -140,6 +143,66 @@ describe('MCP server', () => {
     const payload = JSON.parse(read.contents[0].text as string);
     expect(Array.isArray(payload)).toBe(true);
     expect(payload.length).toBe(3);
+  });
+
+  it('exposes the bundled agent skill as a resource', async () => {
+    const { resources } = await client.listResources();
+    const skill = resources.find((r) => r.uri === 'flint://agent-skill');
+    expect(skill?.mimeType).toBe('text/markdown');
+    expect(skill?.annotations?.audience).toContain('assistant');
+
+    const read = await client.readResource({ uri: 'flint://agent-skill' });
+    expect(read.contents[0].mimeType).toBe('text/markdown');
+    expect(read.contents[0].text).toContain('# flint-chart: authoring and using a chart spec');
+    expect(read.contents[0].text).toContain('validate_chart');
+  });
+
+  it('exposes a prompt that embeds the agent skill', async () => {
+    const { prompts } = await client.listPrompts();
+    expect(prompts.map((p) => p.name)).toContain('author_flint_chart');
+
+    const prompt = await client.getPrompt({ name: 'author_flint_chart' });
+    const resourceMessage = prompt.messages.find((m) => m.content.type === 'resource');
+    expect(resourceMessage?.content.type).toBe('resource');
+    if (resourceMessage?.content.type === 'resource') {
+      expect(resourceMessage.content.resource.uri).toBe('flint://agent-skill');
+      expect(resourceMessage.content.resource.text).toContain('ChartAssemblyInput');
+    }
+  });
+
+  it('keeps the bundled MCP skill asset in sync with the repo skill', () => {
+    const repoSkill = readFileSync(
+      new URL('../../../agent-skills/flint-chart-author/SKILL.md', import.meta.url),
+      'utf8',
+    );
+    const bundledSkill = readFileSync(
+      new URL('../assets/flint-chart-author.SKILL.md', import.meta.url),
+      'utf8',
+    );
+    expect(bundledSkill).toBe(repoSkill);
+  });
+
+  it('passes configured data roots to chart tools', async () => {
+    const dataRoot = mkdtempSync(join(tmpdir(), 'flint-mcp-server-data-'));
+    const dataServer = createServer({ dataRoots: [dataRoot] });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    const dataClient = new Client({ name: 'flint-data-root-test', version: '0.0.0' });
+    try {
+      writeFileSync(join(dataRoot, 'sales.csv'), 'region,revenue\nNorth,120\nSouth,90\n');
+      await dataServer.connect(serverTransport);
+      await dataClient.connect(clientTransport);
+      const res: any = await dataClient.callTool({
+        name: 'compile_chart',
+        arguments: { ...barChart, data: { url: 'sales.csv' }, backend: 'vegalite' },
+      });
+      const payload = JSON.parse(res.content[0].text);
+      expect(payload.backend).toBe('vegalite');
+      expect(payload.spec.data.values).toHaveLength(2);
+    } finally {
+      await dataClient.close();
+      await dataServer.close();
+      rmSync(dataRoot, { recursive: true, force: true });
+    }
   });
 });
 

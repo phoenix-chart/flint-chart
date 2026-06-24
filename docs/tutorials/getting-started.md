@@ -102,7 +102,7 @@ Read it as two pieces:
   so Flint treats strings like `2024-01` as dates. `signups` is a `Quantity`, so
   Flint gives it a numeric axis. If you are working from a messy CSV, database
   schema, or natural-language request, an AI agent can draft this part for you;
-  see [Agent workflows](/tutorials/agent-workflows).
+  see [Agent workflows](/documentation/agent-workflows).
 - **ChartSpec**: the `chart_spec` section. This is the request for a picture:
   use the `Line Chart` template, put `month` on x, and put `signups` on y.
 
@@ -171,9 +171,9 @@ spec = assemble_vegalite(input)
 
 ## What to read next
 
-- [Example: a data story](/tutorials/data-story) shows why the split matters:
+- [Example: a data story](/documentation/data-story) shows why the split matters:
   one DataSpec becomes five different charts by changing only the ChartSpec.
-- [Agent workflows](/tutorials/agent-workflows) shows how an AI agent can help
+- [Agent workflows](/documentation/agent-workflows) shows how an AI agent can help
   infer the DataSpec and author chart requests.
 - [Semantic Type](/documentation/semantic-types) explains the semantic labels
   Flint understands, such as `YearMonth`, `Quantity`, `Category`, and `Profit`.

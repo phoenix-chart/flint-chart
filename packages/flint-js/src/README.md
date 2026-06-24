@@ -167,7 +167,7 @@ Each backend has its own assembly function. All accept the same
 
 ```ts
 interface ChartAssemblyInput {
-  data: { values: any[] } | { url: string };  // inline rows or URL
+  data: { values: any[] } | { url: string };  // inline rows or host-resolved data reference
   semantic_types?: Record<string, string>;     // field → semantic type
   chart_spec: {
     chartType: string;                         // e.g. "Scatter Plot"
@@ -182,7 +182,7 @@ interface ChartAssemblyInput {
 
 | Key | Description |
 |---|---|
-| `data` | Data source — either `{ values: [...] }` (inline row objects) or `{ url: "..." }` (JSON/CSV URL) |
+| `data` | Data source — either `{ values: [...] }` (inline row objects) or `{ url: "..." }` (host-resolved JSON/CSV reference) |
 | `semantic_types` | Per-column semantic annotations (e.g., `{ revenue: "Price", country: "Country" }`) |
 | `chart_spec` | What to draw — chart type, encodings, canvas size, properties |
 | `options` | Layout tuning (elasticity, step sizes, tooltips, etc.) |

@@ -1,6 +1,6 @@
 ---
 name: flint-chart-author
-description: "Use when: the user asks to make or render charts with flint-chart, visualize tabular data, generate a ChartAssemblyInput, validate/render through MCP, or add Flint to a JS/Python project. Author the semantic spec, install/import Flint only when executable code is needed, and do not hand-tune backend chart JSON."
+description: "Use when: the user asks to make or render charts with flint-chart, visualize tabular data, generate a ChartAssemblyInput, validate/render through MCP, or add Flint to a JS/Python project. Author the semantic spec, transform data before Flint when needed, install/import Flint only when executable code is needed, and reserve backend-specific style tweaks for after compiling from Flint."
 ---
 
 # flint-chart: authoring and using a chart spec
@@ -21,6 +21,16 @@ or `assembleChartjs` to get a backend spec.
   data gets bound"). Embedding is fine for small tables; just don't
   re-serialize a *large* dataset by hand, since that risks truncation and
   silent value corruption and wastes tokens.
+- **Transform data before Flint.** If the requested chart needs aggregation,
+  filtering, joins, pivots, derived columns, or long/wide reshaping beyond
+  Flint's built-in static-series fold, use a coding, notebook, SQL, or data tool
+  first. Then author the Flint spec against the transformed table.
+- **Style after Flint, only when needed.** Prefer Flint `chart_spec` and
+  `semantic_types` for chart structure. If the user asks for a visual style or
+  presentation tweak that Flint does not express, create the chart with Flint
+  first, compile to Vega-Lite, make a narrow style edit to that Vega-Lite spec,
+  then render it with a host-side Vega-Lite renderer. Do not feed modified
+  Vega-Lite JSON back to `render_chart`.
 
 ## When the user wants more than a spec
 
@@ -119,6 +129,49 @@ For spec-only answers, return the `semantic_types` and `chart_spec` pieces and
 state how the host should bind data. In the worked examples below, `data` is
 shown as `{ values: [] }` to signal "host binds this" — focus on `chart_spec`
 and `semantic_types`.
+
+## Data transformation before charting
+
+Flint is a chart compiler, not a data-wrangling layer. Before writing the spec,
+check whether the user's data is already in the shape the chart needs.
+
+- If the chart needs grouped totals, time buckets, filters, joins, pivots,
+  derived ratios, or a long-form table, transform the data first with the tools
+  available in the host environment.
+- If using MCP, you may embed the transformed rows directly, or save a prepared
+  `.json`, `.csv`, or `.tsv` under an allowed data root and reference it by
+  `data.url`.
+- If writing application or notebook code, write the data loading/transformation
+  code first, then pass the resulting runtime variable as `data.values`.
+
+After transformation, pick semantic types and channels for the transformed
+columns, not for columns that no longer exist in the chart-ready table.
+
+## Post-Flint style customization
+
+Stay at the Flint level for chart structure. Data semantics, chart type, channel
+field mappings, transforms, sizing, and supported chart properties should be
+handled in the Flint input. Flint specs remain portable across backends and can
+be regenerated safely.
+
+Use backend JSON only after a valid Flint chart exists, and only for narrow
+style/presentation changes that Flint does not currently expose, such as exact
+axis or legend styling, mark styling, title details, annotations, or final layout
+polish. Do not use backend JSON to change the data story, chart type, field
+mappings, or transformations; go back to data preparation or the Flint spec for
+those changes.
+
+For a Vega-Lite-specific style tweak:
+
+1. Author and validate the Flint `ChartAssemblyInput`.
+2. Render or inspect the Flint chart first, when possible.
+3. Call `compile_chart` with `backend: "vegalite"`.
+4. Make the smallest necessary style/presentation edit to the returned
+  Vega-Lite spec.
+5. Render the edited spec in the host environment with a Vega-Lite renderer.
+
+This edited Vega-Lite spec is no longer a portable Flint spec. Do not send it to
+`render_chart`; use `render_chart` only for Flint `ChartAssemblyInput`.
 
 ## Step 1 — pick `chartType`
 

@@ -40,7 +40,7 @@ afterAll(async () => {
 });
 
 describe('MCP server', () => {
-  it('lists the four verb tools', async () => {
+  it('lists the chart tools', async () => {
     const { tools } = await client.listTools();
     const names = tools.map((t) => t.name).sort();
     expect(names).toEqual([

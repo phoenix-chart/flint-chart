@@ -90,10 +90,11 @@ before calling the tools. Add it to any MCP client (Claude Desktop, Cursor, VS C
 { "mcpServers": { "flint": { "command": "npx", "args": ["-y", "flint-chart-mcp"] } } }
 ```
 
-It exposes four verb tools: `render_chart`, `compile_chart`, `validate_chart`,
-and `list_chart_types`. Direct MCP rendering accepts embedded `data.values`.
-To render local JSON/CSV/TSV files by `data.url`, start the server with allowed
-data roots such as `--data-roots ./data` or `FLINT_MCP_DATA_ROOTS=./data`.
+It exposes four Flint-focused tools: `render_chart`, `compile_chart`,
+`validate_chart`, and `list_chart_types`. Direct MCP rendering accepts embedded
+`data.values`. To render local JSON/CSV/TSV files by `data.url`, start the
+server with allowed data roots such as `--data-roots ./data` or
+`FLINT_MCP_DATA_ROOTS=./data`.
 
 ## Use the API
 

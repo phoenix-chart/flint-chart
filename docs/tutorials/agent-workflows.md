@@ -124,7 +124,7 @@ The normal loop is:
 5. The agent calls `validate_chart` and fixes any schema, field, chart-type, or
    backend warnings.
 6. The agent calls `render_chart` for PNG/SVG output, or `compile_chart` when you
-   want Vega-Lite, ECharts, or Chart.js JSON.
+  want Vega-Lite, ECharts, or Chart.js JSON.
 7. The MCP client returns the image, SVG, or spec artifact to the user.
 
 There are three data-binding cases to keep separate:
@@ -137,6 +137,20 @@ There are three data-binding cases to keep separate:
   variable such as `rows`, then call Flint with `data: { values: rows }`. This
   variable pattern belongs in generated code; it is not valid inside a direct
   MCP tool call.
+
+Data transformation belongs before Flint. If the request needs aggregation,
+filtering, joins, pivots, derived columns, or a long-form table, the agent should
+use another coding, notebook, SQL, or data tool first, then author the Flint spec
+against that chart-ready table.
+
+Use backend customization only for post-Flint style/presentation tweaks. The
+preferred path is to keep chart structure in Flint's `chart_spec`, because that
+remains portable across backends. When a user asks for a visual detail that
+Flint cannot express, the agent should create and inspect the Flint chart first,
+then call `compile_chart` with `backend: "vegalite"`, make the smallest necessary
+style edit to the returned Vega-Lite JSON, and render it in the host environment
+with a Vega-Lite renderer. That edited Vega-Lite JSON is not a Flint spec, so it
+should not be sent to `render_chart`.
 
 ### Ask for chart output
 

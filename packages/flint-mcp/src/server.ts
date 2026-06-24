@@ -63,9 +63,8 @@ export function resolveBackends(options: CreateServerOptions = {}): SupportedBac
 }
 
 /**
- * Build the Flint MCP server with the four verb tools (`render_chart`,
- * `compile_chart`, `validate_chart`, `list_chart_types`) and a chart-types
- * resource. Rendering is fully in-process; no data leaves the host.
+ * Build the Flint MCP server with chart tools, the bundled authoring skill, and
+ * catalog resources. Rendering is fully in-process; no data leaves the host.
  */
 export function createServer(options: CreateServerOptions = {}): McpServer {
   const backends = resolveBackends(options);

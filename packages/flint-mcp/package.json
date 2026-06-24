@@ -20,7 +20,7 @@
   "homepage": "https://github.com/microsoft/flint-chart/tree/main/packages/flint-mcp#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/microsoft/flint-chart.git",
+    "url": "git+https://github.com/microsoft/flint-chart.git",
     "directory": "packages/flint-mcp"
   },
   "bugs": {

@@ -189,7 +189,7 @@ export function McpServer() {
 /* Mockup chat showing the interactive MCP App in context.            */
 /* ------------------------------------------------------------------ */
 
-function ChatMockup() {
+export function ChatMockup() {
   return (
     <div style={chatFrameStyle}>
       <div style={chatTitleBarStyle}>

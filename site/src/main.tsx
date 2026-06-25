@@ -7,6 +7,7 @@ import { ChartWall } from './routes/ChartWall';
 import { Editor } from './routes/Editor';
 import { McpServer } from './routes/McpServer';
 import { DocSectionPage } from './routes/DocSectionPage';
+import { DevPlayground } from './routes/DevPlayground';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -19,6 +20,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="/gallery/:chartId" element={<Navigate to="/wall" replace />} />
         <Route path="/editor" element={<Editor />} />
         <Route path="/mcp" element={<McpServer />} />
+        <Route path="/dev-playground" element={<DevPlayground />} />
         {/* Tutorials merged into Documentation as the "Quick start" group. */}
         <Route path="/tutorials" element={<Navigate to="/documentation/getting-started" replace />} />
         <Route path="/tutorials/:slug" element={<TutorialRedirect />} />

@@ -44,6 +44,12 @@ const SCHEME_COLORS: Record<string, string[]> = {
     redblue: ['#a50f15', '#ffffff', '#08519c'],
 };
 
+const DEFAULT_HEATMAP_SCHEME = 'blues';
+
+function isDivergingHeatmapScheme(scheme: string | undefined): boolean {
+    return scheme === 'blueorange' || scheme === 'redblue';
+}
+
 export const ecHeatmapDef: ChartTemplateDef = {
     chart: 'Heatmap',
     template: { mark: 'rect', encoding: {} },
@@ -108,12 +114,12 @@ export const ecHeatmapDef: ChartTemplateDef = {
         // chartProperties.colorScheme.
         const encScheme = encodings?.color?.scheme;
         const userScheme = (encScheme && encScheme !== 'default') ? encScheme : undefined;
-        const schemeName = userScheme || 'viridis';
         const decision = colorDecisions?.color ?? colorDecisions?.group;
+        const semanticIsDiverging = decision?.schemeType === 'diverging';
+        const schemeName = userScheme || (semanticIsDiverging ? 'redblue' : DEFAULT_HEATMAP_SCHEME);
         const isDivergingScale =
-            decision?.schemeType === 'diverging'
-            || schemeName === 'blueorange'
-            || schemeName === 'redblue';
+            semanticIsDiverging
+            || isDivergingHeatmapScheme(schemeName);
         if (isDivergingScale && minVal < 0 && maxVal > 0) {
             const sym = Math.max(Math.abs(minVal), Math.abs(maxVal));
             minVal = -sym;
@@ -135,16 +141,16 @@ export const ecHeatmapDef: ChartTemplateDef = {
                 if (decision.schemeType === 'diverging') {
                     paletteFromDecision = getPaletteForScheme('RdBu');
                 } else if (decision.schemeType === 'sequential') {
-                    paletteFromDecision = getPaletteForScheme('viridis');
+                    paletteFromDecision = SCHEME_COLORS[DEFAULT_HEATMAP_SCHEME];
                 }
             }
             if (paletteFromDecision && paletteFromDecision.length > 0) {
                 schemeColors = paletteFromDecision;
             } else {
-                schemeColors = SCHEME_COLORS[schemeName] || SCHEME_COLORS.viridis;
+                schemeColors = SCHEME_COLORS[schemeName] || SCHEME_COLORS[DEFAULT_HEATMAP_SCHEME];
             }
         } else {
-            schemeColors = SCHEME_COLORS[schemeName] || SCHEME_COLORS.viridis;
+            schemeColors = SCHEME_COLORS[schemeName] || SCHEME_COLORS[DEFAULT_HEATMAP_SCHEME];
         }
 
         const option: any = {
@@ -253,7 +259,7 @@ export const ecHeatmapDef: ChartTemplateDef = {
             dependencies: ['color'],
             control: {
                 type: 'discrete', options: [
-                    { value: undefined, label: 'Default (Viridis)' },
+                    { value: undefined, label: 'Default (Blues)' },
                     { value: 'viridis', label: 'Viridis' },
                     { value: 'inferno', label: 'Inferno' },
                     { value: 'magma', label: 'Magma' },

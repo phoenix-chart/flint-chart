@@ -924,6 +924,7 @@ export function ecApplyLayoutToSpec(
 
     // ── Color scheme ─────────────────────────────────────────────────────
     // Use palette derived from backend-agnostic colorDecisions when present.
+    const visualMapOwnsSeriesColor = context.chartType === 'Heatmap' && !!option.visualMap;
     const decisions: ColorDecisionResult | undefined = context.colorDecisions;
     const colorDecision = decisions ? (decisions.color ?? decisions.group) : undefined;
     let effectivePalette: string[] | undefined;
@@ -998,6 +999,11 @@ export function ecApplyLayoutToSpec(
                 option.color = [...cat10];
             }
         }
+    }
+
+    if (visualMapOwnsSeriesColor) {
+        delete option.color;
+        effectivePalette = undefined;
     }
 
     // 当存在调色板时，覆盖模板中的硬编码 itemStyle.color，

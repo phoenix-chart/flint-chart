@@ -24,6 +24,12 @@ const HEATMAP_SCHEME_COLORS: Record<string, [string, string]> = {
     greys: ['#ffffff', '#252525'],
 };
 
+const DEFAULT_HEATMAP_SCHEME = 'blues';
+
+function isDivergingHeatmapScheme(scheme: string | undefined): boolean {
+    return scheme === 'blueorange' || scheme === 'redblue';
+}
+
 function hexLuma(hex: string): number {
     const m = /^#?([0-9a-f]{6})$/i.exec(hex);
     if (!m) return 0;
@@ -358,8 +364,17 @@ export const heatmapDef: ChartTemplateDef = {
         // value lived in chartProperties.colorScheme.
         const encScheme = ctx.encodings?.color?.scheme;
         const userScheme = (encScheme && encScheme !== 'default') ? encScheme : undefined;
-        const schemeName = userScheme || existingScheme;
-        const isDiverging = schemeName === 'blueorange' || schemeName === 'redblue';
+        const semanticScheme = ctx.channelSemantics?.color?.colorScheme;
+        const semanticIsDiverging = semanticScheme?.type === 'diverging';
+        const colorEncodingType = spec.encoding?.color?.type;
+        const shouldUseHeatmapDefault = !userScheme
+            && !semanticIsDiverging
+            && !isDivergingHeatmapScheme(existingScheme)
+            && colorEncodingType !== 'nominal';
+        const schemeName = userScheme
+            || (semanticIsDiverging ? (existingScheme || 'redblue') : undefined)
+            || (shouldUseHeatmapDefault ? DEFAULT_HEATMAP_SCHEME : existingScheme);
+        const isDiverging = isDivergingHeatmapScheme(schemeName);
         const intrinsicDomain = getSafeHeatmapIntrinsicDomain(ctx, colorField);
 
         let effectiveMin = intrinsicDomain?.[0] ?? observedMin;
@@ -367,8 +382,8 @@ export const heatmapDef: ChartTemplateDef = {
 
         if (spec.encoding?.color) {
             if (!spec.encoding.color.scale) spec.encoding.color.scale = {};
-            if (userScheme) {
-                spec.encoding.color.scale.scheme = userScheme;
+            if (schemeName) {
+                spec.encoding.color.scale.scheme = schemeName;
             }
             if (isDiverging && effectiveMin < 0 && effectiveMax > 0) {
                 const sym = Math.max(Math.abs(effectiveMin), Math.abs(effectiveMax));
@@ -407,7 +422,7 @@ export const heatmapDef: ChartTemplateDef = {
             const labelFontSize = cellMinDim >= 40 ? 9 : cellMinDim >= 28 ? 8 : 7;
             const labelFormat = cellMinDim >= 44 ? '.2f' : '.1f';
 
-            const sequentialPalette = HEATMAP_SCHEME_COLORS[schemeName || 'viridis'] || HEATMAP_SCHEME_COLORS.viridis;
+            const sequentialPalette = HEATMAP_SCHEME_COLORS[schemeName || DEFAULT_HEATMAP_SCHEME] || HEATMAP_SCHEME_COLORS[DEFAULT_HEATMAP_SCHEME];
             const highIsLight = hexLuma(sequentialPalette[1]) >= hexLuma(sequentialPalette[0]);
             const strongThreshold = span > 0
                 ? (isDiverging
@@ -477,7 +492,7 @@ export const heatmapDef: ChartTemplateDef = {
             dependencies: ['color'],
             control: {
                 type: 'discrete', options: [
-                    { value: undefined, label: "Default" },
+                    { value: undefined, label: "Default (Blues)" },
                     { value: "viridis", label: "Viridis" },
                     { value: "inferno", label: "Inferno" },
                     { value: "magma", label: "Magma" },

@@ -37,6 +37,66 @@ export interface FlintRenderResult {
 }
 
 const DEFAULT_BACKGROUND = '#ffffff';
+const APP_PREVIEW_BASE_SIZE = { width: 320, height: 240 } as const;
+const APP_PREVIEW_CANVAS_SIZE = { width: 640, height: 480 } as const;
+const APP_PREVIEW_MIN_STEP_PLOT_SIZE = { width: 220, height: 160 } as const;
+const APP_PREVIEW_MAX_AUTO_STEP = 96;
+
+function usesAutoPreviewSize(input: ChartAssemblyInput): boolean {
+  return !input.chart_spec.baseSize && !input.chart_spec.canvasSize;
+}
+
+function withAppPreviewDefaults(input: ChartAssemblyInput): ChartAssemblyInput {
+  if (!usesAutoPreviewSize(input)) return input;
+  return {
+    ...input,
+    chart_spec: {
+      ...input.chart_spec,
+      baseSize: { ...APP_PREVIEW_BASE_SIZE },
+      canvasSize: { ...APP_PREVIEW_CANVAS_SIZE },
+    },
+  };
+}
+
+function encodingField(input: ChartAssemblyInput, channel: 'x' | 'y'): string | undefined {
+  const encoding = input.chart_spec.encodings[channel];
+  if (typeof encoding === 'string') return encoding;
+  if (encoding && typeof encoding === 'object' && !Array.isArray(encoding)) {
+    const field = (encoding as { field?: unknown }).field;
+    return typeof field === 'string' ? field : undefined;
+  }
+  return undefined;
+}
+
+function uniqueValueCount(input: ChartAssemblyInput, field: string | undefined): number {
+  if (!field) return 0;
+  const rows = input.data.values ?? [];
+  return new Set(rows.map((row) => row?.[field]).filter((value) => value != null)).size;
+}
+
+function applyStepMinimum(node: unknown, dimension: 'width' | 'height', itemCount: number): void {
+  if (!node || typeof node !== 'object' || itemCount <= 0) return;
+  const record = node as Record<string, unknown>;
+  const size = record[dimension];
+  if (size && typeof size === 'object') {
+    const stepSize = (size as { step?: unknown }).step;
+    if (typeof stepSize === 'number' && Number.isFinite(stepSize)) {
+      const minPlotSize = APP_PREVIEW_MIN_STEP_PLOT_SIZE[dimension];
+      const desiredStep = Math.min(APP_PREVIEW_MAX_AUTO_STEP, Math.ceil(minPlotSize / itemCount));
+      if (stepSize < desiredStep) {
+        record[dimension] = { ...(size as Record<string, unknown>), step: desiredStep };
+      }
+    }
+  }
+  applyStepMinimum(record.spec, dimension, itemCount);
+}
+
+function widenSmallStepPlotsForPreview(vlSpec: Record<string, unknown>, input: ChartAssemblyInput): void {
+  const xCount = uniqueValueCount(input, encodingField(input, 'x'));
+  const yCount = uniqueValueCount(input, encodingField(input, 'y'));
+  applyStepMinimum(vlSpec, 'width', xCount);
+  applyStepMinimum(vlSpec, 'height', yCount);
+}
 
 /**
  * Assemble a Flint {@link ChartAssemblyInput} to a Vega-Lite spec and render it
@@ -47,7 +107,10 @@ export async function renderFlintSvg(
   input: ChartAssemblyInput,
   background: string = DEFAULT_BACKGROUND,
 ): Promise<FlintRenderResult> {
-  const raw = assembleVegaLite(input) as Record<string, unknown>;
+  const usePreviewDefaults = usesAutoPreviewSize(input);
+  const previewInput = withAppPreviewDefaults(input);
+  const raw = assembleVegaLite(previewInput) as Record<string, unknown>;
+  if (usePreviewDefaults) widenSmallStepPlotsForPreview(raw, previewInput);
   const warnings = (raw._warnings as FlintRenderResult['warnings']) ?? [];
   const vlSpec = stripPrivate(raw);
 

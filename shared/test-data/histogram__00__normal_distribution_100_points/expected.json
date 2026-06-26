@@ -338,14 +338,14 @@
   "_options": [
     {
       "key": "binCount",
-      "label": "Bins",
+      "label": "Max Bins",
       "type": "continuous",
       "min": 5,
       "max": 50,
       "step": 1,
-      "defaultValue": 10,
+      "defaultValue": 0,
       "applicable": true,
-      "value": 10
+      "value": 0
     },
     {
       "key": "independentYAxis",

@@ -24,12 +24,13 @@ const labelStyle: CSSProperties = {
   color: siteTheme.textMuted,
   fontSize: 12,
   minWidth: 0,
+  maxWidth: 160,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
 };
 
-const READOUT_WIDTH = 34;
+const READOUT_WIDTH = 44;
 
 // Best-effort sizing: measure each option by its label length + the intrinsic
 // width of its widget, then snap to a small set of tiers. This keeps the strip
@@ -52,25 +53,26 @@ function optionWidth(label: string, kind: string): number {
   return WIDTH_TIERS.find((t) => t >= needed) ?? WIDTH_TIERS[WIDTH_TIERS.length - 1];
 }
 
-function optStyleFor(width: number): CSSProperties {
+function optStyleFor(_width: number): CSSProperties {
   return {
     display: 'flex',
     alignItems: 'center',
-    gap: LABEL_GAP,
+    gap: 14,
     margin: 0,
     minWidth: 0,
-    // Tier width caps the cell; label + widget stay adjacent (leftover trails right).
-    width,
+    // Each cell hugs its own label + widget and left-aligns (no fixed tier width):
+    // the label sits immediately left of the control with a single gap, and the
+    // flex-wrap strip flows cells left-to-right, wrapping when they overflow.
+    flex: '0 0 auto',
   };
 }
 
 const controlInlineStyle: CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: `72px ${READOUT_WIDTH}px`,
+  gridTemplateColumns: `72px auto`,
   alignItems: 'center',
   gap: 6,
   minWidth: 0,
-  justifySelf: 'end',
 };
 
 function ControlRow(props: {
@@ -97,7 +99,7 @@ function ControlRow(props: {
           onChange={(e) => onChange(Number(e.target.value))}
           style={{ width: '100%', minWidth: 0, accentColor: siteTheme.accent }}
         />
-        <span style={{ ...labelStyle, fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>
+        <span style={{ ...labelStyle, fontVariantNumeric: 'tabular-nums', textAlign: 'left' }}>
           {Number(num).toLocaleString()}
         </span>
       </span>

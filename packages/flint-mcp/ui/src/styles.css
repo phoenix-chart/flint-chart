@@ -14,7 +14,7 @@
   --error: #b00020;
   --font: Arial, Roboto, 'Helvetica Neue', sans-serif;
   --option-cell-width: 176px;
-  --option-readout-width: 34px;
+  --option-readout-width: 44px;
 }
 
 * {
@@ -136,18 +136,20 @@ body {
 .opt {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 14px;
   margin: 0;
   min-width: 0;
-  /* Per-option width is set inline (best-effort, by label length + widget type);
-     label + widget stay adjacent, leftover trails right. */
-  width: var(--opt-width, 176px);
+  /* Each cell hugs its own label + widget and left-aligns (no fixed tier width):
+     the label sits immediately left of the control with a single gap, and the
+     flex-wrap row simply flows cells left-to-right, wrapping when they overflow. */
+  flex: 0 0 auto;
 }
 
 .opt-label {
   color: var(--muted);
   font-size: 12px;
   min-width: 0;
+  max-width: 160px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -201,16 +203,15 @@ body {
 
 .control-inline {
   display: grid;
-  grid-template-columns: 72px var(--option-readout-width);
+  grid-template-columns: 72px auto;
   align-items: center;
   gap: 6px;
   min-width: 0;
-  justify-self: end;
 }
 
 .control-readout {
   min-width: 0;
-  text-align: right;
+  text-align: left;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }

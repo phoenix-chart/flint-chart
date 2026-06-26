@@ -542,6 +542,7 @@ const ${resultNames[category.id]} = ${category.fn}(input);`;
         your app, see{' '}
         <Link
           to="/documentation/getting-started#compile-your-chart"
+          className="site-text-link"
           style={{ color: siteTheme.accent, fontWeight: 600 }}
         >
           Compile your chart

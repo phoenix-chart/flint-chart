@@ -24,14 +24,15 @@ export const ecHistogramDef: ChartTemplateDef = {
         const colorField = channelSemantics.color?.field;
         if (!xField) return;
 
-        const binCount = chartProperties?.binCount ?? 10;
-
         // Extract numeric values
         const values = table
             .map(r => Number(r[xField]))
             .filter(v => isFinite(v));
 
         if (values.length === 0) return;
+
+        // `binCount` is the bin count; 0 (auto) falls back to 10.
+        const binCount = chartProperties?.binCount || 10;
 
         const minVal = Math.min(...values);
         const maxVal = Math.max(...values);
@@ -158,6 +159,6 @@ export const ecHistogramDef: ChartTemplateDef = {
         delete spec.encoding;
     },
     properties: [
-        { key: 'binCount', label: 'Bins', type: 'continuous', min: 5, max: 50, step: 1, defaultValue: 10 } as ChartPropertyDef,
+        { key: 'binCount', label: 'Max Bins', type: 'continuous', min: 5, max: 50, step: 1, defaultValue: 0 } as ChartPropertyDef,
     ],
 };

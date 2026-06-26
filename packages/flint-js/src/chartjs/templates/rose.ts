@@ -26,6 +26,7 @@ import {
     getSeriesBorderColor,
     getSeriesBackgroundColor,
 } from './utils';
+import { sortSlicesInPlace } from './pie';
 
 export const cjsRoseChartDef: ChartTemplateDef = {
     chart: 'Rose Chart',
@@ -93,6 +94,7 @@ export const cjsRoseChartDef: ChartTemplateDef = {
 
         // Alignment: 'center' puts wedge center at 12 o'clock,
         // 'left' puts wedge left edge at 12 o'clock.
+        sortSlicesInPlace(labels, values, ctx.chartProperties?.sortSlices);
         const alignment = ctx.chartProperties?.alignment ?? 'left';
         const n = categories.length;
         // Chart.js polarArea: startAngle 0 = 12 o'clock, CW.
@@ -142,6 +144,15 @@ export const cjsRoseChartDef: ChartTemplateDef = {
                 { value: 'left', label: 'Left (default)' },
                 { value: 'center', label: 'Center' },
             ],
+        } as ChartPropertyDef,
+        {
+            key: 'sortSlices', label: 'Sort slices', type: 'discrete',
+            options: [
+                { value: 'none', label: 'Data order' },
+                { value: 'descending', label: 'Largest first' },
+                { value: 'ascending', label: 'Smallest first' },
+            ],
+            defaultValue: 'none',
         } as ChartPropertyDef,
     ],
 };

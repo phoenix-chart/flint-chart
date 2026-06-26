@@ -170,12 +170,20 @@ export const violinPlotDef: ChartTemplateDef = {
         spec.transform[0].groupby = groupby;
 
         // --- Bandwidth (mirrors density.ts) ---
+        // `bandwidth` is a *relative* smoothing multiplier (1 ≈ the data-derived
+        // default per group), NOT an absolute width in data units — an absolute
+        // 0.05 bandwidth would be invisible on a measure that spans thousands.
+        // Scale the widest per-group normal-reference base by the slider so it
+        // reads consistently across measures of any scale and matches density.ts.
+        // 0 / unset leaves Vega to pick its own (auto) bandwidth per group.
         // Resolve the effective bandwidth FIRST so the extent padding below can
         // match the actual kernel width Vega will use.
         const config = ctx.chartProperties;
-        const userBandwidth = config?.bandwidth && config.bandwidth > 0 ? config.bandwidth : 0;
-        if (userBandwidth > 0) {
-            spec.transform[0].bandwidth = userBandwidth;
+        const baseBandwidth = maxGroupBandwidth(ctx.table, measureField, groupby);
+        const bwMultiplier = config?.bandwidth && config.bandwidth > 0 ? config.bandwidth : 0;
+        const effectiveBw = bwMultiplier > 0 ? baseBandwidth * bwMultiplier : baseBandwidth;
+        if (bwMultiplier > 0 && baseBandwidth > 0) {
+            spec.transform[0].bandwidth = effectiveBw;
         }
 
         // Evaluate every violin over the SAME measure range so they share the
@@ -184,14 +192,10 @@ export const violinPlotDef: ChartTemplateDef = {
         // the kernel tails decay to ~zero — otherwise the widest-spread group
         // (whose data fills the extent) ends in a flat clipped slab instead of a
         // tapered point. Pad by ~1.5 bandwidths past the data on each side
-        // (seaborn-style "cut"), using the user bandwidth when set or the
-        // normal-reference auto bandwidth Vega itself would pick.
+        // (seaborn-style "cut"), using the effective kernel width Vega will use.
         const extent = numericExtent(ctx.table, measureField);
         if (extent) {
             const range = extent[1] - extent[0];
-            const effectiveBw = userBandwidth > 0
-                ? userBandwidth
-                : maxGroupBandwidth(ctx.table, measureField, groupby);
             const pad = Math.max(range * 0.05, 1.5 * effectiveBw, 1e-6);
             spec.transform[0].extent = [extent[0] - pad, extent[1] + pad];
         }

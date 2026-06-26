@@ -11,7 +11,7 @@
  *       Optionally an "outlier" scatter series.
  */
 
-import { ChartTemplateDef } from '../../core/types';
+import { ChartTemplateDef, ChartPropertyDef } from '../../core/types';
 import { extractCategories, groupBy, getCategoryOrder } from './utils';
 import { detectBandedAxisForceDiscrete } from '../../vegalite/templates/utils';
 
@@ -29,7 +29,10 @@ function areCategoriesNumeric(cats: string[]): boolean {
 }
 
 /** Compute the five-number summary for an array of values. */
-function fiveNumberSummary(values: number[]): [number, number, number, number, number] {
+function fiveNumberSummary(
+    values: number[],
+    whiskerMethod: 'iqr' | 'minmax' = 'iqr',
+): [number, number, number, number, number] {
     const sorted = [...values].sort((a, b) => a - b);
     const n = sorted.length;
     if (n === 0) return [0, 0, 0, 0, 0];
@@ -38,9 +41,14 @@ function fiveNumberSummary(values: number[]): [number, number, number, number, n
     const median = quantile(sorted, 0.5);
     const q1 = quantile(sorted, 0.25);
     const q3 = quantile(sorted, 0.75);
-    const iqr = q3 - q1;
 
-    // Whisker extent: min/max within 1.5×IQR
+    // Min–Max whiskers span the full data range (no points are outliers).
+    if (whiskerMethod === 'minmax') {
+        return [sorted[0], q1, median, q3, sorted[n - 1]];
+    }
+
+    // Tukey whiskers: extend to the most extreme value within 1.5×IQR.
+    const iqr = q3 - q1;
     const lowerFence = q1 - 1.5 * iqr;
     const upperFence = q3 + 1.5 * iqr;
     const whiskerLow = sorted.find(v => v >= lowerFence) ?? sorted[0];
@@ -93,6 +101,14 @@ export const ecBoxplotDef: ChartTemplateDef = {
         const colorIsDiscrete = colorField && isDiscrete(colorType);
 
         if (!xCS?.field || !yCS?.field) return;
+
+        // Whisker convention + outlier visibility (design choices). Min–Max
+        // whiskers span the full range, so no points are outliers; with Tukey
+        // whiskers, outliers are drawn as a scatter overlay unless suppressed.
+        const whiskerMethod: 'iqr' | 'minmax' =
+            ctx.chartProperties?.whiskerMethod === 'minmax' ? 'minmax' : 'iqr';
+        const showOutliers =
+            whiskerMethod === 'iqr' && ctx.chartProperties?.showOutliers !== false;
 
         // Determine which axis is categorical and which is quantitative
         const xIsDiscrete = isDiscrete(xCS.type);
@@ -152,11 +168,12 @@ export const ecBoxplotDef: ChartTemplateDef = {
                         (r: any) => String(r[colorField] ?? '') === colorName,
                     );
                     const values = rows.map((r: any) => Number(r[valField])).filter(v => isFinite(v));
-                    boxData.push(fiveNumberSummary(values));
+                    boxData.push(fiveNumberSummary(values, whiskerMethod));
 
-                    const outliers = findOutliers(values);
-                    for (const o of outliers) {
-                        outlierData.push([i, o]);
+                    if (showOutliers) {
+                        for (const o of findOutliers(values)) {
+                            outlierData.push([i, o]);
+                        }
                     }
                 }
 
@@ -189,11 +206,12 @@ export const ecBoxplotDef: ChartTemplateDef = {
                 const cat = categories[i];
                 const rows = catGroups.get(cat) || [];
                 const values = rows.map((r: any) => Number(r[valField])).filter((v: number) => isFinite(v));
-                boxData.push(fiveNumberSummary(values));
+                boxData.push(fiveNumberSummary(values, whiskerMethod));
 
-                const outliers = findOutliers(values);
-                for (const o of outliers) {
-                    outlierData.push([i, o]);
+                if (showOutliers) {
+                    for (const o of findOutliers(values)) {
+                        outlierData.push([i, o]);
+                    }
                 }
             }
 
@@ -217,4 +235,18 @@ export const ecBoxplotDef: ChartTemplateDef = {
         delete spec.mark;
         delete spec.encoding;
     },
+    properties: [
+        {
+            key: 'whiskerMethod', label: 'Whiskers', type: 'discrete',
+            options: [
+                { value: 'iqr', label: 'Tukey (1.5 × IQR)' },
+                { value: 'minmax', label: 'Min–Max' },
+            ],
+            defaultValue: 'iqr',
+        } as ChartPropertyDef,
+        {
+            key: 'showOutliers', label: 'Outliers', type: 'binary', defaultValue: true,
+            check: (ctx) => ({ applicable: ctx.chartProperties?.whiskerMethod !== 'minmax' }),
+        } as ChartPropertyDef,
+    ],
 };

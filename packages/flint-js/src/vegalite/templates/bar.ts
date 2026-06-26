@@ -352,16 +352,29 @@ export const histogramDef: ChartTemplateDef = {
     markCognitiveChannel: 'length',
     instantiate: (spec, ctx) => {
         defaultBuildEncodings(spec, ctx.resolvedEncodings);
-        // Apply bin count from chart properties
-        const config = ctx.chartProperties;
-        if (config?.binCount !== undefined && spec.encoding?.x) {
-            spec.encoding.x.bin = { maxbins: config.binCount };
+        // `binCount` is the maxbins cap; 0 (auto) leaves the template's `bin: true`
+        // so Vega chooses. maxbins is only an upper bound — Vega snaps to "nice"
+        // boundaries, so the rendered count is usually a bit below the cap.
+        const binCount = ctx.chartProperties?.binCount;
+        if (binCount && spec.encoding?.x) {
+            spec.encoding.x.bin = { maxbins: binCount };
         }
         adjustBarMarks(spec, ctx);
     },
     properties: [
-        { key: "binCount", label: "Bins", type: "continuous", min: 5, max: 50, step: 1, defaultValue: 10 },
+        // 0 == auto (let the engine choose); 5–50 caps the bins (maxbins).
+        { key: "binCount", label: "Max Bins", type: "continuous", min: 5, max: 50, step: 1, defaultValue: 0 },
     ] as ChartPropertyDef[],
+    // A histogram has a single bound field (x); its y is a computed count, so
+    // there is no τ transpose or σ permute. `shift` routes a discrete series to
+    // the legend/facets, and the θ transition re-renders the same field as a
+    // smooth kernel Density Plot.
+    pivot: makeCartesianPivot({
+        shift: ['color', 'column', 'row'],
+        transitions: [
+            { to: 'Density Plot', label: 'Density' },
+        ],
+    }),
 };
 
 // ─── Heatmap ────────────────────────────────────────────────────────────────

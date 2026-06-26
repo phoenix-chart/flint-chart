@@ -14,7 +14,6 @@ import {
     getSeriesBorderColor,
     getSeriesBackgroundColor,
 } from './utils';
-
 export const cjsHistogramDef: ChartTemplateDef = {
     chart: 'Histogram',
     template: { mark: 'bar', encoding: {} },
@@ -28,14 +27,15 @@ export const cjsHistogramDef: ChartTemplateDef = {
 
         const palette = getChartJsPalette(ctx, 'color');
 
-        const binCount = chartProperties?.binCount ?? 10;
-
         // Extract numeric values
         const numValues = table
             .map(r => Number(r[xField]))
             .filter(v => isFinite(v));
 
         if (numValues.length === 0) return;
+
+        // `binCount` is the bin count; 0 (auto) falls back to 10.
+        const binCount = chartProperties?.binCount || 10;
 
         const minVal = Math.min(...numValues);
         const maxVal = Math.max(...numValues);
@@ -132,6 +132,6 @@ export const cjsHistogramDef: ChartTemplateDef = {
         delete spec.encoding;
     },
     properties: [
-        { key: 'binCount', label: 'Bins', type: 'continuous', min: 5, max: 50, step: 1, defaultValue: 10 } as ChartPropertyDef,
+        { key: 'binCount', label: 'Max Bins', type: 'continuous', min: 5, max: 50, step: 1, defaultValue: 0 } as ChartPropertyDef,
     ],
 };

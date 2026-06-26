@@ -18,6 +18,7 @@ import {
     getSeriesBorderColor,
     getSeriesBackgroundColor,
 } from './utils';
+import { sortSlicesInPlace } from './pie';
 
 export const cjsDoughnutChartDef: ChartTemplateDef = {
     chart: 'Doughnut Chart',
@@ -68,6 +69,8 @@ export const cjsDoughnutChartDef: ChartTemplateDef = {
         // Default to a 55% hollow centre; let callers tune it.
         const cutout = chartProperties?.innerRadius ?? 55;
 
+        sortSlicesInPlace(labels, values, chartProperties?.sortSlices);
+
         const config: any = {
             type: 'doughnut',
             data: {
@@ -98,5 +101,14 @@ export const cjsDoughnutChartDef: ChartTemplateDef = {
     },
     properties: [
         { key: 'innerRadius', label: 'Hole', type: 'continuous', min: 20, max: 80, step: 5, defaultValue: 55 } as ChartPropertyDef,
+        {
+            key: 'sortSlices', label: 'Sort slices', type: 'discrete',
+            options: [
+                { value: 'none', label: 'Data order' },
+                { value: 'descending', label: 'Largest first' },
+                { value: 'ascending', label: 'Smallest first' },
+            ],
+            defaultValue: 'none',
+        } as ChartPropertyDef,
     ],
 };

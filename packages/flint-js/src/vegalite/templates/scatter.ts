@@ -193,6 +193,22 @@ export const boxplotDef: ChartTemplateDef = {
     instantiate: (spec, ctx) => {
         defaultBuildEncodings(spec, ctx.resolvedEncodings);
 
+        // Whisker convention + outlier visibility (design choices, not styling).
+        //   whiskerMethod 'minmax' → whiskers span the full data range; VL draws
+        //     no outlier points (they are inside the whiskers by definition).
+        //   whiskerMethod 'iqr' (default) → Tukey 1.5×IQR whiskers; points beyond
+        //     the fences render as outliers unless suppressed.
+        const props = ctx.chartProperties;
+        const useMinMax = props?.whiskerMethod === 'minmax';
+        if (useMinMax) {
+            spec.mark = setMarkProp(spec.mark, 'extent', 'min-max');
+        }
+        // `showOutliers` defaults to true. With min-max whiskers there are no
+        // outliers anyway, so hiding them is implicit.
+        if (useMinMax || props?.showOutliers === false) {
+            spec.mark = setMarkProp(spec.mark, 'outliers', false);
+        }
+
         const layout = ctx.layout;
         const hasDiscreteX = layout.xNominalCount > 0;
         const hasDiscreteAxis = hasDiscreteX || layout.yNominalCount > 0;
@@ -236,4 +252,20 @@ export const boxplotDef: ChartTemplateDef = {
             }
         }
     },
+    properties: [
+        {
+            key: 'whiskerMethod', label: 'Whiskers', type: 'discrete',
+            options: [
+                { value: 'iqr', label: 'Tukey (1.5 × IQR)' },
+                { value: 'minmax', label: 'Min–Max' },
+            ],
+            defaultValue: 'iqr',
+        },
+        {
+            key: 'showOutliers', label: 'Outliers', type: 'binary', defaultValue: true,
+            // Outliers exist only with Tukey whiskers; min–max whiskers absorb
+            // every point, so the toggle is irrelevant there.
+            check: (ctx) => ({ applicable: ctx.chartProperties?.whiskerMethod !== 'minmax' }),
+        },
+    ] as ChartPropertyDef[],
 };

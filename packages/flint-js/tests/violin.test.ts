@@ -124,11 +124,17 @@ describe('Vega-Lite Violin Plot', () => {
     expect(t.extent[1]).toBeGreaterThan(dmax);
   });
 
-  it('feeds the bandwidth property into the density transform when set', () => {
-    const withBw = assembleVegaLite(
+  it('feeds the bandwidth property into the density transform as a relative multiplier', () => {
+    const withHalf = assembleVegaLite(
       toInput(basic, { chartProperties: { bandwidth: 0.5 } }),
     ) as any;
-    expect(withBw.transform[0].bandwidth).toBe(0.5);
+    const withOne = assembleVegaLite(
+      toInput(basic, { chartProperties: { bandwidth: 1 } }),
+    ) as any;
+    // The slider is a relative multiplier of the data-derived base bandwidth
+    // (not an absolute width), so it must scale linearly: 1.0 ≈ 2 × 0.5.
+    expect(withHalf.transform[0].bandwidth).toBeGreaterThan(0);
+    expect(withOne.transform[0].bandwidth).toBeCloseTo(withHalf.transform[0].bandwidth * 2, 6);
     // No bandwidth key when the property is at its auto (0) default.
     expect(spec.transform[0].bandwidth).toBeUndefined();
   });

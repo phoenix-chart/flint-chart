@@ -3,6 +3,7 @@
 
 import { ChartTemplateDef, ChartPropertyDef, EncodingActionDef } from '../../core/types';
 import { makeSortAction } from '../../core/encoding-actions';
+import { makeCartesianPivot } from '../../core/pivot';
 import { detectBandedAxisFromSemantics, setMarkProp } from './utils';
 
 export const lollipopChartDef: ChartTemplateDef = {
@@ -11,7 +12,7 @@ export const lollipopChartDef: ChartTemplateDef = {
         encoding: {},
         layer: [
             { mark: { type: "rule", strokeWidth: 1.5 }, encoding: {} },
-            { mark: { type: "circle", size: 80 }, encoding: {} },
+            { mark: { type: "circle", size: 80, opacity: 1 }, encoding: {} },
         ],
     },
     channels: ["x", "y", "color", "column", "row"],
@@ -130,4 +131,11 @@ export const lollipopChartDef: ChartTemplateDef = {
         { key: "dotSize", label: "Dot Size", type: "continuous", min: 20, max: 300, step: 10, defaultValue: 80 },
     ] as ChartPropertyDef[],
     encodingActions: [makeSortAction()] as EncodingActionDef[],
+    // Mirrors the bar pivot (a lollipop is bar's thin-mark sibling): orientation
+    // flip, banded-axis ↔ series role swap, and series routing to legend/facets.
+    pivot: makeCartesianPivot({
+        transpose: [['x', 'y']],
+        permute: [['x', 'y', 'color']],
+        shift: ['color', 'column', 'row'],
+    }),
 };

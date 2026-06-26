@@ -89,7 +89,16 @@ export function ChartCodeModal({
           : chart.backend === 'echarts'
             ? assembleECharts(input)
             : assembleChartjs(input);
-      return JSON.stringify(spec, null, 2);
+      // Drop Flint's private `_`-prefixed annotations (`_pivot`, `_warnings`,
+      // `_width`, `_height`): they are internal metadata for the host/runtime,
+      // not part of the actual backend spec a user would render or copy.
+      const clean = spec && typeof spec === 'object' ? { ...(spec as Record<string, unknown>) } : spec;
+      if (clean && typeof clean === 'object') {
+        for (const key of Object.keys(clean)) {
+          if (key.startsWith('_')) delete (clean as Record<string, unknown>)[key];
+        }
+      }
+      return JSON.stringify(clean, null, 2);
     } catch (err) {
       return `// ${BACKEND_LABELS[chart.backend]} compile error:\n// ${String(
         (err as Error)?.message ?? err,

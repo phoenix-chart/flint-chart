@@ -206,16 +206,16 @@ export function MicrosoftDisclosures() {
       }}
     >
       <span style={{ marginRight: 12 }}>© 2026 Microsoft</span>
-      <a style={linkStyle} href="https://go.microsoft.com/fwlink/?LinkID=206977">
+      <a className="site-text-link" style={linkStyle} href="https://go.microsoft.com/fwlink/?LinkID=206977">
         Terms of Use
       </a>
-      <a style={linkStyle} href="https://go.microsoft.com/fwlink/?LinkId=521839">
+      <a className="site-text-link" style={linkStyle} href="https://go.microsoft.com/fwlink/?LinkId=521839">
         Privacy &amp; Cookies
       </a>
-      <a style={linkStyle} href="https://go.microsoft.com/fwlink/?linkid=2259814">
+      <a className="site-text-link" style={linkStyle} href="https://go.microsoft.com/fwlink/?linkid=2259814">
         Consumer Health Privacy
       </a>
-      <a style={linkStyle} href="https://www.microsoft.com/trademarks">
+      <a className="site-text-link" style={linkStyle} href="https://www.microsoft.com/trademarks">
         Trademarks
       </a>
     </footer>

@@ -66,3 +66,40 @@ describe('faceted density plot groupby', () => {
     expect(densityGroupby(spec)).toHaveLength(0);
   });
 });
+
+/**
+ * Regression: the `bandwidth` property is a *relative* smoothing multiplier, not
+ * an absolute width in data units. A literal 0.05 on a 0–90 `Reading` scale used
+ * to be passed straight through, producing a spiky near-zero-smoothing curve.
+ * It must instead scale the data-derived Silverman base.
+ */
+const densityBandwidth = (spec: any): number | undefined =>
+  (spec.transform ?? []).find((t: any) => t.density)?.bandwidth;
+
+describe('density plot bandwidth (relative multiplier)', () => {
+  it('omits the transform bandwidth at the auto (0) default', () => {
+    const spec = assembleVegaLite(makeDensityInput({})) as any;
+    expect(densityBandwidth(spec)).toBeUndefined();
+  });
+
+  it('scales the data-derived base rather than passing the raw slider value', () => {
+    const input = makeDensityInput({});
+    input.chart_spec.encodings = { ...input.chart_spec.encodings };
+    (input.chart_spec as any).chartProperties = { bandwidth: 1 };
+    const spec = assembleVegaLite(input) as any;
+    const bw = densityBandwidth(spec);
+    // A 0–90 Reading scale yields a Silverman base of order ~10, so a 1× factor
+    // is far larger than the raw slider value (which would be a spiky 1.0).
+    expect(bw).toBeGreaterThan(3);
+  });
+
+  it('keeps the multiplier proportional (2× is twice 1×)', () => {
+    const mk = (b: number) => {
+      const input = makeDensityInput({});
+      (input.chart_spec as any).chartProperties = { bandwidth: b };
+      return densityBandwidth(assembleVegaLite(input) as any)!;
+    };
+    expect(mk(2)).toBeCloseTo(mk(1) * 2, 6);
+  });
+});
+

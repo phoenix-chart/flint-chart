@@ -1,15 +1,10 @@
 import { useMemo, useState, type CSSProperties, type MouseEvent } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  TEST_GENERATORS,
-  makeField,
-  makeEncodingItem,
-  buildMetadata,
-  type TestCase,
-} from 'flint-chart/test-data';
+import { TEST_GENERATORS, makeField, makeEncodingItem, buildMetadata, type TestCase } from 'flint-chart/test-data';
 import { SiteNavBar, MicrosoftDisclosures } from '../components/SiteShell';
 import { WallChart } from '../components/WallChart';
 import { ScaleToFit } from '../components/ScaleToFit';
+import { SpecPipelineFigure } from '../components/SpecPipelineFigure';
 import { testCaseToFlintSummary, testCaseToAssemblyInput } from '../shared/test-case-utils';
 import { buildGalleryEditorHref, openEditorWithPayload } from '../shared/editor-payload';
 import { MOVIE_RATINGS } from './movie-ratings-data';
@@ -53,26 +48,10 @@ export function Landing() {
                   >
                     npm
                   </Link>{' '}
-                  (TypeScript / JavaScript) or{' '}
-                  <Link
-                    to="/documentation/getting-started#python"
-                    className="landing-skill-link"
-                    style={installLineLinkStyle}
-                  >
-                    pip
-                  </Link>{' '}
-                  (Python).
+                  (TypeScript / JavaScript).
                 </div>
                 <div style={installLineStyle}>
                   <span style={promptMarkStyle}>&gt;</span> To use Flint in agent workflows, check the{' '}
-                  <Link
-                    to="/documentation/agent-workflows#agent-skill-authoring"
-                    className="landing-skill-link"
-                    style={installLineLinkStyle}
-                  >
-                    agent skill
-                  </Link>{' '}
-                  or{' '}
                   <Link
                     to="/mcp"
                     className="landing-skill-link"
@@ -84,15 +63,10 @@ export function Landing() {
                 </div>
               </div>
             </div>
-
             <div style={leadButtonsColStyle}>
               <div style={actionBoxStyle}>
-                <HeroActionLink href={GITHUB_REPO} label="GitHub" />
-                <HeroActionLink to="/mcp" label="MCP Server" />
-                <HeroActionLink to="/wall" label="Gallery" />
-                <HeroActionLink to="/documentation/overview" label="Documentation" />
-                <HeroActionLink href={`${GITHUB_REPO}/blob/main/agent-skills/flint-chart-author/SKILL.md`} label="Skill.md" />
-                <HeroActionLink to="/editor" label="Editor" />
+                <HeroCTA href={GITHUB_REPO} label="Visit GitHub" variant="primary" />
+                <HeroCTA to="/mcp" label="Get MCP Server" variant="secondary" />
               </div>
             </div>
           </div>
@@ -123,24 +97,42 @@ export function Landing() {
         <HeroShowcase />
 
         {/* ---- Feature cards (alternating text / visual) -------------- */}
-        <section style={sectionStyle}>
-          <SectionDivider label="How it works" />
-          <div style={featureRowsStyle}>
+        <section style={howItWorksSectionStyle}>
+          <div style={showcaseIntroStyle}>
+            <h1 style={showcaseHeadingStyle}>How it works?</h1>
+            <div style={showcaseIntroBodyStyle}>
+              <p style={showcaseIntroTextStyle}>
+                Flint starts with a compact spec: the data, semantic types,
+                and the chart spec. From there, the compiler produces a complete backend-native spec (shown
+                here in Vega-Lite) filling with the necessary low-level details and renders a good-looking chart. 
+              </p>
+              <div style={showcaseIntroCtaColStyle}>
+                <div style={actionBoxStyle}>
+                  <HeroCTA to="/documentation/overview" label="Read the docs" variant="secondary" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <PipelineDiagram />
+          <div style={featureGridStyle}>
             {FEATURES.map((feature, i) => (
-              <article key={feature.title} style={featureRowStyle(i % 2 === 1)}>
-                <div style={featureTextColStyle}>
-                  <h2 style={featureTitleStyle}>{feature.title}</h2>
+              <article key={feature.title} style={featureGridItemStyle}>
+                <div style={featureGridTextStyle}>
+                  <h2 style={featureTitleStyle}>
+                    <span style={featureNumberStyle}>{i + 1}.</span>
+                    {feature.title}
+                  </h2>
                   <p style={featureBodyStyle}>{feature.body}</p>
-                  {feature.example && (
-                    <p style={featureExampleStyle} aria-label={`Example: ${feature.example}`}>
-                      {feature.example}
-                    </p>
-                  )}
                 </div>
                 {feature.demo && (
-                  <div style={featureVisualColStyle}>
+                  <div style={featureGridVisualStyle}>
                     <FeatureDemoView build={feature.demo} />
                   </div>
+                )}
+                {feature.example && (
+                  <p style={featureExampleStyle} aria-label={`Example: ${feature.example}`}>
+                    {feature.example}
+                  </p>
                 )}
               </article>
             ))}
@@ -165,7 +157,6 @@ export function Landing() {
           </div>
         </section>
       </main>
-
       <MicrosoftDisclosures />
     </div>
   );
@@ -330,7 +321,17 @@ function SectionDivider({ label }: { label: string }) {
   );
 }
 
-function HeroActionLink({ label, to, href }: { label: string; to?: string; href?: string }) {
+function HeroCTA({
+  label,
+  to,
+  href,
+  variant,
+}: {
+  label: string;
+  to?: string;
+  href?: string;
+  variant: 'primary' | 'secondary';
+}) {
   const [active, setActive] = useState(false);
   const handlers = {
     onMouseEnter: () => setActive(true),
@@ -341,14 +342,14 @@ function HeroActionLink({ label, to, href }: { label: string; to?: string; href?
 
   if (href) {
     return (
-      <a href={href} style={heroActionLinkStyle(active)} target="_blank" rel="noreferrer" {...handlers}>
+      <a href={href} style={heroCtaStyle(variant, active)} target="_blank" rel="noreferrer" {...handlers}>
         {label}
       </a>
     );
   }
 
   return (
-    <Link to={to ?? '/'} style={heroActionLinkStyle(active)} {...handlers}>
+    <Link to={to ?? '/'} style={heroCtaStyle(variant, active)} {...handlers}>
       {label}
     </Link>
   );
@@ -376,7 +377,7 @@ function HeroShowcase() {
   const goNext = () => setExampleIdx((i) => (i + 1) % count);
 
   return (
-    <section style={sectionStyle}>
+    <section style={heroShowcaseSectionStyle}>
       <div className="landing-showcase-row" style={carouselRowStyle}>
         <button
           type="button"
@@ -531,7 +532,23 @@ function FlintSpecCode({ testCase, canvasSize }: { testCase: TestCase; canvasSiz
 }
 
 /* ------------------------------------------------------------------ */
-/* Feature section copy                                                */
+/* "How it works" pipeline diagram                                     */
+/*                                                                     */
+/* Static three-panel explainer (compact Flint spec → compiled         */
+/* backend-native spec → rendered chart), reusing the figure from the  */
+/* dev playground, scaled to fit the section column.                   */
+/* ------------------------------------------------------------------ */
+
+function PipelineDiagram() {
+  return (
+    <figure style={pipelineFigureStyle}>
+      <ScaleToFit height={520} minHeight={260} padding={0} adaptiveHeight>
+        <SpecPipelineFigure />
+      </ScaleToFit>
+    </figure>
+  );
+}
+
 /*                                                                     */
 /* Edit the copy below to rewrite the landing copy. The intro uses     */
 /* small inline highlights; feature title/body/example strings stay    */
@@ -545,12 +562,11 @@ function LeadHighlight({ children }: { children: string }) {
 // Lead paragraph shown in the hero (the single intro to Flint).
 const LEAD_INTRO = (
   <>
-    Flint is a visualization intermediate language that allows{' '}
-    <LeadHighlight>AI agents to create expressive, good-looking visualizations from simple, human-editable chart specs</LeadHighlight>. Instead of requiring verbose
+    Flint is a visualization intermediate language that lets{' '}
+    <LeadHighlight>AI agents create expressive, good-looking charts from simple, human-editable chart specs</LeadHighlight>. Instead of requiring verbose
     low-level parameters such as scales, axes, spacing, and layout, the Flint compiler derives
-    optimized chart settings from the data, semantic types, chart type, and encodings. The result is a
-    compact chart specification that is easy for agents to create, easy for people to edit, and{' '}
-    <LeadHighlight>it can be rendered in different backends (Vega-Lite, ECharts, Chart.js)</LeadHighlight>.
+    optimized chart settings from the data, semantic types, chart type, and encodings. {' '}
+    <LeadHighlight>Flint specs can be rendered in different backends (Vega-Lite, ECharts, Chart.js)</LeadHighlight>.
   </>
 );
 
@@ -576,10 +592,10 @@ const FEATURES: Feature[] = [
   {
     title: 'Automatic layout optimization',
     body:
-      'Flint optimizes the chart layout based on the chart speficiation and data characteristics based on an elastic layout model and banking principles. ' + 
-      'Given the desired chart dimensions and allowed canvas sizes, the compiler dynamically manages sizing, spacing, and arrangement so the chart nicely fits into the canvas with principled layout decisions. ',
+      'Flint optimizes the chart layout based on an elastic layout model and banking principles. ' + 
+      'The compiler dynamically manages sizing, spacing, and arrangement so the chart nicely fits into the canvas. ',
     example:
-      'As the same grouped bar chart grows from 5 categories to 22, Flint stretches the canvas and reduces the band width so the dense version still fits the canvas nicely, similar to how springs settle into an expandable container.',
+      'As the grouped bar chart grows from 5 categories to 22, Flint stretches the canvas and reduces the band width so the dense version still fits the canvas nicely, similar to how springs settle into an expandable container.',
     demo: demoLayout,
   },
   {
@@ -927,6 +943,17 @@ const sectionStyle: CSSProperties = {
   boxSizing: 'border-box',
 };
 
+const heroShowcaseSectionStyle: CSSProperties = {
+  ...sectionStyle,
+  paddingTop: 24,
+  paddingBottom: 18,
+};
+
+const howItWorksSectionStyle: CSSProperties = {
+  ...sectionStyle,
+  paddingTop: 24,
+};
+
 const sectionDividerStyle: CSSProperties = {
   display: 'flex',
   alignItems: 'center',
@@ -966,6 +993,13 @@ const heroAttributionStyle: CSSProperties = {
   letterSpacing: '0.03em',
 };
 
+const contributorsStyle: CSSProperties = {
+  margin: '28px 0 0',
+  color: siteTheme.textMuted,
+  fontSize: 13,
+  letterSpacing: '0.01em',
+};
+
 const leadColumnsStyle: CSSProperties = {
   display: 'flex',
   flexDirection: 'row',
@@ -981,7 +1015,7 @@ const leadTextColStyle: CSSProperties = {
 
 const leadButtonsColStyle: CSSProperties = {
   flex: '0 0 auto',
-  width: 164,
+  width: 190,
   display: 'flex',
   flexDirection: 'column',
   borderLeft: `1px solid ${HAIRLINE}`,
@@ -992,8 +1026,8 @@ const leadButtonsColStyle: CSSProperties = {
 const actionBoxStyle: CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
-  alignItems: 'flex-start',
-  gap: 3,
+  alignItems: 'stretch',
+  gap: 10,
   paddingTop: 2,
 };
 
@@ -1008,10 +1042,6 @@ const leadStyle: CSSProperties = {
 const leadHighlightStyle: CSSProperties = {
   fontWeight: 600,
   color: 'inherit',
-  textDecoration: 'underline',
-  textDecorationColor: 'rgba(0, 120, 212, 0.34)',
-  textDecorationThickness: 2,
-  textUnderlineOffset: 3,
 };
 
 const installLinesStyle: CSSProperties = {
@@ -1041,10 +1071,6 @@ const installLineLinkStyle: CSSProperties = {
 };
 
 const landingInteractiveStyles = `
-  .landing-skill-link:hover {
-    color: #005a9e !important;
-  }
-
   .landing-showcase-row {
     width: calc(100% + 96px);
     margin-left: -48px;
@@ -1184,22 +1210,44 @@ const carouselRowStyle: CSSProperties = {
 };
 
 const showcaseIntroStyle: CSSProperties = {
-  maxWidth: 720,
+  display: 'flex',
+  flexDirection: 'column',
   margin: '0 0 20px',
 };
 
 const showcaseHeadingStyle: CSSProperties = {
-  fontSize: 24,
-  fontWeight: 500,
-  margin: '0 0 10px',
+  fontSize: 30,
+  fontWeight: 600,
+  margin: '0 0 12px',
   letterSpacing: '0.01em',
 };
 
+const showcaseIntroBodyStyle: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'row',
+  alignItems: 'stretch',
+  gap: 56,
+  flexWrap: 'wrap',
+};
+
 const showcaseIntroTextStyle: CSSProperties = {
-  fontSize: 15.5,
+  flex: '1 1 560px',
+  minWidth: 0,
+  maxWidth: 760,
+  fontSize: 17,
   color: siteTheme.text,
   lineHeight: 1.65,
   margin: 0,
+};
+
+const showcaseIntroCtaColStyle: CSSProperties = {
+  flex: '0 0 auto',
+  width: 190,
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
+  borderLeft: `1px solid ${HAIRLINE}`,
+  paddingLeft: 20,
 };
 
 const pagerArrowStyle: CSSProperties = {
@@ -1258,33 +1306,43 @@ const specPreStyle: CSSProperties = {
   flex: 1,
 };
 
-const featureRowsStyle: CSSProperties = {
+const pipelineFigureStyle: CSSProperties = {
+  margin: '0 0 32px',
+};
+
+const featureTransitionStyle: CSSProperties = {
+  maxWidth: 760,
+  margin: '0 0 28px',
+};
+
+const featureTransitionTextStyle: CSSProperties = {
+  margin: 0,
+  fontSize: 15.5,
+  lineHeight: 1.65,
+  color: siteTheme.text,
+};
+
+const featureGridStyle: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 440px), 1fr))',
+  gap: '48px 40px',
+  alignItems: 'start',
+};
+
+const featureGridItemStyle: CSSProperties = {
+  minWidth: 0,
   display: 'flex',
   flexDirection: 'column',
-  gap: 64,
+  gap: 18,
 };
 
-// Alternating two-column rows (data-formulator style): text on one side, a live
-// chart on the other, flipping each row. Wraps to a single column on narrow
-// viewports.
-function featureRowStyle(reverse: boolean): CSSProperties {
-  return {
-    display: 'flex',
-    flexDirection: reverse ? 'row-reverse' : 'row',
-    alignItems: 'center',
-    gap: 48,
-    flexWrap: 'wrap',
-  };
-}
-
-const featureTextColStyle: CSSProperties = {
-  flex: '1 1 320px',
-  minWidth: 280,
+const featureGridVisualStyle: CSSProperties = {
+  minWidth: 0,
+  height: 360,
 };
 
-const featureVisualColStyle: CSSProperties = {
-  flex: '1 1 380px',
-  minWidth: 300,
+const featureGridTextStyle: CSSProperties = {
+  minWidth: 0,
 };
 
 // Overlapping before/after cards (Halden-style fan on hover).
@@ -1297,6 +1355,9 @@ const featureStackStyle: CSSProperties = {
   position: 'relative',
   display: 'grid',
   gridTemplateColumns: '1fr',
+  gridTemplateRows: 'minmax(0, 1fr)',
+  height: '100%',
+  boxSizing: 'border-box',
   cursor: 'pointer',
   outline: 'none',
   // Reserve room for the peeking corner and the slight hover rotation.
@@ -1308,6 +1369,7 @@ const featureStackStyle: CSSProperties = {
 const featureStackCardStyle: CSSProperties = {
   gridArea: '1 / 1',
   position: 'relative',
+  minHeight: 0,
   border: `1px solid ${HAIRLINE}`,
   borderRadius: siteTheme.radius,
   background: PAPER,
@@ -1354,15 +1416,23 @@ const demoSpecHotLineStyle: CSSProperties = {
 };
 
 const featureTitleStyle: CSSProperties = {
-  fontSize: 22,
+  display: 'flex',
+  alignItems: 'baseline',
+  gap: 8,
+  fontSize: 19.5,
   fontWeight: 500,
   margin: '0 0 10px',
 };
 
+const featureNumberStyle: CSSProperties = {
+  color: siteTheme.accent,
+  fontVariantNumeric: 'tabular-nums',
+};
+
 const featureBodyStyle: CSSProperties = {
-  fontSize: 16,
+  fontSize: 15,
   color: siteTheme.text,
-  lineHeight: 1.7,
+  lineHeight: 1.65,
   margin: 0,
 };
 
@@ -1379,7 +1449,7 @@ function featureExampleRowStyle(): CSSProperties {
 }
 
 const featureExampleStyle: CSSProperties = {
-  margin: '12px 0 0',
+  margin: 0,
   paddingLeft: 12,
   borderLeft: `2px solid ${HAIRLINE}`,
   fontSize: 14,
@@ -1418,19 +1488,32 @@ const secondaryBtn: CSSProperties = {
   fontSize: 14.5,
 };
 
-function heroActionLinkStyle(active: boolean): CSSProperties {
-  return {
+function heroCtaStyle(variant: 'primary' | 'secondary', active: boolean): CSSProperties {
+  const base: CSSProperties = {
     display: 'block',
-    margin: 0,
-    textAlign: 'left',
+    width: '100%',
     boxSizing: 'border-box',
-    padding: '3px 0',
-    borderRadius: 4,
+    textAlign: 'center',
+    padding: '10px 18px',
+    borderRadius: siteTheme.radius,
     textDecoration: 'none',
-    fontSize: 13,
+    fontSize: 14.5,
     fontWeight: 500,
-    color: active ? '#005a9e' : siteTheme.accent,
-    background: 'transparent',
-    transition: 'color 0.12s ease',
+    lineHeight: 1.2,
+    border: '1px solid transparent',
+    transition: 'background 0.12s ease, border-color 0.12s ease',
+  };
+  if (variant === 'primary') {
+    return {
+      ...base,
+      color: '#fff',
+      background: active ? '#006abc' : siteTheme.accent,
+    };
+  }
+  return {
+    ...base,
+    color: siteTheme.text,
+    background: active ? siteTheme.hover : PAPER,
+    borderColor: HAIRLINE,
   };
 }

@@ -17,7 +17,7 @@ export function McpServer() {
           <h1 style={heroTitleStyle}>Use Flint as a MCP server for your agent</h1>
           <p style={leadStyle}>
             Install <code style={codeInlineStyle}>flint-chart-mcp</code> as a{' '}
-            <a href="https://modelcontextprotocol.io" style={linkStyle} target="_blank" rel="noreferrer">
+            <a href="https://modelcontextprotocol.io" className="mcp-link" style={linkStyle} target="_blank" rel="noreferrer">
               Model Context Protocol
             </a>{' '}
             server and your agent can create charts from the same conversation
@@ -30,7 +30,7 @@ export function McpServer() {
             <code style={installCodeStyle}>
               <span style={promptMarkStyle}>$</span> npx -y flint-chart-mcp
             </code>
-            <a href={`${GITHUB_REPO}/tree/main/packages/flint-mcp`} style={ghLinkStyle} target="_blank" rel="noreferrer">
+            <a href={`${GITHUB_REPO}/tree/main/packages/flint-mcp`} className="mcp-link" style={ghLinkStyle} target="_blank" rel="noreferrer">
               View on GitHub →
             </a>
           </div>
@@ -48,7 +48,7 @@ export function McpServer() {
             </p>
             <ol style={stepListStyle}>
               <li style={stepItemStyle}>
-                <strong>Connect Flint once.</strong> Add the stdio server to your
+                <strong>Connect Flint MCP server.</strong> Add the stdio server to your
                 MCP client. If the agent should chart local CSV, TSV, or JSON
                 files, grant a data root explicitly.
               </li>
@@ -58,7 +58,7 @@ export function McpServer() {
                 calls the MCP server to validate and render it.
               </li>
               <li style={stepItemStyle}>
-                <strong>Review the result.</strong> In hosts with MCP Apps, the
+                <strong>Review the interactive result.</strong> In hosts with MCP Apps, the
                 preferred tool opens a live SVG preview with chart options. When
                 an artifact is needed, Flint can return a PNG, SVG, or compiled
                 backend spec instead.
@@ -346,9 +346,7 @@ const HAIRLINE = 'rgba(0, 0, 0, 0.10)';
 const GRID_LINE = 'rgba(0, 0, 0, 0.02)';
 const READING_WIDTH = 880;
 
-const interactiveStyles = `
-  .mcp-link:hover { color: #005a9e !important; }
-`;
+const interactiveStyles = ``;
 
 const pageStyle: CSSProperties = {
   minHeight: '100vh',

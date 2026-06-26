@@ -62,6 +62,27 @@ export const ecPieChartDef: ChartTemplateDef = {
 
         const innerRadius = chartProperties?.innerRadius ?? 0;
 
+        // Slice ordering (design choice): keep data/category order by default, or
+        // sort by value so the largest/smallest slice leads.
+        const sortSlices = chartProperties?.sortSlices;
+        if (sortSlices === 'descending') {
+            pieData.sort((a, b) => b.value - a.value);
+        } else if (sortSlices === 'ascending') {
+            pieData.sort((a, b) => a.value - b.value);
+        }
+
+        // Slice-label content (design choice). Defaults to category + percent,
+        // ECharts' long-standing pie label.
+        const labelType = chartProperties?.labelType ?? 'categoryPercent';
+        const labelFormatter: Record<string, string | undefined> = {
+            none: undefined,
+            category: '{b}',
+            value: '{c}',
+            percent: '{d}%',
+            categoryPercent: '{b}: {d}%',
+        };
+        const formatter = labelFormatter[labelType] ?? '{b}: {d}%';
+
         // ── Circumference-pressure sizing (spring model) ──────────────
         // Pie slices have variable width — use effective bar count based
         // on the smallest slice to determine worst-case pressure.
@@ -140,8 +161,8 @@ export const ecPieChartDef: ChartTemplateDef = {
                     },
                 },
                 label: {
-                    show: true,
-                    formatter: '{b}: {d}%',
+                    show: labelType !== 'none',
+                    formatter: formatter ?? '{b}: {d}%',
                     fontSize: labelFontSize,
                     width: labelBudget,
                     overflow: 'break',     // word-wrap long labels
@@ -175,5 +196,25 @@ export const ecPieChartDef: ChartTemplateDef = {
     properties: [
         { key: 'innerRadius', label: 'Donut', type: 'continuous', min: 0, max: 60, step: 5, defaultValue: 0 } as ChartPropertyDef,
         { key: 'cornerRadius', label: 'Corners', type: 'continuous', min: 0, max: 10, step: 1, defaultValue: 0 } as ChartPropertyDef,
+        {
+            key: 'sortSlices', label: 'Sort slices', type: 'discrete',
+            options: [
+                { value: 'none', label: 'Data order' },
+                { value: 'descending', label: 'Largest first' },
+                { value: 'ascending', label: 'Smallest first' },
+            ],
+            defaultValue: 'none',
+        } as ChartPropertyDef,
+        {
+            key: 'labelType', label: 'Labels', type: 'discrete',
+            options: [
+                { value: 'categoryPercent', label: 'Name + %' },
+                { value: 'category', label: 'Name' },
+                { value: 'value', label: 'Value' },
+                { value: 'percent', label: 'Percent' },
+                { value: 'none', label: 'None' },
+            ],
+            defaultValue: 'categoryPercent',
+        } as ChartPropertyDef,
     ],
 };

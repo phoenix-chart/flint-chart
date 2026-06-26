@@ -261,18 +261,12 @@ def assemble_vegalite(input_doc: dict) -> dict:
                 ax_enc = template_enc.get(axis)
                 if ax_enc and ax_enc.get("bin"):
                     prop_bins = (chart_properties or {}).get("binCount") if chart_properties else None
-                    if prop_bins is not None:
+                    if prop_bins:
                         binned_axes[axis] = {"maxbins": prop_bins}
                     elif isinstance(ax_enc["bin"], dict) and ax_enc["bin"].get("maxbins"):
                         binned_axes[axis] = ax_enc["bin"]
                     else:
-                        bin_prop_def = None
-                        for p in (chart_template.get("properties") or []):
-                            if p.get("key") == "binCount":
-                                bin_prop_def = p
-                                break
-                        default_bins = (bin_prop_def or {}).get("defaultValue", 10) if bin_prop_def else 10
-                        binned_axes[axis] = {"maxbins": default_bins}
+                        binned_axes[axis] = {"maxbins": 10}
             if binned_axes:
                 declaration["binnedAxes"] = binned_axes
 

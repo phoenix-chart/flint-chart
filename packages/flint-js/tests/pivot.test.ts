@@ -12,8 +12,11 @@ import {
 } from '../src';
 import { computePivot, applyPivot } from '../src/core/pivot';
 import { barChartDef } from '../src/vegalite/templates/bar';
-import { groupedBarChartDef, stackedBarChartDef } from '../src/vegalite/templates/bar';
+import { groupedBarChartDef, stackedBarChartDef, histogramDef } from '../src/vegalite/templates/bar';
 import { lineChartDef } from '../src/vegalite/templates/line';
+import { areaChartDef } from '../src/vegalite/templates/area';
+import { lollipopChartDef } from '../src/vegalite/templates/lollipop';
+import { densityPlotDef } from '../src/vegalite/templates/density';
 import { scatterPlotDef } from '../src/vegalite/templates/scatter';
 import { stripPlotDef } from '../src/vegalite/templates/jitter';
 import { vlGetTemplateDef } from '../src/vegalite/templates';
@@ -624,3 +627,86 @@ describe('computePivot — runtime orbit (composition, dedup, validity)', () => 
     expect(dupes).toEqual([]);
   });
 });
+
+describe('computePivot — Tier-1 templates (lollipop, area, histogram, density)', () => {
+  const DIST_DATA = [
+    { score: 10, grp: 'A' }, { score: 12, grp: 'A' },
+    { score: 8, grp: 'B' }, { score: 14, grp: 'B' },
+    { score: 9, grp: 'A' }, { score: 11, grp: 'B' },
+  ];
+  const DIST_ENC = {
+    x: { field: 'score', type: 'quantitative' as const },
+    color: { field: 'grp', type: 'nominal' as const },
+  };
+
+  it('lollipop offers orientation, role swap, and series routing', () => {
+    const comp = computePivot(lollipopChartDef, BAR_ENC, BAR_DATA)!;
+    expect(comp.ids).toContain('flip:x-y');
+    expect(comp.ids).toContain('swap:x-color');
+    expect(comp.ids).toContain('series:column');
+    expect(comp.ids).toContain('series:row');
+  });
+
+  it('lollipop does NOT offer a chart-type transition to a bar', () => {
+    const comp = computePivot(lollipopChartDef, BAR_ENC, BAR_DATA, vlGetTemplateDef)!;
+    expect(comp.ids.some(id => id.includes('type:Bar Chart'))).toBe(false);
+  });
+
+  it('bar does NOT offer a chart-type transition to a lollipop', () => {
+    const comp = computePivot(barChartDef, BAR_ENC, BAR_DATA, vlGetTemplateDef)!;
+    expect(comp.ids.some(id => id.includes('type:Lollipop Chart'))).toBe(false);
+  });
+
+  it('area offers series routing but no orientation or chart-type transition', () => {
+    const enc = {
+      x: { field: 'day', type: 'temporal' as const },
+      y: { field: 'sales', type: 'quantitative' as const },
+      color: { field: 'segment', type: 'nominal' as const },
+    };
+    const comp = computePivot(areaChartDef, enc, BAR_DATA, vlGetTemplateDef)!;
+    // No vertical area: x is pinned (no orientation flip).
+    expect(comp.ids).not.toContain('flip:x-y');
+    expect(comp.ids).toContain('series:column');
+    expect(comp.ids).toContain('series:row');
+    // No θ edge to a line.
+    expect(comp.ids.some(id => id.includes('type:Line Chart'))).toBe(false);
+  });
+
+  it('line does NOT offer a chart-type transition to an area', () => {
+    const enc = {
+      x: { field: 'day', type: 'temporal' as const },
+      y: { field: 'sales', type: 'quantitative' as const },
+      color: { field: 'segment', type: 'nominal' as const },
+    };
+    const comp = computePivot(lineChartDef, enc, BAR_DATA, vlGetTemplateDef)!;
+    expect(comp.ids.some(id => id.includes('type:Area Chart'))).toBe(false);
+  });
+
+  it('histogram routes a series to facets and offers a density transition', () => {
+    const comp = computePivot(histogramDef, DIST_ENC, DIST_DATA)!;
+    expect(comp.ids).toContain('series:column');
+    expect(comp.ids).toContain('series:row');
+    expect(comp.ids).toContain('type:Density Plot');
+    expect(comp.chartTypeById['type:Density Plot']).toBe('Density Plot');
+    // The transition re-views the same field; nothing is re-routed.
+    expect(comp.statesById['type:Density Plot'].x.field).toBe('score');
+  });
+
+  it('density routes a series to facets and offers a histogram transition', () => {
+    const comp = computePivot(densityPlotDef, DIST_ENC, DIST_DATA)!;
+    expect(comp.ids).toContain('series:column');
+    expect(comp.ids).toContain('series:row');
+    expect(comp.ids).toContain('type:Histogram');
+    expect(comp.chartTypeById['type:Histogram']).toBe('Histogram');
+    expect(comp.statesById['type:Histogram'].x.field).toBe('score');
+  });
+
+  it('applyPivot re-dispatches a histogram→density transition to the density type', () => {
+    const { chartType, encodings } = applyPivot(
+      histogramDef, DIST_ENC, DIST_DATA, { pivot: 'type:Density Plot' },
+    );
+    expect(chartType).toBe('Density Plot');
+    expect(encodings.x.field).toBe('score');
+  });
+});
+

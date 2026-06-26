@@ -17,6 +17,35 @@ import {
     getSeriesBackgroundColor,
 } from './utils';
 
+/**
+ * Reorder parallel label/value arrays in place by slice value. 'descending'
+ * leads with the largest slice, 'ascending' the smallest; anything else keeps
+ * the incoming data/category order.
+ */
+export function sortSlicesInPlace(
+    labels: string[],
+    values: number[],
+    sortSlices: unknown,
+): void {
+    if (sortSlices !== 'descending' && sortSlices !== 'ascending') return;
+    const idx = values.map((_, i) => i);
+    idx.sort((a, b) => (sortSlices === 'descending' ? values[b] - values[a] : values[a] - values[b]));
+    const sortedLabels = idx.map((i) => labels[i]);
+    const sortedValues = idx.map((i) => values[i]);
+    labels.splice(0, labels.length, ...sortedLabels);
+    values.splice(0, values.length, ...sortedValues);
+}
+
+const SORT_SLICES_PROPERTY: ChartPropertyDef = {
+    key: 'sortSlices', label: 'Sort slices', type: 'discrete',
+    options: [
+        { value: 'none', label: 'Data order' },
+        { value: 'descending', label: 'Largest first' },
+        { value: 'ascending', label: 'Smallest first' },
+    ],
+    defaultValue: 'none',
+};
+
 export const cjsPieChartDef: ChartTemplateDef = {
     chart: 'Pie Chart',
     template: { mark: 'arc', encoding: {} },
@@ -68,6 +97,8 @@ export const cjsPieChartDef: ChartTemplateDef = {
         const innerRadius = chartProperties?.innerRadius ?? 0;
         const isDoughnut = innerRadius > 0;
 
+        sortSlicesInPlace(labels, values, chartProperties?.sortSlices);
+
         const config: any = {
             type: isDoughnut ? 'doughnut' : 'pie',
             data: {
@@ -99,5 +130,6 @@ export const cjsPieChartDef: ChartTemplateDef = {
     },
     properties: [
         { key: 'innerRadius', label: 'Donut', type: 'continuous', min: 0, max: 60, step: 5, defaultValue: 0 } as ChartPropertyDef,
+        SORT_SLICES_PROPERTY,
     ],
 };

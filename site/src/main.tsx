@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import '@fontsource-variable/inter/index.css';
+import './global.css';
 import { HashRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { Landing } from './routes/Landing';
 import { ChartWall } from './routes/ChartWall';

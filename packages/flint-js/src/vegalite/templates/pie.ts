@@ -42,6 +42,25 @@ export const pieChartDef: ChartTemplateDef = {
         const thetaField = spec.encoding.theta?.field;
         const colorField = spec.encoding.color?.field;
 
+        // Slice ordering (design choice): default keeps the data/category order;
+        // sorting by value leads with the largest or smallest slice. Arc slice
+        // order follows the `order` channel; `color.sort` keeps the legend in
+        // step with the wedges.
+        const sortSlices = config?.sortSlices;
+        if (sortSlices === 'descending' || sortSlices === 'ascending') {
+            spec.encoding.order = thetaField
+                ? { field: thetaField, type: 'quantitative', sort: sortSlices }
+                : { aggregate: 'count', type: 'quantitative', sort: sortSlices };
+            if (spec.encoding.color) {
+                spec.encoding.color = {
+                    ...spec.encoding.color,
+                    sort: thetaField
+                        ? { field: thetaField, op: 'sum', order: sortSlices }
+                        : { op: 'count', order: sortSlices },
+                };
+            }
+        }
+
         let effectiveCount: number;
 
         if (thetaField && colorField) {
@@ -77,5 +96,14 @@ export const pieChartDef: ChartTemplateDef = {
     },
     properties: [
         { key: "innerRadius", label: "Donut", type: "continuous", min: 0, max: 100, step: 5, defaultValue: 0 },
+        {
+            key: 'sortSlices', label: 'Sort slices', type: 'discrete',
+            options: [
+                { value: 'none', label: 'Data order' },
+                { value: 'descending', label: 'Largest first' },
+                { value: 'ascending', label: 'Smallest first' },
+            ],
+            defaultValue: 'none',
+        },
     ] as ChartPropertyDef[],
 };

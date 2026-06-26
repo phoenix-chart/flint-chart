@@ -190,9 +190,13 @@ stacked_bar_chart_def = {
 
 def _histogram_instantiate(spec, ctx):
     default_build_encodings(spec, ctx["resolvedEncodings"])
-    config = ctx.get("chartProperties")
-    if config and config.get("binCount") is not None and (spec.get("encoding") or {}).get("x"):
-        spec["encoding"]["x"]["bin"] = {"maxbins": config["binCount"]}
+    # ``binCount`` is the maxbins cap; 0 (auto) leaves the template's ``bin: True``
+    # so Vega chooses. maxbins is only an upper bound — Vega snaps to "nice"
+    # boundaries, so the rendered count is usually a bit below the cap.
+    config = ctx.get("chartProperties") or {}
+    bin_count = config.get("binCount")
+    if bin_count and (spec.get("encoding") or {}).get("x"):
+        spec["encoding"]["x"]["bin"] = {"maxbins": bin_count}
     adjust_bar_marks(spec, ctx)
 
 
@@ -209,7 +213,8 @@ histogram_def = {
     "markCognitiveChannel": "length",
     "instantiate": _histogram_instantiate,
     "properties": [
-        {"key": "binCount", "label": "Bins", "type": "continuous", "min": 5, "max": 50, "step": 1, "defaultValue": 10},
+        # 0 == auto (let the engine choose); 5–50 caps the bins (maxbins).
+        {"key": "binCount", "label": "Max Bins", "type": "continuous", "min": 5, "max": 50, "step": 1, "defaultValue": 0},
     ],
 }
 

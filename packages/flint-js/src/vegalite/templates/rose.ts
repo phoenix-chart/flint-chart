@@ -68,6 +68,13 @@ export const roseChartDef: ChartTemplateDef = {
                 // 'left': no range offset needed — default [0, 2π] puts left edge at top
             }
 
+            // Slice ordering (design choice): default keeps the category order;
+            // sorting by value reorders the angular wedges by their radius sum.
+            const sortSlices = ctx.chartProperties?.sortSlices;
+            if ((sortSlices === 'descending' || sortSlices === 'ascending') && y?.field) {
+                thetaEnc.sort = { field: y.field, op: 'sum', order: sortSlices };
+            }
+
             spec.encoding.theta = thetaEnc;
         }
 
@@ -215,6 +222,14 @@ export const roseChartDef: ChartTemplateDef = {
                 { value: 'left', label: 'Left (default)' },
                 { value: 'center', label: 'Center' },
             ],
+        },
+        {
+            key: 'sortSlices', label: 'Sort slices', type: 'discrete', options: [
+                { value: 'none', label: 'Data order' },
+                { value: 'descending', label: 'Largest first' },
+                { value: 'ascending', label: 'Smallest first' },
+            ],
+            defaultValue: 'none',
         },
     ] as ChartPropertyDef[],
 };

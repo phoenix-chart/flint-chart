@@ -1,0 +1,23 @@
+.site-text-link,
+.landing-skill-link,
+.mcp-link,
+.doc-markdown a {
+  text-decoration-line: none;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+  transition: color 120ms ease, text-decoration-color 120ms ease;
+}
+
+.site-text-link:hover,
+.site-text-link:focus-visible,
+.landing-skill-link:hover,
+.landing-skill-link:focus-visible,
+.mcp-link:hover,
+.mcp-link:focus-visible,
+.doc-markdown a:hover,
+.doc-markdown a:focus-visible {
+  color: #005a9e !important;
+  text-decoration-line: underline !important;
+  text-decoration-color: currentColor !important;
+}

@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 import { ChartTemplateDef, ChartPropertyDef } from '../../core/types';
+import { makeCartesianPivot } from '../../core/pivot';
 import { defaultBuildEncodings, setMarkProp } from './utils';
 
 const interpolateConfigProperty: ChartPropertyDef = {
@@ -64,6 +65,13 @@ export const areaChartDef: ChartTemplateDef = {
             { value: "layered", label: "Layered (overlap)" },
         ] },
     ] as ChartPropertyDef[],
+    // Like a line, an area pins its domain to `x` (no τ transpose). `permute`
+    // exposes the y↔color swap only for a genuine dual-measure area; the series
+    // dimension is explored via `shift` (legend/facets).
+    pivot: makeCartesianPivot({
+        permute: [['y', 'color']],
+        shift: ['color', 'column', 'row'],
+    }),
 };
 
 export const streamgraphDef: ChartTemplateDef = {

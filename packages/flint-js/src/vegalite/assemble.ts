@@ -290,20 +290,16 @@ export function assembleVegaLite(input: ChartAssemblyInput): any {
             const binnedAxes: Record<string, boolean | { maxbins?: number }> = {};
             for (const axis of ['x', 'y']) {
                 if (templateEnc[axis]?.bin) {
-                    // Use chartProperties.binCount when available so layout
-                    // sizing matches the actual number of bins rendered.
+                    // Use chartProperties.binCount (the maxbins cap) when the user
+                    // has set one so layout sizing matches the rendered bins; a
+                    // value of 0/undefined means "auto" (Vega's default ~10 cap).
                     const propBins = chartProperties?.binCount;
-                    if (propBins != null) {
+                    if (propBins) {
                         binnedAxes[axis] = { maxbins: propBins };
                     } else if (typeof templateEnc[axis].bin === 'object' && templateEnc[axis].bin.maxbins) {
                         binnedAxes[axis] = templateEnc[axis].bin;
                     } else {
-                        // Find the template's default binCount from its property definitions
-                        const binPropDef = chartTemplate.properties?.find(
-                            (p: any) => p.key === 'binCount'
-                        );
-                        const defaultBins = binPropDef?.defaultValue ?? 10;
-                        binnedAxes[axis] = { maxbins: defaultBins };
+                        binnedAxes[axis] = { maxbins: 10 };
                     }
                 }
             }

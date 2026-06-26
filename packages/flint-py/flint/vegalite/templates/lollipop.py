@@ -147,7 +147,7 @@ lollipop_chart_def = {
         "encoding": {},
         "layer": [
             {"mark": {"type": "rule", "strokeWidth": 1.5}, "encoding": {}},
-            {"mark": {"type": "circle", "size": 80}, "encoding": {}},
+            {"mark": {"type": "circle", "size": 80, "opacity": 1}, "encoding": {}},
         ],
     },
     "channels": ["x", "y", "color", "column", "row"],

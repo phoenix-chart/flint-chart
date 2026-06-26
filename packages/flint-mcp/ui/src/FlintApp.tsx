@@ -38,11 +38,14 @@ function valueKey(value: unknown): string {
 // width of its widget, then snap to a small set of tiers. Keeps the strip
 // grid-like (few distinct widths) while letting toggles stay compact and
 // sliders/selects get the room they need.
-const LABEL_CHAR_PX = 6.6;
+const LABEL_CHAR_PX = 7;
 const LABEL_MAX_PX = 132;
 const LABEL_GAP = 8;
+// Small safety margin so short labels (e.g. "Gap") aren't starved by the
+// fixed-width widget and snap up to the next tier when the fit is tight.
+const FIT_BUFFER = 10;
 const WIDGET_PX: Record<string, number> = {
-  continuous: 72 + 6 + 34, // slider track + gap + readout
+  continuous: 72 + 6 + 44, // slider track + gap + readout
   discrete: 128, // select
   binary: 30, // toggle
   pivot: 96, // stepper
@@ -51,7 +54,7 @@ const WIDTH_TIERS = [140, 168, 200, 232, 264, 296];
 
 function optionWidth(label: string, kind: string): number {
   const labelPx = Math.min(LABEL_MAX_PX, Math.ceil(label.length * LABEL_CHAR_PX));
-  const needed = labelPx + LABEL_GAP + (WIDGET_PX[kind] ?? 120);
+  const needed = labelPx + LABEL_GAP + (WIDGET_PX[kind] ?? 120) + FIT_BUFFER;
   return WIDTH_TIERS.find((t) => t >= needed) ?? WIDTH_TIERS[WIDTH_TIERS.length - 1];
 }
 

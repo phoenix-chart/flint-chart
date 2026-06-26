@@ -45,6 +45,23 @@ export const ecRoseChartDef: ChartTemplateDef = {
         const categories = extractCategories(table, catField, channelSemantics.x?.ordinalSortOrder);
         if (categories.length === 0) return;
 
+        // Slice ordering (design choice): default keeps the category order;
+        // sorting by value reorders the angular wedges by their radius sum.
+        const sortSlices = ctx.chartProperties?.sortSlices;
+        if (sortSlices === 'descending' || sortSlices === 'ascending') {
+            const totals = new Map<string, number>();
+            for (const c of categories) totals.set(c, 0);
+            for (const row of table) {
+                const c = String(row[catField] ?? '');
+                if (totals.has(c)) totals.set(c, totals.get(c)! + (Number(row[valField]) || 0));
+            }
+            categories.sort((a, b) =>
+                sortSlices === 'descending'
+                    ? (totals.get(b) ?? 0) - (totals.get(a) ?? 0)
+                    : (totals.get(a) ?? 0) - (totals.get(b) ?? 0),
+            );
+        }
+
         // Build series data
         const seriesArr: any[] = [];
         const legendData: string[] = [];
@@ -206,6 +223,14 @@ export const ecRoseChartDef: ChartTemplateDef = {
                 { value: 'left', label: 'Left (default)' },
                 { value: 'center', label: 'Center' },
             ],
+        } as ChartPropertyDef,
+        {
+            key: 'sortSlices', label: 'Sort slices', type: 'discrete', options: [
+                { value: 'none', label: 'Data order' },
+                { value: 'descending', label: 'Largest first' },
+                { value: 'ascending', label: 'Smallest first' },
+            ],
+            defaultValue: 'none',
         } as ChartPropertyDef,
     ],
 };

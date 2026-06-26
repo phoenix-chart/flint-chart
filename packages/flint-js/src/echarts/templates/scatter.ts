@@ -13,6 +13,7 @@ import { ChartTemplateDef, ChartPropertyDef } from '../../core/types';
 import { formatTimestamp } from '../instantiate-spec';
 import { DEFAULT_COLORS, groupBy, getCategoryOrder, extractCategories } from './utils';
 import { getPaletteForScheme } from '../colormap';
+import { makeCartesianPivot } from '../../core/pivot';
 
 /** Compute a reasonable scatter symbolSize based on canvas area and point count. */
 function computeSymbolSize(width: number, height: number, pointCount: number): number {
@@ -604,6 +605,18 @@ export const ecScatterPlotDef: ChartTemplateDef = {
     properties: [
         { key: 'opacity', label: 'Opacity', type: 'continuous', min: 0.1, max: 1, step: 0.05, defaultValue: 1 },
     ],
+    pivot: makeCartesianPivot({
+        transpose: [['x', 'y']],
+        permute: [['x', 'y', 'color', 'size']],
+        shift: ['color', 'group', 'column', 'row'],
+        transitions: [
+            {
+                to: 'Strip Plot',
+                label: 'Jitter',
+                route: { from: 'series', to: 'x', mode: 'swap', spill: 'color' },
+            },
+        ],
+    }),
     postProcess: (option, ctx) => {
         if (!option.series || !Array.isArray(option.series)) return;
         // When visualMap controls symbolSize (piecewise ordinal or continuous quantity), do not override series.symbolSize

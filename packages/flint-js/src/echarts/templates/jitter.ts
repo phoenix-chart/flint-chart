@@ -6,7 +6,9 @@
  */
 
 import { ChartTemplateDef } from '../../core/types';
+import { makeCartesianPivot } from '../../core/pivot';
 import { extractCategories, groupBy } from './utils';
+import { pickEChartsPalette } from '../colormap';
 
 const isDiscrete = (type: string | undefined) => type === 'nominal' || type === 'ordinal';
 
@@ -39,12 +41,15 @@ export const ecStripPlotDef: ChartTemplateDef = {
         paramOverrides: { defaultBandSize: 50, minStep: 16 },
     }),
     instantiate: (spec, ctx) => {
-        const { channelSemantics, table, chartProperties } = ctx;
+        const { channelSemantics, table, chartProperties, colorDecisions } = ctx;
         const xCS = channelSemantics.x;
         const yCS = channelSemantics.y;
         const xField = xCS?.field;
         const yField = yCS?.field;
         const colorField = channelSemantics.color?.field;
+        const colorType = channelSemantics.color?.type;
+        const isContinuousColor = !!colorField && (colorType === 'quantitative' || colorType === 'temporal');
+        const isTemporalColor = colorType === 'temporal';
 
         if (!xField || !yField) return;
 
@@ -103,20 +108,70 @@ export const ecStripPlotDef: ChartTemplateDef = {
 
         const catScatterAxisIndex = 1; // use the hidden value axis
 
+        const toColorVal = (value: any) => {
+            if (value == null) return NaN;
+            return isTemporalColor ? new Date(value).getTime() : Number(value);
+        };
+
         const buildPoint = (row: any) => {
             const cat = String(row[catField!] ?? '');
             const idx = catToIndex.get(cat) ?? 0;
             const offset = rand() * jitterHalfWidth;
             const catVal = idx + offset;
             const contVal = row[contField];
-            return catAxis === 'x' ? [catVal, contVal] : [contVal, catVal];
+            const point = catAxis === 'x' ? [catVal, contVal] : [contVal, catVal];
+            if (isContinuousColor && colorField) {
+                point.push(toColorVal(row[colorField]));
+            }
+            return point;
         };
 
         const scatterAxisRef = isHorizontal
             ? { yAxisIndex: catScatterAxisIndex }
             : { xAxisIndex: catScatterAxisIndex };
 
-        if (colorField) {
+        if (isContinuousColor && colorField) {
+            const colorVals = table
+                .map((row: any) => toColorVal(row[colorField]))
+                .filter((value: number) => Number.isFinite(value));
+            const colorMin = colorVals.length ? Math.min(...colorVals) : 0;
+            const colorMax = colorVals.length ? Math.max(...colorVals) : 1;
+            const palette = pickEChartsPalette(colorDecisions?.color ?? colorDecisions?.group);
+            option.visualMap = {
+                type: 'continuous',
+                min: colorMin,
+                max: colorMax,
+                dimension: 2,
+                inRange: { color: palette },
+                orient: 'vertical',
+                right: 10,
+                top: '12%',
+                bottom: '12%',
+                name: colorField,
+            };
+            option._visualMapWidth = 70;
+            option.graphic = [{
+                type: 'text',
+                right: 10,
+                top: 4,
+                z: 100,
+                style: {
+                    text: colorField,
+                    fontSize: 11,
+                    fontWeight: 'bold',
+                    fill: '#333',
+                    textAlign: 'right',
+                },
+            }];
+            option.series.push({
+                name: colorField,
+                type: 'scatter',
+                ...scatterAxisRef,
+                data: table.map(buildPoint),
+                itemStyle: { opacity: 0.7 },
+                symbolSize: 8,
+            });
+        } else if (colorField && isDiscrete(colorType)) {
             const groups = groupBy(table, colorField);
             option.legend = { data: [...groups.keys()] };
             for (const [name, rows] of groups) {
@@ -143,4 +198,13 @@ export const ecStripPlotDef: ChartTemplateDef = {
         delete spec.mark;
         delete spec.encoding;
     },
+    pivot: makeCartesianPivot({
+        transitions: [
+            {
+                to: 'Scatter Plot',
+                label: 'Scatter',
+                route: { from: 'color', to: 'x', mode: 'swap', spill: 'color' },
+            },
+        ],
+    }),
 };

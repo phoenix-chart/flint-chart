@@ -3,6 +3,7 @@
 
 import { ChartTemplateDef, ChartPropertyDef, type InstantiateContext } from '../../core/types';
 import { defaultBuildEncodings, setMarkProp } from './utils';
+import { makeCartesianPivot } from '../../core/pivot';
 
 const interpolateConfigProperty: ChartPropertyDef = {
     key: "interpolate", label: "Curve", type: "discrete", options: [
@@ -103,4 +104,8 @@ export const lineChartDef: ChartTemplateDef = {
         spec.mark = applyShowPoints(spec.mark, ctx.chartProperties);
     },
     properties: [interpolateConfigProperty, showPointsProperty],
+    // No `transpose`: a line pins its domain to `x` (never a vertical line, for any
+    // x type). `permute` excludes `x`, so only a genuine dual-measure line offers a
+    // y↔color swap; the series dimension is explored via `shift` (facets/legend).
+    pivot: makeCartesianPivot({ permute: [['y', 'color']], shift: ['color', 'group', 'column', 'row'] }),
 };

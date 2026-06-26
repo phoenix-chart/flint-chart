@@ -18,15 +18,30 @@ export function WallChart({
   testCase,
   backend,
   canvasSize,
+  chartPropertyOverrides,
 }: {
   testCase: TestCase;
   backend: PreviewBackend;
   canvasSize?: CanvasSize;
+  /**
+   * Temporary chart-property overrides merged on top of the test case (e.g. the
+   * gallery's dynamic options bar). Display only — not persisted.
+   */
+  chartPropertyOverrides?: Record<string, unknown>;
 }) {
-  const input = useMemo(
-    () => testCaseToAssemblyInput(testCase, canvasSize ?? thumbnailCanvasSize(testCase)),
-    [testCase, canvasSize],
-  );
+  const input = useMemo(() => {
+    const base = testCaseToAssemblyInput(testCase, canvasSize ?? thumbnailCanvasSize(testCase));
+    if (!chartPropertyOverrides || Object.keys(chartPropertyOverrides).length === 0) {
+      return base;
+    }
+    return {
+      ...base,
+      chart_spec: {
+        ...base.chart_spec,
+        chartProperties: { ...base.chart_spec.chartProperties, ...chartPropertyOverrides },
+      },
+    };
+  }, [testCase, canvasSize, chartPropertyOverrides]);
 
   const compiled = useMemo(() => {
     try {

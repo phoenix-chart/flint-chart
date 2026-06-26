@@ -11,6 +11,7 @@
  */
 
 import { ChartTemplateDef, EncodingActionDef } from '../../core/types';
+import { makeCartesianPivot } from '../../core/pivot';
 import { extractCategories } from './utils';
 import { getPaletteForScheme } from '../colormap';
 
@@ -279,4 +280,5 @@ export const ecHeatmapDef: ChartTemplateDef = {
             set: (enc, value) => ({ ...enc, color: { ...enc.color, scheme: value } }),
         },
     ] as EncodingActionDef[],
+    pivot: makeCartesianPivot({ transpose: [['x', 'y']] }),
 };

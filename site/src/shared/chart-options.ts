@@ -2,22 +2,21 @@
 // Licensed under the MIT License.
 
 /**
- * Flint chart-option model for the customization panel.
+ * Flint chart-option model for the gallery's dynamic options bar.
  *
- * Everything here is derived from Flint's own metadata so the panel stays in
- * lockstep with the compiler:
- *   - chart types & channels  -> vlAllTemplateDefs / vlGetTemplateDef
- *   - chart properties        -> getChartOptions(input)  (cornerRadius, stack
- *                                mode, donut hole, interpolate, log scale, ...)
- *   - encoding actions        -> template.encodingActions (sort, ...)
+ * Ported from the MCP App UI (`packages/flint-mcp/ui/src/options.ts`). Everything
+ * here is derived from Flint's own metadata so the controls stay in lockstep
+ * with the compiler:
+ *   - chart properties -> getChartOptions(input) (cornerRadius, stack mode, ...)
+ *   - encoding actions -> template.encodingActions (sort, ...)
  *
- * This mirrors the model Data Formulator consumes, restricted to Flint options.
+ * In the gallery this is used for DISPLAY ONLY: changing a control updates the
+ * shown Flint spec JSON, it does not mutate any persisted state.
  */
 import {
   getChartOptions,
   getChartPivot,
   resolveEncodingType,
-  vlAllTemplateDefs,
   vlGetTemplateDef,
 } from 'flint-chart';
 import type {
@@ -29,6 +28,12 @@ import type {
   RawEncodingValue,
 } from 'flint-chart';
 
+/** Control descriptor shared by chart properties and encoding actions. */
+export type ControlSpec =
+  | { type: 'continuous'; min: number; max: number; step?: number }
+  | { type: 'discrete'; options: { value: unknown; label: string }[] }
+  | { type: 'binary' };
+
 /** A resolved encoding action ready for rendering (control + current value). */
 export interface ResolvedAction {
   key: string;
@@ -37,35 +42,14 @@ export interface ResolvedAction {
   value: unknown;
 }
 
-/** Everything the panel needs to render for the current input. */
+/** Everything the options bar needs to render for the current input. */
 export interface PanelModel {
-  chartTypes: string[];
-  /** Channels accepted by the current chart type (e.g. x, y, color). */
-  channels: string[];
-  /** Current channel -> field binding (undefined = unbound). */
-  bindings: Record<string, string | undefined>;
   /** Applicable chart properties (continuous / discrete / binary controls). */
   properties: ChartOption[];
   /** Applicable encoding actions (e.g. Sort). */
   actions: ResolvedAction[];
   /** Cyclic pivot surface (alternative views), or undefined when single-view. */
   pivot?: PivotSurface;
-}
-
-/** Sorted list of every available Vega-Lite chart type. */
-export function allChartTypes(): string[] {
-  return vlAllTemplateDefs
-    .map((d) => d.chart)
-    .sort((a, b) => a.localeCompare(b));
-}
-
-/** Union of column names across all data rows. */
-export function dataColumns(rows: Record<string, unknown>[]): string[] {
-  const seen = new Set<string>();
-  for (const row of rows ?? []) {
-    for (const key of Object.keys(row ?? {})) seen.add(key);
-  }
-  return [...seen];
 }
 
 /** Extract the bound field name from a raw encoding value (shorthand-aware). */
@@ -88,7 +72,7 @@ function semanticTypeOf(input: ChartAssemblyInput, field: string): string {
  * resolved Vega type, so encoding actions (which read `enc.type`) work without
  * re-running the full assembler. Only bound channels are included.
  */
-export function normalizeEncodings(
+function normalizeEncodings(
   input: ChartAssemblyInput,
 ): Record<string, ChartEncoding> {
   const rows = input.data?.values ?? [];
@@ -133,15 +117,9 @@ function actionValue(
   }
 }
 
-/** Build the full panel model for the current input. */
+/** Build the option model (properties + encoding actions) for the input. */
 export function buildPanelModel(input: ChartAssemblyInput): PanelModel {
   const def = vlGetTemplateDef(input.chart_spec.chartType);
-  const channels = def?.channels ?? [];
-
-  const bindings: Record<string, string | undefined> = {};
-  for (const channel of channels) {
-    bindings[channel] = rawField(input.chart_spec.encodings?.[channel]);
-  }
 
   let properties: ChartOption[] = [];
   try {
@@ -172,69 +150,5 @@ export function buildPanelModel(input: ChartAssemblyInput): PanelModel {
     pivot = undefined;
   }
 
-  return { chartTypes: allChartTypes(), channels, bindings, properties, actions, pivot };
-}
-
-// ---------------------------------------------------------------------------
-// Immutable edit helpers — each returns a new ChartAssemblyInput.
-// ---------------------------------------------------------------------------
-
-function cloneInput(input: ChartAssemblyInput): ChartAssemblyInput {
-  return {
-    ...input,
-    chart_spec: {
-      ...input.chart_spec,
-      encodings: { ...(input.chart_spec.encodings ?? {}) },
-      chartProperties: { ...(input.chart_spec.chartProperties ?? {}) },
-    },
-  };
-}
-
-/** Switch the chart type, keeping compatible encodings and clearing properties. */
-export function setChartType(
-  input: ChartAssemblyInput,
-  chartType: string,
-): ChartAssemblyInput {
-  const next = cloneInput(input);
-  next.chart_spec.chartType = chartType;
-  // Properties are template-specific; drop them so stale keys don't linger.
-  next.chart_spec.chartProperties = {};
-  return next;
-}
-
-/** Bind (or clear, when field is undefined) a channel to a field. */
-export function setChannelField(
-  input: ChartAssemblyInput,
-  channel: string,
-  field: string | undefined,
-): ChartAssemblyInput {
-  const next = cloneInput(input);
-  if (!field) {
-    delete next.chart_spec.encodings[channel];
-  } else {
-    const prev = next.chart_spec.encodings[channel];
-    next.chart_spec.encodings[channel] =
-      prev && typeof prev === 'object' && !Array.isArray(prev)
-        ? { ...(prev as ChartEncoding), field }
-        : { field };
-  }
-  return next;
-}
-
-/**
- * Set (or reset, when value is undefined) a chart property or encoding-action
- * override. Both are stored under `chart_spec.chartProperties[key]`.
- */
-export function setProperty(
-  input: ChartAssemblyInput,
-  key: string,
-  value: unknown,
-): ChartAssemblyInput {
-  const next = cloneInput(input);
-  if (value === undefined) {
-    delete next.chart_spec.chartProperties![key];
-  } else {
-    next.chart_spec.chartProperties![key] = value;
-  }
-  return next;
+  return { properties, actions, pivot };
 }

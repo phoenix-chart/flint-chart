@@ -3,6 +3,7 @@
 
 import { ChartTemplateDef, ChartPropertyDef, EncodingActionDef } from '../../core/types';
 import { makeSortAction } from '../../core/encoding-actions';
+import { makeCartesianPivot } from '../../core/pivot';
 import { snapToBoundHeuristic } from '../../core/field-semantics';
 import {
     defaultBuildEncodings, setMarkProp, adjustBarMarks, adjustRectTiling,
@@ -63,7 +64,7 @@ function getSafeHeatmapIntrinsicDomain(ctx: any, colorField: string | undefined)
 export const barChartDef: ChartTemplateDef = {
     chart: "Bar Chart",
     template: { mark: "bar", encoding: {} },
-    channels: ["x", "y", "color", "opacity", "column", "row"],
+    channels: ["x", "y", "color", "group", "opacity", "column", "row"],
     markCognitiveChannel: 'length',
     declareLayoutMode: (cs, table) => {
         const result = detectBandedAxisFromSemantics(cs, table, { preferAxis: 'x' });
@@ -84,6 +85,11 @@ export const barChartDef: ChartTemplateDef = {
         { key: "cornerRadius", label: "Corners", type: "continuous", min: 0, max: 15, step: 1, defaultValue: 0 },
     ] as ChartPropertyDef[],
     encodingActions: [makeSortAction()] as EncodingActionDef[],
+    pivot: makeCartesianPivot({
+        transpose: [['x', 'y']],
+        permute: [['x', 'y', 'color']],
+        shift: ['color', 'group', 'column', 'row'],
+    }),
 };
 
 // ─── Pyramid Chart ──────────────────────────────────────────────────────────
@@ -249,6 +255,22 @@ export const groupedBarChartDef: ChartTemplateDef = {
         adjustBarMarks(spec, ctx);
     },
     encodingActions: [makeSortAction()] as EncodingActionDef[],
+    // Chart-type transition: the dodge series (`group`) becomes a stacked series
+    // (`color`), re-rendering as a Stacked Bar Chart. Plus the orientation flip,
+    // role swap (banded axis ↔ series), and series routing to column/row facets.
+    pivot: makeCartesianPivot({
+        transpose: [['x', 'y']],
+        permute: [['x', 'y', 'color']],
+        shift: ['color', 'group', 'column', 'row'],
+        transitions: [
+            {
+                to: 'Stacked Bar Chart',
+                label: 'Stacked',
+                route: { from: 'group', to: 'color', mode: 'move' },
+                requireDiscreteSource: true,
+            },
+        ],
+    }),
 };
 
 // ─── Stacked Bar Chart ──────────────────────────────────────────────────────
@@ -270,7 +292,8 @@ export const stackedBarChartDef: ChartTemplateDef = {
         defaultBuildEncodings(spec, ctx.resolvedEncodings);
         // Apply stack mode
         const config = ctx.chartProperties;
-        if (config?.stackMode) {
+        const hasStackSeries = !!ctx.channelSemantics.color?.field;
+        if (config?.stackMode && hasStackSeries) {
             for (const axis of ['x', 'y'] as const) {
                 if (spec.encoding?.[axis]?.type === 'quantitative' ||
                     spec.encoding?.[axis]?.aggregate) {
@@ -294,6 +317,24 @@ export const stackedBarChartDef: ChartTemplateDef = {
         ] },
     ] as ChartPropertyDef[],
     encodingActions: [makeSortAction()] as EncodingActionDef[],
+    // Chart-type transition: the stacked series (`color`) becomes a dodge series
+    // (`group`), re-rendering as a Grouped Bar Chart. Offered only when the series
+    // cardinality is small enough to dodge readably. Plus the orientation flip,
+    // role swap (banded axis ↔ series), and series routing to column/row facets.
+    pivot: makeCartesianPivot({
+        transpose: [['x', 'y']],
+        permute: [['x', 'y', 'color']],
+        shift: ['color', 'group', 'column', 'row'],
+        transitions: [
+            {
+                to: 'Grouped Bar Chart',
+                label: 'Grouped',
+                route: { from: 'color', to: 'group', mode: 'move' },
+                requireDiscreteSource: true,
+                maxSourceCardinality: 12,
+            },
+        ],
+    }),
 };
 
 // ─── Histogram ──────────────────────────────────────────────────────────────
@@ -512,4 +553,5 @@ export const heatmapDef: ChartTemplateDef = {
             set: (encodings, value) => ({ ...encodings, color: { ...encodings.color, scheme: value } }),
         },
     ] as EncodingActionDef[],
+    pivot: makeCartesianPivot({ transpose: [['x', 'y']] }),
 };

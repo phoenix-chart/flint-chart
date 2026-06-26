@@ -697,6 +697,95 @@ export type EncodingActionDef = {
 };
 
 /**
+ * A chart-type transition: a pivot state that re-views the same data as a
+ * *sibling* chart type. Unlike orientation/role/series moves (which stay within
+ * one template), a transition changes `chartType` and, optionally, re-routes one
+ * field across channels. It is the "chart type as another group coordinate"
+ * generator (see design doc §4.6). Examples: Grouped Bar ↔ Stacked Bar (the
+ * dodge series moves between `group` and `color`), Scatter ↔ Strip/Jitter (a
+ * discrete `color` swaps onto the `x` category axis).
+ */
+export interface PivotTransition {
+    /** Target chart type to render as. Must be a registered sibling template. */
+    to: string;
+    /** State label shown in the pivot control (e.g. 'Stacked', 'Grouped', 'Jitter'). */
+    label: string;
+    /**
+     * Optional channel re-route applied before switching templates.
+     * - `move`: source field → target channel; source channel cleared (target must be empty).
+     * - `swap`: exchange the fields on the two channels (or spill the displaced
+     *   field to a third channel — see `spill`).
+     *
+     * `from` may be a literal channel name or the sentinel `'series'`, which
+     * resolves at runtime to whichever grouping channel (`color`/`column`/`row`/
+     * `group`) currently holds the discrete series field.
+     */
+    route?: { from: string; to: string; mode?: 'move' | 'swap'; spill?: string };
+    /** Only offer when the routed source field is discrete (nominal/ordinal). */
+    requireDiscreteSource?: boolean;
+    /** Only offer when the routed source field's distinct count is within this budget. */
+    maxSourceCardinality?: number;
+}
+
+/**
+ * Declarative pivot configuration carried by a chart template. Each generator
+ * declares its *permissible transformation domain* compactly — the candidate
+ * swap pairs, the shiftable channels, the sibling chart types — and the compiler
+ * filters those candidates lazily against the actual encodings + data (type
+ * compatibility, channel availability, cardinality budgets) when assembling. See
+ * core/pivot.ts for the enumeration/composition semantics.
+ */
+export interface PivotDef {
+    /** Override key the host stores the chosen state id under. Default `'pivot'`. */
+    key?: string;
+    /** Human label for the control. Default `'View'`. */
+    label?: string;
+    /**
+     * τ (transpose): axis-slot pairs that may be exchanged *wholesale* — the
+     * orientation/flip generator. Each pair (typically `['x','y']`) swaps the two
+     * channels' full encodings, so it is profile-agnostic (a bar's category↔measure
+     * flip, a scatter's measure↔measure flip, a heatmap's dimension↔dimension flip
+     * all read the same). It is suppressed only when a continuous-temporal position
+     * axis must stay horizontal (line/area). Because both slots stay occupied, a
+     * transpose can never violate a must-present constraint. A template that should
+     * never flip (e.g. a line, to avoid a vertical line chart) simply omits this.
+     * Ids/labels: `flip:x-y` / `τ_x↔y`. Default none.
+     */
+    transpose?: string[][];
+    /**
+     * σ (permute): permutable *blocks* of channels whose *fields* may be reordered
+     * among themselves — distinct from {@link transpose}, this reassigns a field to
+     * a compatible channel rather than flipping two slots. The compiler enumerates
+     * the within-block pairings and admits an *axis ↔ auxiliary* swap only when the
+     * two ends share a profile (the Young-block rule of the design doc §3.6.1):
+     *   - measure ↔ measure, on position marks only — a quantitative field trades a
+     *     precise position axis for a demoted `color`/`size` channel (scatter);
+     *   - category ↔ discrete `color` — a banded axis dimension trades places with
+     *     the legend series (bars).
+     * `x↔y` is NOT a permute (it is a {@link transpose}); pure auxiliary↔auxiliary
+     * pairs (e.g. `color↔size`) are not offered. Order within a block is irrelevant;
+     * ids/labels canonicalize each pair (`swap:x-color` / `σ_x↔color`). Default none.
+     */
+    permute?: string[][];
+    /**
+     * γ (shift): grouping channels the single discrete *series* field may be
+     * routed across — typically `['color','group','column','row']`. The compiler
+     * filters to channels the template actually declares, that are empty, and
+     * within the per-channel cardinality budget. This is what unifies stacked /
+     * grouped / faceted presentations as states of one template. Default none.
+     */
+    shift?: string[];
+    /** Max distinct categories for a facet split to be offered. Default 12. */
+    facetBudget?: number;
+    /**
+     * θ (chart-type transition): sibling chart types to consider re-rendering the
+     * same data as (e.g. Grouped Bar ↔ Stacked Bar, Scatter ↔ Jitter). Each
+     * admitted transition becomes one extra state in the orbit. Default none.
+     */
+    transitions?: PivotTransition[];
+}
+
+/**
  * Chart template definition — pure data, no UI/icon dependencies.
  * This is the reusable core that defines chart structure, encoding channels,
  * and processing logic.
@@ -766,6 +855,16 @@ export interface ChartTemplateDef {
      * rather than chart-native config. See EncodingActionDef.
      */
     encodingActions?: EncodingActionDef[];
+
+    /**
+     * Optional pivot declaration — a derived Category-B operator that re-routes
+     * encoding fields across position/legend/facet channels to surface
+     * alternative views (orientation swap, series↔axis role swap, facet split).
+     * The host stores the chosen state id under `PivotDef.key` in
+     * chartProperties; the compiler enumerates + composes the permutation. See
+     * core/pivot.ts (computePivot / applyPivot).
+     */
+    pivot?: PivotDef;
 
     /**
      * Optional post-processing hook.

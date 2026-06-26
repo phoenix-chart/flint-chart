@@ -233,6 +233,35 @@ describe('MCP server', () => {
       rmSync(dataRoot, { recursive: true, force: true });
     }
   });
+
+  it('inlines local data.url rows into create_chart_view structuredContent', async () => {
+    const dataRoot = mkdtempSync(join(tmpdir(), 'flint-mcp-view-data-'));
+    const dataServer = createServer({ dataRoots: [dataRoot] });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    const dataClient = new Client({ name: 'flint-view-data-test', version: '0.0.0' });
+    try {
+      writeFileSync(join(dataRoot, 'sales.csv'), 'region,revenue\nNorth,120\nSouth,90\n');
+      await dataServer.connect(serverTransport);
+      await dataClient.connect(clientTransport);
+      const res: any = await dataClient.callTool({
+        name: 'create_chart_view',
+        arguments: { ...barChart, data: { url: 'sales.csv' } },
+      });
+      expect(res.isError).toBeFalsy();
+      // The host UI renders client-side and cannot read local files, so the
+      // server must hand it inline rows, not the original data.url.
+      const viewInput = res.structuredContent?.input;
+      expect(viewInput?.data?.url).toBeUndefined();
+      expect(viewInput?.data?.values).toEqual([
+        { region: 'North', revenue: 120 },
+        { region: 'South', revenue: 90 },
+      ]);
+    } finally {
+      await dataClient.close();
+      await dataServer.close();
+      rmSync(dataRoot, { recursive: true, force: true });
+    }
+  });
 });
 
 describe('backend gating', () => {

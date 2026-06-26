@@ -21,6 +21,7 @@ import { pickEChartsPalette } from '../colormap';
 import {
     detectBandedAxisFromSemantics, detectBandedAxisForceDiscrete,
 } from '../../vegalite/templates/utils';
+import { makeCartesianPivot } from '../../core/pivot';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -392,6 +393,11 @@ export const ecBarChartDef: ChartTemplateDef = {
     properties: [
         { key: 'cornerRadius', label: 'Corners', type: 'continuous', min: 0, max: 15, step: 1, defaultValue: 0 },
     ] as ChartPropertyDef[],
+    pivot: makeCartesianPivot({
+        transpose: [['x', 'y']],
+        permute: [['x', 'y', 'color']],
+        shift: ['color', 'group', 'column', 'row'],
+    }),
 };
 
 // ─── Stacked Bar Chart ──────────────────────────────────────────────────────
@@ -522,10 +528,11 @@ export const ecStackedBarChartDef: ChartTemplateDef = {
         };
         option._encodingTooltip = { trigger: 'axis', categoryLabel: catField, valueLabel };
 
-        // Stack mode from chart properties
-        const stackMode = chartProperties?.stackMode;
+        // Stack mode from chart properties. Once the series channel is routed to
+        // a facet, this is just a regular bar inside each facet.
+        const stackMode = colorField ? chartProperties?.stackMode : undefined;
         // In ECharts, stack is a group name; normalize maps to '%' formatting
-        const stackGroup = stackMode === 'layered' ? undefined : 'total';
+        const stackGroup = colorField && stackMode !== 'layered' ? 'total' : undefined;
 
         if (colorField) {
             const groups = groupBy(table, colorField);
@@ -592,7 +599,7 @@ export const ecStackedBarChartDef: ChartTemplateDef = {
             const data = valCS?.type === 'temporal'
                 ? buildCategoryCounts(table, catField, categories)
                 : buildCategoryValues(table, catField, valField, categories);
-            option.series.push({ type: 'bar', data, stack: stackGroup });
+            option.series.push({ type: 'bar', data });
         }
 
         Object.assign(spec, option);
@@ -606,8 +613,23 @@ export const ecStackedBarChartDef: ChartTemplateDef = {
                 { value: 'normalize', label: 'Normalize (100%)' },
                 { value: 'layered', label: 'Layered (overlap)' },
             ],
+            check: (ctx) => ({ applicable: !!ctx.encodings.color?.field }),
         },
     ] as ChartPropertyDef[],
+    pivot: makeCartesianPivot({
+        transpose: [['x', 'y']],
+        permute: [['x', 'y', 'color']],
+        shift: ['color', 'group', 'column', 'row'],
+        transitions: [
+            {
+                to: 'Grouped Bar Chart',
+                label: 'Grouped',
+                route: { from: 'color', to: 'group', mode: 'move' },
+                requireDiscreteSource: true,
+                maxSourceCardinality: 12,
+            },
+        ],
+    }),
 };
 
 // ─── Grouped Bar Chart ──────────────────────────────────────────────────────
@@ -862,4 +884,17 @@ export const ecGroupedBarChartDef: ChartTemplateDef = {
         delete spec.mark;
         delete spec.encoding;
     },
+    pivot: makeCartesianPivot({
+        transpose: [['x', 'y']],
+        permute: [['x', 'y', 'color']],
+        shift: ['color', 'group', 'column', 'row'],
+        transitions: [
+            {
+                to: 'Stacked Bar Chart',
+                label: 'Stacked',
+                route: { from: 'group', to: 'color', mode: 'move' },
+                requireDiscreteSource: true,
+            },
+        ],
+    }),
 };

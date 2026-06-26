@@ -15,6 +15,7 @@ import {
     getSeriesBorderColor,
     getSeriesBackgroundColor,
 } from './utils';
+import { makeCartesianPivot } from '../../core/pivot';
 
 /** Compute a reasonable point radius based on canvas area and point count. */
 function computePointRadius(width: number, height: number, pointCount: number): number {
@@ -115,6 +116,18 @@ export const cjsScatterPlotDef: ChartTemplateDef = {
     properties: [
         { key: 'opacity', label: 'Opacity', type: 'continuous', min: 0.1, max: 1, step: 0.05, defaultValue: 1 },
     ],
+    pivot: makeCartesianPivot({
+        transpose: [['x', 'y']],
+        permute: [['x', 'y', 'color', 'size']],
+        shift: ['color', 'group', 'column', 'row'],
+        transitions: [
+            {
+                to: 'Strip Plot',
+                label: 'Jitter',
+                route: { from: 'series', to: 'x', mode: 'swap', spill: 'color' },
+            },
+        ],
+    }),
     postProcess: (option, ctx) => {
         if (!option.data?.datasets) return;
         const w = option._width || ctx.canvasSize.width;

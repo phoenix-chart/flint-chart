@@ -34,13 +34,35 @@ function valueKey(value: unknown): string {
   return JSON.stringify(value ?? null);
 }
 
+// Best-effort sizing: measure each option by its label length + the intrinsic
+// width of its widget, then snap to a small set of tiers. Keeps the strip
+// grid-like (few distinct widths) while letting toggles stay compact and
+// sliders/selects get the room they need.
+const LABEL_CHAR_PX = 6.6;
+const LABEL_MAX_PX = 132;
+const LABEL_GAP = 8;
+const WIDGET_PX: Record<string, number> = {
+  continuous: 72 + 6 + 34, // slider track + gap + readout
+  discrete: 128, // select
+  binary: 30, // toggle
+  pivot: 96, // stepper
+};
+const WIDTH_TIERS = [140, 168, 200, 232, 264, 296];
+
+function optionWidth(label: string, kind: string): number {
+  const labelPx = Math.min(LABEL_MAX_PX, Math.ceil(label.length * LABEL_CHAR_PX));
+  const needed = labelPx + LABEL_GAP + (WIDGET_PX[kind] ?? 120);
+  return WIDTH_TIERS.find((t) => t >= needed) ?? WIDTH_TIERS[WIDTH_TIERS.length - 1];
+}
+
 function ControlRow(props: {
   label: string;
   spec: ControlSpec;
   value: unknown;
+  width: number;
   onChange: (value: unknown) => void;
 }) {
-  const { label, spec, value, onChange } = props;
+  const { label, spec, value, width, onChange } = props;
 
   let control: React.ReactNode = null;
   if (spec.type === 'continuous') {
@@ -90,10 +112,41 @@ function ControlRow(props: {
   }
 
   return (
-    <label className="opt">
-      <span className="opt-label">{label}</span>
+    <label className="opt" style={{ '--opt-width': `${width}px` } as React.CSSProperties}>
+      <span className="opt-label" title={label}>{label}</span>
       {control}
     </label>
+  );
+}
+
+function PivotControl(props: {
+  pivot: NonNullable<PanelModel['pivot']>;
+  width: number;
+  onSelect: (id: string | undefined) => void;
+}) {
+  const { pivot, width, onSelect } = props;
+  const { ids, labels, index, length, label } = pivot;
+  const go = (delta: number) => {
+    const nextIndex = (index + delta + length) % length;
+    // The identity state (index 0) is the absent override — clear it so the
+    // chart returns to the authored view rather than storing a redundant id.
+    onSelect(nextIndex === 0 ? undefined : ids[nextIndex]);
+  };
+  return (
+    <div className="opt pivot" role="group" aria-label={label} style={{ '--opt-width': `${width}px` } as React.CSSProperties}>
+      <span className="opt-label" title={label}>{label}</span>
+      <div className="pivot-stepper">
+        <button className="pivot-btn" aria-label="Previous view" onClick={() => go(-1)}>
+          ‹
+        </button>
+        <span className="pivot-state" title={labels[index]}>
+          {index + 1} / {length}
+        </span>
+        <button className="pivot-btn" aria-label="Next view" onClick={() => go(1)}>
+          ›
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -127,20 +180,31 @@ function OptionsBar(props: {
 
   return (
     <div className="optionsbar" role="toolbar" aria-label={`${input.chart_spec.chartType} options`}>
-      {controls.length === 0 ? (
-        <span className="opt-empty">No adjustable options for this chart.</span>
-      ) : (
-        controls.map((control) => (
-          <ControlRow
-            key={control.key}
-            label={control.label}
-            spec={control.spec}
-            value={control.value}
-            onChange={(v) => onInput(setProperty(input, control.key, v))}
+      <div className="optionsbar-grid">
+        {model.pivot && model.pivot.length > 1 && (
+          <PivotControl
+            pivot={model.pivot}
+            width={optionWidth(model.pivot.label, 'pivot')}
+            onSelect={(id) => onInput(setProperty(input, model.pivot!.key, id))}
           />
-        ))
-      )}
-      <span className="optionsbar-spacer" />
+        )}
+        {controls.length === 0 ? (
+          !(model.pivot && model.pivot.length > 1) && (
+            <span className="opt-empty">No adjustable options for this chart.</span>
+          )
+        ) : (
+          controls.map((control) => (
+            <ControlRow
+              key={control.key}
+              label={control.label}
+              spec={control.spec}
+              value={control.value}
+              width={optionWidth(control.label, control.spec.type)}
+              onChange={(v) => onInput(setProperty(input, control.key, v))}
+            />
+          ))
+        )}
+      </div>
       <button className="bar-link" onClick={onSend} disabled={sent}>
         {sent ? 'Copied to chat' : 'Copy spec to chat'}
       </button>
@@ -264,13 +328,23 @@ export function FlintApp() {
         setHostContext((prev) => ({ ...prev, ...params }));
       app.ontoolinput = (params) => {
         const args = params?.arguments as ChartAssemblyInput | undefined;
-        if (args?.chart_spec && args?.data) setInput(args);
+        // Only accept raw tool args that already carry inline rows. A
+        // local `data.url` cannot be read in the browser, so for those we
+        // wait for the server-resolved input delivered via ontoolresult.
+        if (args?.chart_spec && Array.isArray(args.data?.values)) setInput(args);
       };
       app.ontoolresult = (result) => {
         const structured = (result as { structuredContent?: { input?: ChartAssemblyInput } })
           .structuredContent;
-        if (structured?.input?.chart_spec && structured.input.data) {
-          setInput((prev) => prev ?? structured.input!);
+        // The server pre-resolves data (local data.url → inline values), so
+        // structuredContent.input is authoritative. Prefer it whenever it
+        // carries rows the current input lacks.
+        if (structured?.input?.chart_spec && Array.isArray(structured.input.data?.values)) {
+          setInput((prev) =>
+            Array.isArray(prev?.data?.values) && prev!.data.values.length > 0
+              ? prev
+              : structured.input!,
+          );
         }
       };
     },

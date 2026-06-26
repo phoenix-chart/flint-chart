@@ -1,0 +1,626 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+import { describe, it, expect } from 'vitest';
+import {
+  assembleVegaLite,
+  assembleECharts,
+  assembleChartjs,
+  getChartPivot,
+  getEChartsPivot,
+  getChartjsPivot,
+} from '../src';
+import { computePivot, applyPivot } from '../src/core/pivot';
+import { barChartDef } from '../src/vegalite/templates/bar';
+import { groupedBarChartDef, stackedBarChartDef } from '../src/vegalite/templates/bar';
+import { lineChartDef } from '../src/vegalite/templates/line';
+import { scatterPlotDef } from '../src/vegalite/templates/scatter';
+import { stripPlotDef } from '../src/vegalite/templates/jitter';
+import { vlGetTemplateDef } from '../src/vegalite/templates';
+
+const BAR_DATA = [
+  { region: 'North', segment: 'A', sales: 10 },
+  { region: 'North', segment: 'B', sales: 12 },
+  { region: 'South', segment: 'A', sales: 8 },
+  { region: 'South', segment: 'B', sales: 14 },
+];
+const BAR_SEMANTIC = { region: 'Category', segment: 'Category', sales: 'Quantity' };
+
+const BAR_ENC = {
+  x: { field: 'region', type: 'nominal' as const },
+  y: { field: 'sales', type: 'quantitative' as const },
+  color: { field: 'segment', type: 'nominal' as const },
+};
+
+describe('computePivot — enumeration', () => {
+  it('bar chart exposes default + orientation + role + series routing states', () => {
+    const comp = computePivot(barChartDef, BAR_ENC, BAR_DATA);
+    expect(comp).not.toBeNull();
+    // series field is on color (stacked); routes to group / column / row. The
+    // orbit is enumerated at runtime and also composes these generators (e.g.
+    // orient · series:*), so assert the single-generator states are all present
+    // rather than pinning an exact flat list.
+    for (const id of ['default', 'flip:x-y', 'swap:x-color', 'series:group', 'series:column', 'series:row']) {
+      expect(comp!.ids).toContain(id);
+    }
+    expect(comp!.ids[0]).toBe('default');
+    // composition shows up as multi-step path ids.
+    expect(comp!.ids.some(id => id.includes('|'))).toBe(true);
+  });
+
+  it('orientation state swaps the x and y channels', () => {
+    const comp = computePivot(barChartDef, BAR_ENC, BAR_DATA)!;
+    const orient = comp.statesById['flip:x-y'];
+    expect(orient.x.field).toBe('sales');
+    expect(orient.y.field).toBe('region');
+  });
+
+  it('role state swaps the discrete position field with the color field', () => {
+    const comp = computePivot(barChartDef, BAR_ENC, BAR_DATA)!;
+    const role = comp.statesById['swap:x-color'];
+    expect(role.x.field).toBe('segment');
+    expect(role.color.field).toBe('region');
+    expect(role.y.field).toBe('sales');
+  });
+
+  it('series routing moves color onto group (grouped), column and row (facets)', () => {
+    const comp = computePivot(barChartDef, BAR_ENC, BAR_DATA)!;
+    const grouped = comp.statesById['series:group'];
+    expect(grouped.group.field).toBe('segment');
+    expect(grouped.color).toBeUndefined();
+    const cols = comp.statesById['series:column'];
+    expect(cols.column.field).toBe('segment');
+    expect(cols.color).toBeUndefined();
+    const rows = comp.statesById['series:row'];
+    expect(rows.row.field).toBe('segment');
+  });
+
+  it('routes a series authored on column back to color/group/row', () => {
+    const enc = {
+      x: { field: 'segment', type: 'nominal' as const },
+      y: { field: 'sales', type: 'quantitative' as const },
+      column: { field: 'region', type: 'nominal' as const },
+    };
+    const comp = computePivot(barChartDef, enc, BAR_DATA)!;
+    expect(comp.ids).toContain('series:color');
+    expect(comp.ids).toContain('series:group');
+    expect(comp.ids).toContain('series:row');
+    expect(comp.statesById['series:color'].color.field).toBe('region');
+    expect(comp.statesById['series:color'].column).toBeUndefined();
+  });
+
+  it('returns null when the template declares no pivot', () => {
+    const noPivot = { ...barChartDef, pivot: undefined };
+    expect(computePivot(noPivot, BAR_ENC, BAR_DATA)).toBeNull();
+  });
+});
+
+describe('computePivot — gating', () => {
+  it('offers orientation on a bar with a banded temporal axis', () => {
+    const enc = {
+      x: { field: 'sales', type: 'quantitative' as const },
+      y: { field: 'day', type: 'temporal' as const },
+      color: { field: 'segment', type: 'nominal' as const },
+    };
+    const comp = computePivot(barChartDef, enc, BAR_DATA)!;
+    // bar bands its temporal axis → orientation + role (temporal acts discrete).
+    expect(comp.ids).toContain('flip:x-y');
+    expect(comp.ids).toContain('swap:y-color');
+  });
+
+  it('suppresses orientation on a line for any x type (no vertical line)', () => {
+    const temporalX = {
+      x: { field: 'day', type: 'temporal' as const },
+      y: { field: 'sales', type: 'quantitative' as const },
+      color: { field: 'segment', type: 'nominal' as const },
+    };
+    expect(computePivot(lineChartDef, temporalX, BAR_DATA)!.ids).not.toContain('flip:x-y');
+    // A non-temporal (quantitative) x must also never flip into a vertical line,
+    // and the domain axis is never demoted into a series (no x↔color).
+    const quantX = {
+      x: { field: 'sales', type: 'quantitative' as const },
+      y: { field: 'profit', type: 'quantitative' as const },
+      color: { field: 'segment', type: 'nominal' as const },
+    };
+    const comp = computePivot(lineChartDef, quantX, BAR_DATA)!;
+    expect(comp.ids).not.toContain('flip:x-y');
+    expect(comp.ids).not.toContain('swap:x-color');
+  });
+
+  it('suppresses role swap without a discrete color field', () => {
+    const enc = {
+      x: { field: 'region', type: 'nominal' as const },
+      y: { field: 'sales', type: 'quantitative' as const },
+    };
+    const comp = computePivot(barChartDef, enc, BAR_DATA)!;
+    expect(comp.ids).not.toContain('swap:x-color');
+  });
+
+  it('suppresses facet routing when cardinality exceeds the budget', () => {
+    const wide = Array.from({ length: 40 }, (_, i) => ({
+      region: 'R' + (i % 3),
+      segment: 'S' + i,
+      sales: i,
+    }));
+    const comp = computePivot(barChartDef, BAR_ENC, wide)!;
+    expect(comp.ids).not.toContain('series:column');
+    expect(comp.ids).not.toContain('series:row');
+  });
+
+  it('scatter with only two measures exposes only orientation', () => {
+    const enc = {
+      x: { field: 'a', type: 'quantitative' as const },
+      y: { field: 'b', type: 'quantitative' as const },
+    };
+    const comp = computePivot(scatterPlotDef, enc, BAR_DATA)!;
+    expect(comp.ids).toEqual(['default', 'flip:x-y']);
+  });
+
+  it('scatter swaps a quantitative position field with a quantitative color', () => {
+    const enc = {
+      x: { field: 'a', type: 'quantitative' as const },
+      y: { field: 'b', type: 'quantitative' as const },
+      color: { field: 'c', type: 'quantitative' as const },
+    };
+    const comp = computePivot(scatterPlotDef, enc, BAR_DATA)!;
+    // identity + axis swap + (X↔color, Y↔color), plus their compositions with
+    // the orientation swap (the runtime orbit). No discrete role swap.
+    expect(comp.ids).toEqual([
+      'default', 'flip:x-y', 'swap:x-color', 'swap:y-color',
+      'flip:x-y|swap:x-color', 'flip:x-y|swap:y-color',
+    ]);
+    // Y↔color exchanges the field on Y with the field on color (type-preserving).
+    const yColor = comp.statesById['swap:y-color'];
+    expect(yColor.y.field).toBe('c');
+    expect(yColor.color.field).toBe('b');
+    expect(yColor.color.type).toBe('quantitative');
+    expect(yColor.x.field).toBe('a');
+  });
+
+  it('scatter also offers swapping a position field with a quantitative size', () => {
+    const enc = {
+      x: { field: 'a', type: 'quantitative' as const },
+      y: { field: 'b', type: 'quantitative' as const },
+      size: { field: 'd', type: 'quantitative' as const },
+    };
+    const comp = computePivot(scatterPlotDef, enc, BAR_DATA)!;
+    expect(comp.ids).toContain('swap:x-size');
+    expect(comp.ids).toContain('swap:y-size');
+    expect(comp.statesById['swap:x-size'].x.field).toBe('d');
+    expect(comp.statesById['swap:x-size'].size.field).toBe('a');
+  });
+
+  it('scatter does NOT swap a discrete color into a precise position axis', () => {
+    const enc = {
+      x: { field: 'a', type: 'quantitative' as const },
+      y: { field: 'b', type: 'quantitative' as const },
+      color: { field: 'segment', type: 'nominal' as const },
+    };
+    const comp = computePivot(scatterPlotDef, enc, BAR_DATA)!;
+    // A category can't faithfully occupy a *quantitative* axis, so no role swap.
+    // It can, however, become a jitter category axis via the Strip Plot transition.
+    expect(comp.ids).not.toContain('swap:x-color');
+    expect(comp.ids).not.toContain('swap:y-color');
+    expect(comp.ids).toContain('type:Strip Plot');
+  });
+
+  it('bars do NOT offer measure↔color swaps (length measure is privileged)', () => {
+    const enc = {
+      x: { field: 'region', type: 'nominal' as const },
+      y: { field: 'sales', type: 'quantitative' as const },
+      color: { field: 'profit', type: 'quantitative' as const },
+    };
+    const comp = computePivot(barChartDef, enc, BAR_DATA)!;
+    expect(comp.ids.some(id => id.startsWith('swap:') && id.includes('color'))).toBe(false);
+  });
+});
+
+describe('applyPivot — composition + surface', () => {
+  it('falls back to the identity state for a stale stored id', () => {
+    const { encodings, surface } = applyPivot(
+      barChartDef, BAR_ENC, BAR_DATA, { pivot: 'does-not-exist' },
+    );
+    expect(surface!.index).toBe(0);
+    expect(encodings.x.field).toBe('region');
+  });
+
+  it('composes the stored state and reports its index', () => {
+    const { encodings, surface } = applyPivot(
+      barChartDef, BAR_ENC, BAR_DATA, { pivot: 'flip:x-y' },
+    );
+    expect(surface!.index).toBe(1);
+    expect(encodings.x.field).toBe('sales');
+  });
+
+  it('returns to the authored view when the override is absent', () => {
+    const { encodings, surface } = applyPivot(barChartDef, BAR_ENC, BAR_DATA, undefined);
+    expect(surface!.index).toBe(0);
+    expect(encodings.x.field).toBe('region');
+  });
+});
+
+describe('getChartPivot — end-to-end through assembleVegaLite', () => {
+  const input = (pivot?: string) => ({
+    data: { values: BAR_DATA },
+    semantic_types: BAR_SEMANTIC,
+    chart_spec: {
+      chartType: 'Bar Chart',
+      encodings: { x: 'region', y: 'sales', color: 'segment' },
+      baseSize: { width: 400, height: 300 },
+      ...(pivot ? { chartProperties: { pivot } } : {}),
+    },
+  });
+
+  it('surfaces the pivot states and active index', () => {
+    const surface = getChartPivot(input());
+    expect(surface).toBeDefined();
+    expect(surface!.length).toBeGreaterThan(1);
+    expect(surface!.index).toBe(0);
+    expect(surface!.ids[0]).toBe('default');
+  });
+
+  it('reflects the stored pivot id in the active index', () => {
+    const surface = getChartPivot(input('flip:x-y'));
+    expect(surface!.index).toBe(surface!.ids.indexOf('flip:x-y'));
+  });
+
+  it('orientation pivot swaps the axes in the assembled spec', () => {
+    const base = assembleVegaLite(input());
+    const swapped = assembleVegaLite(input('flip:x-y'));
+    expect(base.encoding.x.field).toBe('region');
+    expect(swapped.encoding.x.field).toBe('sales');
+    expect(swapped.encoding.y.field).toBe('region');
+  });
+});
+
+describe('backend pivot parity — ECharts and Chart.js', () => {
+  const barInput = (pivot?: string) => ({
+    data: { values: BAR_DATA },
+    semantic_types: BAR_SEMANTIC,
+    chart_spec: {
+      chartType: 'Bar Chart',
+      encodings: { x: 'region', y: 'sales', color: 'segment' },
+      baseSize: { width: 400, height: 300 },
+      ...(pivot ? { chartProperties: { pivot } } : {}),
+    },
+  });
+
+  const scatterInput = (pivot?: string) => ({
+    data: {
+      values: [
+        { a: 1, b: 2, c: 'X' }, { a: 3, b: 1, c: 'Y' },
+        { a: 2, b: 4, c: 'X' }, { a: 5, b: 3, c: 'Y' },
+      ],
+    },
+    semantic_types: { a: 'Quantity', b: 'Quantity', c: 'Category' },
+    chart_spec: {
+      chartType: 'Scatter Plot',
+      encodings: { x: 'a', y: 'b', color: 'c' },
+      baseSize: { width: 400, height: 300 },
+      ...(pivot ? { chartProperties: { pivot } } : {}),
+    },
+  });
+
+  const stackedFacetInput = (backend: 'vegalite' | 'echarts' | 'chartjs') => ({
+    data: { values: BAR_DATA },
+    semantic_types: BAR_SEMANTIC,
+    chart_spec: {
+      chartType: 'Stacked Bar Chart',
+      encodings: { x: 'region', y: 'sales', color: 'segment' },
+      baseSize: { width: 400, height: 300 },
+      chartProperties: { pivot: 'series:column', stackMode: backend === 'vegalite' ? 'center' : 'normalize' },
+    },
+  });
+
+  const stripContinuousColorInput = () => ({
+    data: {
+      values: [
+        { group: 'Alpha', y: 2, score: 1 },
+        { group: 'Beta', y: 4, score: 5 },
+        { group: 'Alpha', y: 3, score: 9 },
+      ],
+    },
+    semantic_types: { group: 'Category', y: 'Quantity', score: 'Quantity' },
+    chart_spec: {
+      chartType: 'Strip Plot',
+      encodings: { x: 'group', y: 'y', color: 'score' },
+      baseSize: { width: 400, height: 300 },
+    },
+  });
+
+  it('ECharts exposes the View surface and applies orientation before assembly', () => {
+    const surface = getEChartsPivot(barInput());
+    expect(surface?.label).toBe('View');
+    expect(surface?.ids).toContain('flip:x-y');
+
+    const option = assembleECharts(barInput('flip:x-y')) as any;
+    expect(option._pivot.index).toBe(option._pivot.ids.indexOf('flip:x-y'));
+    expect(option.xAxis.name).toBe('sales');
+    expect(option.yAxis.name).toBe('region');
+  });
+
+  it('Chart.js exposes the View surface and applies orientation before assembly', () => {
+    const surface = getChartjsPivot(barInput());
+    expect(surface?.label).toBe('View');
+    expect(surface?.ids).toContain('flip:x-y');
+
+    const config = assembleChartjs(barInput('flip:x-y')) as any;
+    expect(config._pivot.index).toBe(config._pivot.ids.indexOf('flip:x-y'));
+    expect(config.options.indexAxis).toBe('y');
+    expect(config.options.scales.x.title.text).toBe('sales');
+    expect(config.options.scales.y.title.text).toBe('region');
+  });
+
+  it('ECharts re-dispatches scatter → Strip Plot for the jitter View', () => {
+    const option = assembleECharts(scatterInput('type:Strip Plot')) as any;
+    expect(option._pivot.ids).toContain('type:Strip Plot');
+    expect(Array.isArray(option.xAxis)).toBe(true);
+    expect(option.xAxis[0].name).toBe('c');
+    expect(option.yAxis.name).toBe('b');
+  });
+
+  it('Chart.js re-dispatches scatter → Strip Plot for the jitter View', () => {
+    const config = assembleChartjs(scatterInput('type:Strip Plot')) as any;
+    expect(config._pivot.ids).toContain('type:Strip Plot');
+    expect(config.type).toBe('scatter');
+    expect(config.options.scales.x.title.text).toBe('c');
+    expect(config.options.scales.y.title.text).toBe('b');
+  });
+
+  it('does not keep stack offsets when a stacked series is routed to facets', () => {
+    const vl = assembleVegaLite(stackedFacetInput('vegalite')) as any;
+    expect(vl.encoding.color).toBeUndefined();
+    expect(vl.encoding.facet?.field ?? vl.encoding.column?.field).toBe('segment');
+    expect(vl.encoding.y.stack).toBeUndefined();
+
+    const ec = assembleECharts(stackedFacetInput('echarts')) as any;
+    for (const series of ec.series ?? []) {
+      expect(series.stack).toBeUndefined();
+    }
+
+    const cjs = assembleChartjs(stackedFacetInput('chartjs')) as any;
+    for (const row of cjs._facetPanels ?? []) {
+      for (const panel of row) {
+        expect(panel.config.options.scales.x.stacked).toBe(false);
+        expect(panel.config.options.scales.y.stacked).toBe(false);
+      }
+    }
+  });
+
+  it('keeps quantitative strip-plot color continuous instead of categorical', () => {
+    const ec = assembleECharts(stripContinuousColorInput()) as any;
+    expect(ec.legend).toBeUndefined();
+    expect(ec.series).toHaveLength(1);
+    expect(ec.series[0].data[0]).toHaveLength(3);
+    expect(ec.visualMap?.type).toBe('continuous');
+    expect(ec.visualMap?.dimension).toBe(2);
+
+    const cjs = assembleChartjs(stripContinuousColorInput()) as any;
+    expect(cjs.options.plugins.legend.display).toBe(false);
+    expect(cjs.data.datasets).toHaveLength(1);
+    expect(Array.isArray(cjs.data.datasets[0].backgroundColor)).toBe(true);
+  });
+});
+
+describe('computePivot — chart-type transitions', () => {
+  const GROUPED_ENC = {
+    x: { field: 'region', type: 'nominal' as const },
+    y: { field: 'sales', type: 'quantitative' as const },
+    group: { field: 'segment', type: 'nominal' as const },
+  };
+  const STACKED_ENC = {
+    x: { field: 'region', type: 'nominal' as const },
+    y: { field: 'sales', type: 'quantitative' as const },
+    color: { field: 'segment', type: 'nominal' as const },
+  };
+  const SCATTER_DATA = [
+    { a: 1, b: 2, c: 'X' }, { a: 3, b: 1, c: 'Y' },
+    { a: 2, b: 4, c: 'X' }, { a: 5, b: 3, c: 'Y' },
+  ];
+  const SCATTER_ENC = {
+    x: { field: 'a', type: 'quantitative' as const },
+    y: { field: 'b', type: 'quantitative' as const },
+    color: { field: 'c', type: 'nominal' as const },
+  };
+
+  it('grouped bar offers a transition to a stacked bar (group → color)', () => {
+    const comp = computePivot(groupedBarChartDef, GROUPED_ENC, BAR_DATA)!;
+    expect(comp.ids).toContain('type:Stacked Bar Chart');
+    const st = comp.statesById['type:Stacked Bar Chart'];
+    expect(st.color.field).toBe('segment');
+    expect(st.group).toBeUndefined();
+    expect(comp.chartTypeById['type:Stacked Bar Chart']).toBe('Stacked Bar Chart');
+  });
+
+  it('stacked bar offers a transition to a grouped bar (color → group)', () => {
+    const comp = computePivot(stackedBarChartDef, STACKED_ENC, BAR_DATA)!;
+    expect(comp.ids).toContain('type:Grouped Bar Chart');
+    const st = comp.statesById['type:Grouped Bar Chart'];
+    expect(st.group.field).toBe('segment');
+    expect(st.color).toBeUndefined();
+    expect(comp.chartTypeById['type:Grouped Bar Chart']).toBe('Grouped Bar Chart');
+  });
+
+  it('suppresses stacked → grouped when the series cardinality is too high', () => {
+    const wide = Array.from({ length: 40 }, (_, i) => ({
+      region: 'R' + (i % 3), segment: 'S' + i, sales: i,
+    }));
+    const comp = computePivot(stackedBarChartDef, STACKED_ENC, wide)!;
+    expect(comp.ids).not.toContain('type:Grouped Bar Chart');
+  });
+
+  it('scatter with a discrete color offers a Strip/Jitter transition (x ↔ color swap)', () => {
+    const comp = computePivot(scatterPlotDef, SCATTER_ENC, SCATTER_DATA)!;
+    expect(comp.ids).toContain('type:Strip Plot');
+    const st = comp.statesById['type:Strip Plot'];
+    expect(st.x.field).toBe('c');         // discrete color → x (category)
+    expect(st.color.field).toBe('a');      // displaced quantitative x → color
+    expect(st.y.field).toBe('b');          // measure stays on y
+    expect(comp.chartTypeById['type:Strip Plot']).toBe('Strip Plot');
+  });
+
+  it('a FACETED scatter (discrete on column) routes the field to color and offers jitter', () => {
+    const enc = {
+      x: { field: 'a', type: 'quantitative' as const },
+      y: { field: 'b', type: 'quantitative' as const },
+      column: { field: 'c', type: 'nominal' as const },
+    };
+    const comp = computePivot(scatterPlotDef, enc, SCATTER_DATA)!;
+    // series routing surfaces the facet field on color ("swap with color").
+    expect(comp.ids).toContain('series:color');
+    expect(comp.statesById['series:color'].color.field).toBe('c');
+    // and the jitter transition sources the series wherever it sits (column here).
+    expect(comp.ids).toContain('type:Strip Plot');
+    const st = comp.statesById['type:Strip Plot'];
+    expect(st.x.field).toBe('c');          // facet field → x (category)
+    expect(st.color.field).toBe('a');       // displaced x → color gradient
+    expect(st.column).toBeUndefined();      // facet channel vacated
+  });
+
+  it('scatter with an all-quantitative encoding offers no jitter transition', () => {
+    const enc = {
+      x: { field: 'a', type: 'quantitative' as const },
+      y: { field: 'b', type: 'quantitative' as const },
+      color: { field: 'd', type: 'quantitative' as const },
+    };
+    const comp = computePivot(scatterPlotDef, enc, SCATTER_DATA)!;
+    expect(comp.ids).not.toContain('type:Strip Plot');
+  });
+
+  it('applyPivot reports the transition chartType for the active state', () => {
+    const { encodings, chartType } = applyPivot(
+      scatterPlotDef, SCATTER_ENC, SCATTER_DATA, { pivot: 'type:Strip Plot' },
+    );
+    expect(chartType).toBe('Strip Plot');
+    expect(encodings.x.field).toBe('c');
+  });
+
+  it('a standalone strip plot offers a reverse transition back to a scatter', () => {
+    const enc = {
+      x: { field: 'c', type: 'nominal' as const },          // jitter category axis
+      y: { field: 'b', type: 'quantitative' as const },
+      color: { field: 'a', type: 'quantitative' as const },  // spilled measure
+    };
+    const comp = computePivot(stripPlotDef, enc, SCATTER_DATA)!;
+    expect(comp.ids).toEqual(['default', 'type:Scatter Plot']);
+    const st = comp.statesById['type:Scatter Plot'];
+    expect(st.x.field).toBe('a');         // color measure → x
+    expect(st.color.field).toBe('c');      // displaced category → color series
+    expect(st.y.field).toBe('b');          // measure stays on y
+    expect(comp.chartTypeById['type:Scatter Plot']).toBe('Scatter Plot');
+  });
+
+  it('scatter → jitter → scatter folds back onto Default (θ round-trip)', () => {
+    // With the reverse transition declared, the scatter orbit must NOT grow a
+    // phantom `type:Strip Plot|type:Scatter Plot` state.
+    const comp = computePivot(scatterPlotDef, SCATTER_ENC, SCATTER_DATA, vlGetTemplateDef)!;
+    expect(comp.ids).toContain('type:Strip Plot');
+    expect(comp.ids.some(id => id.endsWith('|type:Scatter Plot'))).toBe(false);
+  });
+
+  it('assembleVegaLite re-dispatches a grouped→stacked transition to the stacked template', () => {
+    const groupedInput = (pivot?: string) => ({
+      data: { values: BAR_DATA },
+      semantic_types: BAR_SEMANTIC,
+      chart_spec: {
+        chartType: 'Grouped Bar Chart',
+        encodings: { x: 'region', y: 'sales', group: 'segment' },
+        baseSize: { width: 400, height: 300 },
+        ...(pivot ? { chartProperties: { pivot } } : {}),
+      },
+    });
+    const stacked = assembleVegaLite(groupedInput('type:Stacked Bar Chart'));
+    // A stacked bar carries the series on color and does not dodge via xOffset.
+    expect(stacked.encoding.color?.field).toBe('segment');
+    expect(stacked.encoding.xOffset).toBeUndefined();
+  });
+});
+
+describe('computePivot — runtime orbit (composition, dedup, validity)', () => {
+  const SCATTER_DATA = Array.from({ length: 60 }, (_, i) => ({
+    a: i, b: (i % 17) + 1, c: ['X', 'Y', 'Z'][i % 3],
+  }));
+  const SCATTER_ENC = {
+    x: { field: 'a', type: 'quantitative' as const },
+    y: { field: 'b', type: 'quantitative' as const },
+    color: { field: 'c', type: 'nominal' as const },
+  };
+
+  it('composes generators into multi-step states (orient · series)', () => {
+    const comp = computePivot(scatterPlotDef, SCATTER_ENC, SCATTER_DATA, vlGetTemplateDef)!;
+    // single-generator states are present...
+    expect(comp.ids).toContain('flip:x-y');
+    expect(comp.ids).toContain('series:column');
+    // ...and so are their compositions, with a composed operator label.
+    expect(comp.ids).toContain('flip:x-y|series:column');
+    const i = comp.ids.indexOf('flip:x-y|series:column');
+    expect(comp.labels[i]).toBe('τ_x↔y · γ_→column');
+    const enc = comp.statesById['flip:x-y|series:column'];
+    expect(enc.x.field).toBe('b');     // orientation swapped the axes
+    expect(enc.y.field).toBe('a');
+    expect(enc.column.field).toBe('c'); // series routed to a facet
+  });
+
+  it('dedups paths that reach the same encoding (stabilizer quotient)', () => {
+    const comp = computePivot(scatterPlotDef, SCATTER_ENC, SCATTER_DATA, vlGetTemplateDef)!;
+    // every state id maps to a distinct channel→field fingerprint.
+    const fingerprints = comp.ids.map(id => {
+      const e = comp.statesById[id];
+      const ct = comp.chartTypeById[id] ?? '';
+      return ct + '::' + Object.keys(e).filter(k => e[k]?.field).sort()
+        .map(k => `${k}=${e[k].field}`).join(',');
+    });
+    expect(new Set(fingerprints).size).toBe(comp.ids.length);
+    // σ∘σ folds back onto the identity rather than appearing twice.
+    expect(comp.ids.filter(id => id === 'flip:x-y').length).toBe(1);
+    // faceting then jittering reaches the SAME strip plot as jittering directly,
+    // so no `series:*|type:Strip Plot` duplicate of `type:Strip Plot` exists.
+    expect(comp.ids).toContain('type:Strip Plot');
+    expect(comp.ids.some(id => id.endsWith('|type:Strip Plot') &&
+      JSON.stringify(comp.statesById[id]) === JSON.stringify(comp.statesById['type:Strip Plot']))).toBe(false);
+  });
+
+  it('never emits a cartesian state with a missing x or y (validity guard)', () => {
+    const comp = computePivot(scatterPlotDef, SCATTER_ENC, SCATTER_DATA, vlGetTemplateDef)!;
+    for (const id of comp.ids) {
+      const e = comp.statesById[id];
+      const ct = comp.chartTypeById[id] ?? 'Scatter Plot';
+      const tpl = vlGetTemplateDef(ct)!;
+      if (tpl.channels.includes('x') && tpl.channels.includes('y')) {
+        expect(e.x?.field, `${id} keeps x`).toBeTruthy();
+        expect(e.y?.field, `${id} keeps y`).toBeTruthy();
+      }
+    }
+  });
+
+  it('crosses θ edges only when a template resolver is supplied', () => {
+    // With a resolver, jitter is reachable; the strip plot itself has no pivot
+    // so it stays a leaf (no further composition past the chart-type change).
+    const withResolver = computePivot(scatterPlotDef, SCATTER_ENC, SCATTER_DATA, vlGetTemplateDef)!;
+    expect(withResolver.ids).toContain('type:Strip Plot');
+    // Without a resolver the θ state is still emitted (as a leaf) but cannot be
+    // expanded further; the orbit stays within the authored template otherwise.
+    const noResolver = computePivot(scatterPlotDef, SCATTER_ENC, SCATTER_DATA)!;
+    expect(noResolver.ids).toContain('type:Strip Plot');
+  });
+
+  it('folds a θ round-trip back to the authored view (Stacked → Grouped → Stacked)', () => {
+    const enc = {
+      x: { field: 'region', type: 'nominal' as const },
+      y: { field: 'sales', type: 'quantitative' as const },
+      color: { field: 'segment', type: 'nominal' as const },
+    };
+    const comp = computePivot(stackedBarChartDef, enc, BAR_DATA, vlGetTemplateDef)!;
+    // The forward transition is offered...
+    expect(comp.ids).toContain('type:Grouped Bar Chart');
+    // ...but returning to the authored Stacked type is the identity, not a new
+    // state: no path ends by re-entering the authored chart type.
+    expect(comp.ids.some(id => id.endsWith('|type:Stacked Bar Chart'))).toBe(false);
+    // and every emitted state is genuinely distinct from the authored base.
+    const baseKey = JSON.stringify(enc);
+    const dupes = comp.ids.filter(id => id !== 'default' &&
+      comp.chartTypeById[id] === undefined &&
+      JSON.stringify(comp.statesById[id]) === baseKey);
+    expect(dupes).toEqual([]);
+  });
+});

@@ -24,6 +24,7 @@
  */
 
 import {
+    ChartEncoding,
     ChartTemplateDef,
     ChartAssemblyInput,
     AssembleOptions,
@@ -32,6 +33,7 @@ import {
 } from '../core/types';
 import type { ChartWarning } from '../core/types';
 import { applyEncodingOverrides } from '../core/encoding-overrides';
+import { applyPivot, PivotSurface } from '../core/pivot';
 import { cjsGetTemplateDef } from './templates';
 import { resolveChannelSemantics, convertTemporalData } from '../core/resolve-semantics';
 import { computeZeroDecision } from '../core/semantic-types';
@@ -70,7 +72,7 @@ export function assembleChartjs(input: ChartAssemblyInput): any {
     const canvasSize = baseSize;
     const chartProperties = input.chart_spec.chartProperties;
     const options = input.options ?? {};
-    const chartTemplate = cjsGetTemplateDef(chartType) as ChartTemplateDef;
+    let chartTemplate = cjsGetTemplateDef(chartType) as ChartTemplateDef;
     if (!chartTemplate) {
         throw new Error(`Unknown Chart.js chart type: ${chartType}. Use cjsAllTemplateDefs to see available types.`);
     }
@@ -87,11 +89,28 @@ export function assembleChartjs(input: ChartAssemblyInput): any {
     const data = normalized.data;
     const staticSeries = normalized.staticSeries;
 
+    const prelimConvertedData = convertTemporalData(data, semanticTypes);
+    const prelimSemantics = resolveChannelSemantics(
+        normalized.encodings, data, semanticTypes, prelimConvertedData,
+    );
+    const typedRawEncodings: Record<string, ChartEncoding> = {};
+    for (const [ch, enc] of Object.entries(normalized.encodings)) {
+        typedRawEncodings[ch] = enc.type
+            ? enc
+            : { ...enc, type: prelimSemantics[ch]?.type };
+    }
+
+    const pivoted = applyPivot(chartTemplate, typedRawEncodings, data, chartProperties, cjsGetTemplateDef);
+    if (pivoted.chartType && pivoted.chartType !== chartType) {
+        const swapped = cjsGetTemplateDef(pivoted.chartType) as ChartTemplateDef | undefined;
+        if (swapped) chartTemplate = swapped;
+    }
+
     // Compose Category-B encoding-action overrides (stored by the host in
-    // chartProperties, keyed by action key) onto the base encodings before any
-    // pipeline phase runs. Flint owns the transform; the host only stores the
-    // override value. See applyEncodingOverrides / EncodingActionDef.
-    const encodings = applyEncodingOverrides(chartTemplate, normalized.encodings, chartProperties);
+    // chartProperties, keyed by action key) onto the post-pivot encodings before
+    // any pipeline phase runs. Flint owns the transform; the host only stores
+    // the override value. See applyEncodingOverrides / EncodingActionDef.
+    const encodings = applyEncodingOverrides(chartTemplate, pivoted.encodings, chartProperties);
 
     // ═══════════════════════════════════════════════════════════════════════
     // PHASE 0: Resolve Semantics (shared with VL + EC — completely target-agnostic)
@@ -390,7 +409,17 @@ export function assembleChartjs(input: ChartAssemblyInput): any {
 
     cjsConfig._dataLength = values.length;
 
+    if (pivoted.surface) {
+        cjsConfig._pivot = pivoted.surface;
+    }
+
     return cjsConfig;
+}
+
+/** Inspect the Chart.js view transformation surface for an input. */
+export function getChartjsPivot(input: ChartAssemblyInput): PivotSurface | undefined {
+    const spec = assembleChartjs(input);
+    return spec && spec._pivot ? (spec._pivot as PivotSurface) : undefined;
 }
 
 /**

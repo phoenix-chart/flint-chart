@@ -10,7 +10,7 @@ import {
 } from '@modelcontextprotocol/ext-apps/server';
 import { z } from 'zod';
 
-import { renderChart } from './render/index.js';
+import { renderChart, resolveDataSource } from './render/index.js';
 import type { RenderBackend } from './render/types.js';
 import { compileChart } from './tools/compile.js';
 import { validateChart } from './tools/validate.js';
@@ -258,7 +258,14 @@ export function createServer(options: CreateServerOptions = {}): McpServer {
     },
     async (args: any) => {
       try {
-        const input = toAssemblyInput(args as AssemblyInputArgs);
+        // Inline any local `data.url` rows up front: the host UI renders
+        // Vega-Lite client-side and cannot read local files, so it must
+        // receive inline `data.values`. resolveDataSource is a no-op for specs
+        // that already carry inline values.
+        const input = resolveDataSource(
+          toAssemblyInput(args as AssemblyInputArgs),
+          dataSourceOptions,
+        );
         const summary = validateChart(input, 'vegalite', dataSourceOptions);
         const size = summary.computedSize
           ? `${summary.computedSize.width}×${summary.computedSize.height}px`
@@ -271,6 +278,8 @@ export function createServer(options: CreateServerOptions = {}): McpServer {
           content: [{ type: 'text' as const, text: note }],
           // Fallback render payload for hosts that surface structuredContent to
           // the UI; the UI primarily reads the tool arguments via ontoolinput.
+          // Data is pre-resolved to inline values so the client-side renderer
+          // never sees an unreadable local data.url.
           structuredContent: { input: input as unknown as Record<string, unknown> },
           ...(summary.valid ? {} : { isError: true }),
         };

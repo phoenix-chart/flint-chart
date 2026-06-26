@@ -234,10 +234,11 @@ export function ChatMockup() {
                 </div>
 
                 <div style={optionsBarStyle}>
-                  <MockSlider label="Corner radius" fill={0.25} readout="2" />
-                  <MockSelect label="Sort" value="None" />
-                  <MockToggle label="Show values" on={false} />
-                  <span style={{ flex: 1 }} />
+                  <div style={mockOptionsGridStyle}>
+                    <MockSlider label="Corner radius" fill={0.25} readout="2" />
+                    <MockSelect label="Sort" value="None" />
+                    <MockToggle label="Show values" on={false} />
+                  </div>
                   <span style={copyBtnStyle}>Copy spec to chat</span>
                 </div>
               </div>
@@ -251,7 +252,7 @@ export function ChatMockup() {
 
 function MockSlider({ label, fill, readout }: { label: string; fill: number; readout: string }) {
   return (
-    <span style={optStyle}>
+    <span style={optStyleFor(label, 'continuous')}>
       <span style={optLabelStyle}>{label}</span>
       <span style={sliderTrackStyle}>
         <span style={{ ...sliderFillStyle, width: `${Math.round(fill * 100)}%` }} />
@@ -264,7 +265,7 @@ function MockSlider({ label, fill, readout }: { label: string; fill: number; rea
 
 function MockSelect({ label, value }: { label: string; value: string }) {
   return (
-    <span style={optStyle}>
+    <span style={optStyleFor(label, 'discrete')}>
       <span style={optLabelStyle}>{label}</span>
       <span style={selectBoxStyle}>
         {value} <span style={caretStyle}>▾</span>
@@ -275,7 +276,7 @@ function MockSelect({ label, value }: { label: string; value: string }) {
 
 function MockToggle({ label, on }: { label: string; on: boolean }) {
   return (
-    <span style={optStyle}>
+    <span style={optStyleFor(label, 'binary')}>
       <span style={optLabelStyle}>{label}</span>
       <span style={{ ...toggleTrackStyle, background: on ? siteTheme.text : 'rgba(0,0,0,0.18)' }}>
         <span style={{ ...toggleThumbStyle, transform: on ? 'translateX(14px)' : 'none' }} />
@@ -663,35 +664,63 @@ const chartImgStyle: CSSProperties = {
 };
 
 const optionsBarStyle: CSSProperties = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  alignItems: 'center',
-  gap: '10px 18px',
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, 1fr) auto',
+  alignItems: 'start',
+  gap: '10px 14px',
   padding: '10px 14px',
   background: 'rgba(0,0,0,0.035)',
   borderRadius: 10,
   color: siteTheme.textMuted,
 };
 
-const optStyle: CSSProperties = {
-  display: 'inline-flex',
+const mockOptionsGridStyle: CSSProperties = {
+  display: 'flex',
+  flexWrap: 'wrap',
   alignItems: 'center',
-  gap: 8,
+  gap: '12px 28px',
+  minWidth: 0,
 };
+
+// Best-effort sizing shared with the live options bars: measure by label
+// length + widget type, snap to tiers, keep label + widget adjacent.
+const MOCK_WIDGET_PX: Record<string, number> = {
+  continuous: 72 + 6 + 24,
+  discrete: 96,
+  binary: 30,
+};
+const MOCK_WIDTH_TIERS = [140, 168, 200, 232, 264, 296];
+
+function optStyleFor(label: string, kind: string): CSSProperties {
+  const labelPx = Math.min(132, Math.ceil(label.length * 6.6));
+  const needed = labelPx + 8 + (MOCK_WIDGET_PX[kind] ?? 120);
+  const width = MOCK_WIDTH_TIERS.find((t) => t >= needed) ?? MOCK_WIDTH_TIERS[MOCK_WIDTH_TIERS.length - 1];
+  return {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    minWidth: 0,
+    width,
+  };
+}
 
 const optLabelStyle: CSSProperties = {
   fontSize: 12,
   color: siteTheme.textMuted,
+  minWidth: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
 };
 
 const sliderTrackStyle: CSSProperties = {
   position: 'relative',
   display: 'inline-block',
-  width: 80,
+  width: 72,
   height: 4,
   borderRadius: 999,
   background: 'rgba(0,0,0,0.18)',
+  justifySelf: 'end',
 };
 
 const sliderFillStyle: CSSProperties = {
@@ -717,6 +746,7 @@ const readoutStyle: CSSProperties = {
   fontSize: 12,
   color: siteTheme.textMuted,
   fontVariantNumeric: 'tabular-nums',
+  textAlign: 'right',
 };
 
 const selectBoxStyle: CSSProperties = {
@@ -728,7 +758,10 @@ const selectBoxStyle: CSSProperties = {
   padding: '3px 8px',
   display: 'inline-flex',
   alignItems: 'center',
+  justifyContent: 'space-between',
   gap: 6,
+  width: 96,
+  justifySelf: 'end',
 };
 
 const caretStyle: CSSProperties = {
@@ -744,6 +777,7 @@ const toggleTrackStyle: CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
   padding: 2,
+  justifySelf: 'end',
 };
 
 const toggleThumbStyle: CSSProperties = {
@@ -759,6 +793,7 @@ const copyBtnStyle: CSSProperties = {
   fontWeight: 500,
   color: siteTheme.accent,
   whiteSpace: 'nowrap',
+  alignSelf: 'center',
 };
 
 /* ---- surface cards ---- */

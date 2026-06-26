@@ -12,6 +12,7 @@ import { ChartTemplateDef } from '../../core/types';
 import { cjsScatterPlotDef } from './scatter';
 import { cjsConnectedScatterDef } from './connected-scatter';
 import { cjsBubbleChartDef } from './bubble';
+import { cjsStripPlotDef } from './jitter';
 import { cjsBarChartDef, cjsStackedBarChartDef, cjsGroupedBarChartDef } from './bar';
 import { cjsComboChartDef } from './combo';
 import { cjsLineChartDef } from './line';
@@ -31,7 +32,7 @@ import { cjsWaterfallChartDef } from './waterfall';
  * Chart.js chart template definitions, grouped by category.
  */
 export const cjsTemplateDefs: { [key: string]: ChartTemplateDef[] } = {
-    'Scatter & Point': [cjsScatterPlotDef, cjsConnectedScatterDef, cjsBubbleChartDef],
+    'Scatter & Point': [cjsScatterPlotDef, cjsConnectedScatterDef, cjsBubbleChartDef, cjsStripPlotDef],
     'Bar':             [cjsBarChartDef, cjsGroupedBarChartDef, cjsStackedBarChartDef, cjsComboChartDef, cjsHistogramDef, cjsWaterfallChartDef, cjsGanttChartDef],
     'Line & Area':     [cjsLineChartDef, cjsSlopeChartDef, cjsAreaChartDef, cjsRangeAreaChartDef, cjsEcdfPlotDef],
     'Part-to-Whole':   [cjsPieChartDef, cjsDoughnutChartDef],

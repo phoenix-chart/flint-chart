@@ -54,6 +54,7 @@ import {
 } from '../core/types';
 import type { ChartWarning, ChartOption, OptionEvalContext } from '../core/types';
 import { applyEncodingOverrides } from '../core/encoding-overrides';
+import { applyPivot, type PivotSurface } from '../core/pivot';
 import { vlGetTemplateDef } from './templates';
 import { inferVisCategory, computeZeroDecision } from '../core/semantic-types';
 import { resolveChannelSemantics, convertTemporalData } from '../core/resolve-semantics';
@@ -114,7 +115,7 @@ export function assembleVegaLite(input: ChartAssemblyInput): any {
     const canvasSize = baseSize;
     const chartProperties = input.chart_spec.chartProperties;
     const options = input.options ?? {};
-    const chartTemplate = vlGetTemplateDef(chartType) as ChartTemplateDef;
+    let chartTemplate = vlGetTemplateDef(chartType) as ChartTemplateDef;
     if (!chartTemplate) {
         throw new Error(`Unknown chart type: ${chartType}`);
     }
@@ -169,7 +170,23 @@ export function assembleVegaLite(input: ChartAssemblyInput): any {
             typedRawEncodings[axis] = { ...typedRawEncodings[axis], type: choice };
         }
     }
-    const encodings = applyEncodingOverrides(chartTemplate, typedRawEncodings, chartProperties);
+    // Pivot (derived Category-B operator): re-route fields across position/
+    // legend/facet channels to surface alternative views (orientation swap,
+    // series↔axis role swap, facet split). Composed BEFORE other overrides so
+    // sort/overflow/layout all resolve against the post-pivot channel map. The
+    // chosen state id is stored by the host under chartProperties[pivot.key];
+    // the resolved surface is surfaced to hosts via `_pivot` / getChartPivot.
+    const pivoted = applyPivot(chartTemplate, typedRawEncodings, data, chartProperties, vlGetTemplateDef);
+    // A chart-type *transition* pivot state re-renders the same data as a sibling
+    // chart type (e.g. Grouped Bar → Stacked Bar, Scatter → Strip/Jitter). The
+    // authored chartType / encodings are untouched; the pivot enumeration above
+    // ran against the authored template, but rendering now re-dispatches to the
+    // sibling template so its instantiate / layout logic takes over. See §4.6.
+    if (pivoted.chartType && pivoted.chartType !== chartType) {
+        const swapped = vlGetTemplateDef(pivoted.chartType) as ChartTemplateDef | undefined;
+        if (swapped) chartTemplate = swapped;
+    }
+    const encodings = applyEncodingOverrides(chartTemplate, pivoted.encodings, chartProperties);
 
     // ═══════════════════════════════════════════════════════════════════════
     // PHASE 0: Resolve Semantics (VL-free)
@@ -626,6 +643,13 @@ export function assembleVegaLite(input: ChartAssemblyInput): any {
         const { check, ...rest } = def;
         return { ...rest, applicable, value };
     });
+    // Pivot surface: the resolved set of alternative views (state ids + labels +
+    // active index) for the current encodings + data. Hosts read this to render
+    // a cyclic prev/next control and write the chosen id back to
+    // chartProperties[pivot.key]. Absent when the chart has <= 1 state.
+    if (pivoted.surface) {
+        result._pivot = pivoted.surface;
+    }
     return result;
 }
 
@@ -648,6 +672,20 @@ export function assembleVegaLite(input: ChartAssemblyInput): any {
 export function getChartOptions(input: ChartAssemblyInput): ChartOption[] {
     const spec = assembleVegaLite(input);
     return spec && Array.isArray(spec._options) ? spec._options : [];
+}
+
+/**
+ * Inspect a chart spec + dataset and report the pivot surface Flint exposes for
+ * it — the ordered alternative views (orientation/role/facet) the host can cycle
+ * through, with the active index. Returns `undefined` when the chart has a
+ * single view (no control should be shown). Mirrors getChartOptions: it runs the
+ * same analysis pipeline so the surface can never drift from what the compiler
+ * actually does. The host renders a cyclic control seeded from `index` and
+ * writes the chosen `ids[next]` back to `chart_spec.chartProperties[key]`.
+ */
+export function getChartPivot(input: ChartAssemblyInput): PivotSurface | undefined {
+    const spec = assembleVegaLite(input);
+    return spec && spec._pivot ? (spec._pivot as PivotSurface) : undefined;
 }
 
 // ===========================================================================

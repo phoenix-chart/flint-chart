@@ -4,7 +4,9 @@ import { assembleVegaLite, assembleECharts, assembleChartjs } from 'flint-chart'
 import { JsonCodeMirror } from './JsonCodeMirror';
 import { ScaleToFit } from './ScaleToFit';
 import { WallChart } from './WallChart';
+import { GalleryOptionsBar } from './GalleryOptionsBar';
 import { testCaseToAssemblyInput } from '../shared/test-case-utils';
+import { buildPanelModel } from '../shared/chart-options';
 import { buildGalleryEditorHref } from '../shared/editor-payload';
 import { humanizeVariants } from '../shared/wall-title';
 import { BACKEND_LABELS } from '../shared/supported-backends';
@@ -41,14 +43,40 @@ export function ChartCodeModal({
   );
   const [tab, setTab] = useState<CodeTab>('input');
   const [copied, setCopied] = useState(false);
+  // Temporary, display-only overrides driven by the options bar. These tweak
+  // the shown Flint spec JSON without mutating any underlying test case.
+  const [tempOptions, setTempOptions] = useState<Record<string, unknown>>({});
 
   const testCase = tests[index];
 
   const titles = useMemo(() => humanizeVariants(tests), [tests]);
 
+  // Switching examples resets the temporary overrides.
+  useEffect(() => setTempOptions({}), [index]);
+
+  // The base spec for the current example, with the temporary option overrides
+  // merged into chartProperties (where both chart properties and encoding
+  // actions are stored). Display only — never persisted.
+  const displayInput = useMemo(() => {
+    if (!testCase) return null;
+    const base = testCaseToAssemblyInput(testCase);
+    return {
+      ...base,
+      chart_spec: {
+        ...base.chart_spec,
+        chartProperties: { ...base.chart_spec.chartProperties, ...tempOptions },
+      },
+    };
+  }, [testCase, tempOptions]);
+
+  const panelModel = useMemo(
+    () => (displayInput ? buildPanelModel(displayInput) : null),
+    [displayInput],
+  );
+
   const inputText = useMemo(
-    () => (testCase ? JSON.stringify(testCaseToAssemblyInput(testCase), null, 2) : ''),
-    [testCase],
+    () => (displayInput ? JSON.stringify(displayInput, null, 2) : ''),
+    [displayInput],
   );
 
   const outputText = useMemo(() => {
@@ -193,7 +221,11 @@ export function ChartCodeModal({
             >
               {testCase && (
                 <ScaleToFit key={`${chart.id}-${index}`} height={420} padding={16}>
-                  <WallChart testCase={testCase} backend={chart.backend} />
+                  <WallChart
+                    testCase={testCase}
+                    backend={chart.backend}
+                    chartPropertyOverrides={tempOptions}
+                  />
                 </ScaleToFit>
               )}
 
@@ -220,6 +252,21 @@ export function ChartCodeModal({
                 </>
               )}
             </div>
+
+            {panelModel && displayInput && (
+              <GalleryOptionsBar
+                model={panelModel}
+                chartType={displayInput.chart_spec.chartType}
+                onChange={(key, value) =>
+                  setTempOptions((prev) => {
+                    const next = { ...prev };
+                    if (value === undefined) delete next[key];
+                    else next[key] = value;
+                    return next;
+                  })
+                }
+              />
+            )}
 
             {multiple && (
               <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>

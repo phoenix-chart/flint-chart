@@ -6,7 +6,7 @@ The Chart.js backend is the lightweight embedding target for common chart famili
 
 ## What this page covers
 
-This reference lists the 19 chart types currently supported by the Chart.js backend, grouped into 5 categories. Each chart entry shows:
+This reference lists the 20 chart types currently supported by the Chart.js backend, grouped into 5 categories. Each chart entry shows:
 
 - **Encoding channels** — the visual roles accepted in `chart_spec.encodings`, such as `x`, `y`, `color`, `size`, `column`, or `row`.
 - **Options** — template-specific `chart_spec.chartProperties` keys, including control type, domain, default, availability, and description.
@@ -50,6 +50,16 @@ _No template-specific parameters._
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
 | `opacity` | number | 0.1 – 1 (step 0.05) | `0.6` | always | Mark opacity. |
+
+### ![](chart-icon-strip-plot.svg) Strip Plot
+
+**Encoding channels:** `x`, `y`, `color`, `size`, `column`, `row`
+
+| Parameter | Control | Domain | Default | Availability | Description |
+|---|---|---|---|---|---|
+| `stepWidth` | number | 10 – 100 (step 5) | `20` | always | Jitter spread width. |
+| `pointSize` | number | 0 – 150 (step 5) | `0` | always | Point or marker size. |
+| `opacity` | number | 0 – 1 (step 0.05) | `0` | always | Mark opacity. |
 
 ## Bar
 

@@ -163,7 +163,7 @@ const ZERO_BASELINE_PROPERTIES: ChartPropertyDef[] = [
  * accepts a continuous time scale).
  */
 const AXIS_DTYPE_CHARTS = new Set([
-    'Bar Chart', 'Line Chart', 'Area Chart', 'Lollipop Chart',
+    'Bar Chart', 'Line Chart', 'Area Chart', 'Lollipop Chart', 'Heatmap',
 ]);
 
 /** Above this distinct-value count, discrete bands are unreadable — only the

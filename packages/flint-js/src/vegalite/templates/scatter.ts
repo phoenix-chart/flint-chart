@@ -6,6 +6,7 @@ import {
     defaultBuildEncodings, applyPointSizeScaling, setMarkProp,
     detectBandedAxisForceDiscrete,
 } from './utils';
+import { makeCartesianPivot } from '../../core/pivot';
 
 // Fraction of the band/lane step a boxplot box should occupy. An ungrouped box
 // fills most of its category band; a grouped (dodged) box fills most of its
@@ -39,6 +40,29 @@ export const scatterPlotDef: ChartTemplateDef = {
     properties: [
         { key: "opacity", label: "Opacity", type: "continuous", min: 0.1, max: 1, step: 0.05, defaultValue: 1 },
     ] as ChartPropertyDef[],
+    pivot: makeCartesianPivot({
+        // Flip the axes (orientation) as its own generator.
+        transpose: [['x', 'y']],
+        // x/y/color/size are peer measure channels: reassign a measure field
+        // between a precise axis and a demoted color/size channel. Profile typing
+        // prunes anything touching a discrete series; aux↔aux (color↔size) and
+        // x↔y (a transpose) are not offered here.
+        permute: [['x', 'y', 'color', 'size']],
+        // Route the discrete grouping field across color / facet channels so a
+        // grouped scatter and a faceted scatter are states of one another.
+        shift: ['color', 'group', 'column', 'row'],
+        // Chart-type transition: the discrete series field (wherever it sits —
+        // color, column or row) moves onto the `x` category axis, re-rendering
+        // the cloud as a Strip/Jitter plot. The displaced quantitative x spills
+        // to a `color` gradient. Offered whenever a discrete series exists.
+        transitions: [
+            {
+                to: 'Strip Plot',
+                label: 'Jitter',
+                route: { from: 'series', to: 'x', mode: 'swap', spill: 'color' },
+            },
+        ],
+    }),
 };
 
 export const regressionDef: ChartTemplateDef = {

@@ -60,6 +60,7 @@ import {
 } from '../core/types';
 import type { ChartWarning } from '../core/types';
 import { applyEncodingOverrides } from '../core/encoding-overrides';
+import { applyPivot, PivotSurface } from '../core/pivot';
 import { ecGetTemplateDef } from './templates';
 import { resolveChannelSemantics, convertTemporalData } from '../core/resolve-semantics';
 import { toTypeString, type SemanticAnnotation } from '../core/field-semantics';
@@ -103,7 +104,7 @@ export function assembleECharts(input: ChartAssemblyInput): any {
     const canvasSize = baseSize;
     const chartProperties = input.chart_spec.chartProperties;
     const options = input.options ?? {};
-    const chartTemplate = ecGetTemplateDef(chartType) as ChartTemplateDef;
+    let chartTemplate = ecGetTemplateDef(chartType) as ChartTemplateDef;
     if (!chartTemplate) {
         throw new Error(`Unknown ECharts chart type: ${chartType}. Use ecAllTemplateDefs to see available types.`);
     }
@@ -120,11 +121,28 @@ export function assembleECharts(input: ChartAssemblyInput): any {
     const data = normalized.data;
     const staticSeries = normalized.staticSeries;
 
+    const prelimConvertedData = convertTemporalData(data, semanticTypes);
+    const prelimSemantics = resolveChannelSemantics(
+        normalized.encodings, data, semanticTypes, prelimConvertedData,
+    );
+    const typedRawEncodings: Record<string, ChartEncoding> = {};
+    for (const [ch, enc] of Object.entries(normalized.encodings)) {
+        typedRawEncodings[ch] = enc.type
+            ? enc
+            : { ...enc, type: prelimSemantics[ch]?.type };
+    }
+
+    const pivoted = applyPivot(chartTemplate, typedRawEncodings, data, chartProperties, ecGetTemplateDef);
+    if (pivoted.chartType && pivoted.chartType !== chartType) {
+        const swapped = ecGetTemplateDef(pivoted.chartType) as ChartTemplateDef | undefined;
+        if (swapped) chartTemplate = swapped;
+    }
+
     // Compose Category-B encoding-action overrides (stored by the host in
-    // chartProperties, keyed by action key) onto the base encodings before any
-    // pipeline phase runs. Flint owns the transform; the host only stores the
-    // override value. See applyEncodingOverrides / EncodingActionDef.
-    const encodings = applyEncodingOverrides(chartTemplate, normalized.encodings, chartProperties);
+    // chartProperties, keyed by action key) onto the post-pivot encodings before
+    // any pipeline phase runs. Flint owns the transform; the host only stores
+    // the override value. See applyEncodingOverrides / EncodingActionDef.
+    const encodings = applyEncodingOverrides(chartTemplate, pivoted.encodings, chartProperties);
 
     // ═══════════════════════════════════════════════════════════════════════
     // PHASE 0: Resolve Semantics (shared with VL — completely target-agnostic)
@@ -478,10 +496,20 @@ export function assembleECharts(input: ChartAssemblyInput): any {
     // ECharts data is embedded directly in series[].data)
     ecOption._dataLength = values.length;
 
+    if (pivoted.surface) {
+        ecOption._pivot = pivoted.surface;
+    }
+
     // Clean internal-only props
     delete ecOption._legendWidth;
 
     return ecOption;
+}
+
+/** Inspect the ECharts view transformation surface for an input. */
+export function getEChartsPivot(input: ChartAssemblyInput): PivotSurface | undefined {
+    const spec = assembleECharts(input);
+    return spec && spec._pivot ? (spec._pivot as PivotSurface) : undefined;
 }
 
 // ===========================================================================

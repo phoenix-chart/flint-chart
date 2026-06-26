@@ -18,6 +18,7 @@ import {
     getSeriesBorderColor,
     coerceUnixMsForChartJs,
 } from './utils';
+import { makeCartesianPivot } from '../../core/pivot';
 
 const isDiscrete = (type: string | undefined) => type === 'nominal' || type === 'ordinal';
 
@@ -199,4 +200,8 @@ export const cjsLineChartDef: ChartTemplateDef = {
             ],
         } as ChartPropertyDef,
     ],
+    pivot: makeCartesianPivot({
+        permute: [['y', 'color']],
+        shift: ['color', 'group', 'column', 'row'],
+    }),
 };

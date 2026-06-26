@@ -92,7 +92,7 @@ _No template-specific parameters._
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `stackMode` | choice | `Stacked (default)`, `Normalize (100%)`, `Layered (overlap)` | — | always | Stacking strategy for overlapping series. |
+| `stackMode` | choice | `Stacked (default)`, `Normalize (100%)`, `Layered (overlap)` | — | conditional | Stacking strategy for overlapping series. |
 
 ### ![](chart-icon-lollipop.svg) Lollipop Chart
 

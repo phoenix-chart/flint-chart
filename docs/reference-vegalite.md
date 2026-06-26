@@ -98,7 +98,7 @@ The **Availability** column shows whether a parameter is `always` available or `
 
 ### ![](chart-icon-column.svg) Bar Chart
 
-**Encoding channels:** `x`, `y`, `color`, `opacity`, `column`, `row`
+**Encoding channels:** `x`, `y`, `color`, `group`, `opacity`, `column`, `row`
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
@@ -142,6 +142,8 @@ The **Availability** column shows whether a parameter is `always` available or `
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
 | `cornerRadius` | number | 0 – 8 (step 1) | `0` | always | Corner radius for supported marks. |
+| `totals` | choice | `Auto`, `None`, `First`, `Last`, `Both` | `Auto` | conditional | Totals |
+| `showTextLabels` | toggle | on / off | `false` | always | Render value labels on the marks. |
 | `independentYAxis` | toggle | on / off | `false` | conditional | Use independent y-scales for facets. |
 
 ### ![](chart-icon-gantt.svg) Gantt Chart
@@ -357,6 +359,8 @@ _No template-specific parameters._
 |---|---|---|---|---|---|
 | `showTextLabels` | toggle | on / off | `false` | always | Render value labels on the marks. |
 | `independentYAxis` | toggle | on / off | `false` | conditional | Use independent y-scales for facets. |
+| `xAxisType` | choice | `Temporal`, `Discrete` | — | conditional | Interpret the x-axis as a continuous time scale or discrete bands. |
+| `yAxisType` | choice | `Temporal`, `Discrete` | — | conditional | Interpret the y-axis as a continuous time scale or discrete bands. |
 
 ### ![](chart-icon-bar-table.svg) Bar Table
 

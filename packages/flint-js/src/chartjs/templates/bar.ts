@@ -22,6 +22,7 @@ import {
 import {
     detectBandedAxisFromSemantics, detectBandedAxisForceDiscrete,
 } from '../../vegalite/templates/utils';
+import { makeCartesianPivot } from '../../core/pivot';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -109,6 +110,11 @@ export const cjsBarChartDef: ChartTemplateDef = {
     properties: [
         { key: 'cornerRadius', label: 'Corners', type: 'continuous', min: 0, max: 15, step: 1, defaultValue: 0 },
     ] as ChartPropertyDef[],
+    pivot: makeCartesianPivot({
+        transpose: [['x', 'y']],
+        permute: [['x', 'y', 'color']],
+        shift: ['color', 'group', 'column', 'row'],
+    }),
 };
 
 // ─── Stacked Bar Chart ──────────────────────────────────────────────────────
@@ -130,6 +136,7 @@ export const cjsStackedBarChartDef: ChartTemplateDef = {
         const { channelSemantics, table, chartProperties } = ctx;
         const { categoryAxis, valueAxis } = detectAxes(channelSemantics);
         const colorField = channelSemantics.color?.field;
+        const hasStackSeries = !!colorField;
 
         const catField = channelSemantics[categoryAxis]?.field;
         const valField = channelSemantics[valueAxis]?.field;
@@ -153,11 +160,11 @@ export const cjsStackedBarChartDef: ChartTemplateDef = {
                 indexAxis: isHorizontal ? 'y' as const : 'x' as const,
                 scales: {
                     x: {
-                        stacked: true,
+                        stacked: hasStackSeries,
                         title: { display: true, text: isHorizontal ? valField : catField },
                     },
                     y: {
-                        stacked: true,
+                        stacked: hasStackSeries,
                         title: { display: true, text: isHorizontal ? catField : valField },
                     },
                 },
@@ -206,6 +213,20 @@ export const cjsStackedBarChartDef: ChartTemplateDef = {
         delete spec.mark;
         delete spec.encoding;
     },
+    pivot: makeCartesianPivot({
+        transpose: [['x', 'y']],
+        permute: [['x', 'y', 'color']],
+        shift: ['color', 'group', 'column', 'row'],
+        transitions: [
+            {
+                to: 'Grouped Bar Chart',
+                label: 'Grouped',
+                route: { from: 'color', to: 'group', mode: 'move' },
+                requireDiscreteSource: true,
+                maxSourceCardinality: 12,
+            },
+        ],
+    }),
 };
 
 // ─── Grouped Bar Chart ──────────────────────────────────────────────────────
@@ -301,4 +322,17 @@ export const cjsGroupedBarChartDef: ChartTemplateDef = {
         delete spec.mark;
         delete spec.encoding;
     },
+    pivot: makeCartesianPivot({
+        transpose: [['x', 'y']],
+        permute: [['x', 'y', 'color']],
+        shift: ['color', 'group', 'column', 'row'],
+        transitions: [
+            {
+                to: 'Stacked Bar Chart',
+                label: 'Stacked',
+                route: { from: 'group', to: 'color', mode: 'move' },
+                requireDiscreteSource: true,
+            },
+        ],
+    }),
 };

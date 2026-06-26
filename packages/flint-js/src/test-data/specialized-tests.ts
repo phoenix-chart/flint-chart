@@ -508,7 +508,6 @@ export function genWaterfallTests(): TestCase[] {
             { Department: 'HR',           Variance: -20 },
             { Department: 'Finance',      Variance: 15 },
             { Department: 'Support',      Variance: -30 },
-            { Department: 'Total',        Variance: -5 },
         ];
         tests.push({
             title: 'Budget Variance (8 depts)',
@@ -551,6 +550,33 @@ export function genWaterfallTests(): TestCase[] {
                 y: makeEncodingItem('Amount'),
                 color: makeEncodingItem('Type'),
             },
+        });
+    }
+
+    // 5. Pure deltas with no explicit total row — totals override demo.
+    // Every row is a genuine delta; the last value (200) is NOT the cumulative of
+    // the prior rows (300 + 150 − 100 = 350). With totals:'both' the first and last
+    // bars are FORCED to the total interpretation: each is drawn as a total bar that
+    // touches down to the running total (start → 0..300, end → 0..350), never dropped.
+    {
+        const data = [
+            { Quarter: 'Q1', Change:  300 },
+            { Quarter: 'Q2', Change:  150 },
+            { Quarter: 'Q3', Change: -100 },
+            { Quarter: 'Q4', Change:  200 },
+        ];
+        tests.push({
+            title: 'Pure Deltas, Forced Totals (4 steps)',
+            description: 'No explicit total row — totals:both forces first/last to touch-down total bars',
+            tags: ['nominal', 'small'],
+            chartType: 'Waterfall Chart',
+            data,
+            fields: [makeField('Quarter'), makeField('Change')],
+            metadata: {
+                Quarter: { type: Type.String, semanticType: 'Category', levels: data.map(d => d.Quarter) },
+                Change: { type: Type.Number, semanticType: 'Quantity', levels: [] },
+            },
+            encodingMap: { x: makeEncodingItem('Quarter'), y: makeEncodingItem('Change') },
         });
     }
 

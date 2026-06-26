@@ -35,6 +35,7 @@ export {
     type ChartOption,
     type OptionEvalContext,
     type EncodingActionDef,
+    type PivotDef,
     type OverflowStrategy,
     type OverflowStrategyContext,
     type OverflowResult,
@@ -43,6 +44,15 @@ export {
 
 // Encoding-action override composition
 export { applyEncodingOverrides } from './encoding-overrides';
+
+// Pivot (derived Category-B operator) enumeration + composition
+export {
+    computePivot,
+    applyPivot,
+    makeCartesianPivot,
+    type PivotSurface,
+    type PivotComputation,
+} from './pivot';
 
 // Reusable encoding-action factories
 export { makeSortAction, type SortChoice } from './encoding-actions';

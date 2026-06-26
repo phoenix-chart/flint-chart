@@ -13,6 +13,7 @@ import { ChartTemplateDef, ChartPropertyDef } from '../../core/types';
 import { extractCategories, groupBy, getCategoryOrder } from './utils';
 import { toTypeString } from '../../core/field-semantics';
 import { getPaletteForScheme } from '../colormap';
+import { makeCartesianPivot } from '../../core/pivot';
 
 const isDiscrete = (type: string | undefined) => type === 'nominal' || type === 'ordinal';
 
@@ -290,6 +291,10 @@ export const ecLineChartDef: ChartTemplateDef = {
         } as ChartPropertyDef,
         { key: 'showPoints', label: 'Show points', type: 'binary', defaultValue: false } as ChartPropertyDef,
     ],
+    pivot: makeCartesianPivot({
+        permute: [['y', 'color']],
+        shift: ['color', 'group', 'column', 'row'],
+    }),
 };
 
 /**

@@ -96,31 +96,6 @@ See the [API reference](docs/api-reference.md), [backend references](docs/refere
 and [live editor](https://microsoft.github.io/flint-chart/#/editor) for more
 library examples.
 
-### ChartAssemblyInput
-
-Most integrations only need four fields: inline data, optional semantic types,
-the chart type, and channel bindings.
-
-```ts
-interface ChartAssemblyInput {
-  data: { values: any[] } | { url: string };
-  semantic_types?: Record<string, string>;
-  chart_spec: {
-    chartType: string;
-    encodings: Record<string, ChartEncoding>;
-    baseSize?: { width: number; height: number };
-    canvasSize?: { width: number; height: number };
-    chartProperties?: Record<string, any>;
-  };
-  options?: AssembleOptions;
-}
-```
-
-Use `baseSize` for the intended chart size and `canvasSize` when the chart must
-fit a fixed slot. Flint handles dense labels and layout automatically; see
-[chart sizing](docs/tutorials/chart-sizing.md) and the
-[layout model](docs/design-stretch-model.md) for details.
-
 ## Use Flint As An MCP Server
 
 Install `flint-chart-mcp` as a [Model Context Protocol](https://modelcontextprotocol.io/)
@@ -136,15 +111,9 @@ includes client configuration, usage examples, and links to deeper references.
   <img src="docs/figs/flint-mcp-experience.png" alt="Agent chat showing Flint Chart as an MCP App with a grouped bar chart preview and chart options." width="100%">
 </p>
 
-The server provides five Flint-focused tools: `create_chart_view`,
-`render_chart`, `compile_chart`, `validate_chart`, and `list_chart_types`.
-Direct MCP calls can embed rows as `data.values`, and configured clients can
-also let agents read local JSON, CSV, or TSV files by `data.url`.
-
-The MCP server also exposes Flint authoring guidance through
-`flint://agent-skill` and the `author_flint_chart` prompt. If you want to use
-Flint directly as part of an agent workflow without MCP, use the standalone
-[SKILL.md](agent-skills/flint-chart-author/SKILL.md).
+MCP calls let agents embed rows directly as `data.values`, or read configured
+local JSON, CSV, or TSV files by `data.url`. For agent workflows without MCP,
+use the standalone [agent skill](agent-skills/flint-chart-author/SKILL.md).
 
 ## Repository overview
 

@@ -21,6 +21,7 @@ export { genBarTests, genStackedBarTests, genGroupedBarTests } from './bar-tests
 export { genHistogramTests, genBoxplotTests, genDensityTests, genStripPlotTests } from './distribution-tests';
 export { genViolinTests } from './violin-tests';
 export { genLineTests } from './line-tests';
+export { genSparklineTests } from './sparkline-tests';
 export { genBumpChartTests } from './line-area-tests';
 export { genSlopeTests, genEChartsSlopeTests, genChartJsSlopeTests } from './slope-tests';
 export { genConnectedScatterTests, genEChartsConnectedScatterTests, genChartJsConnectedScatterTests } from './connected-scatter-tests';
@@ -90,6 +91,7 @@ import { genViolinTests } from './violin-tests';
 import { genMapTests, genChoroplethTests } from './map-tests';
 import { genGanttTests, genBulletTests } from './gantt-bullet-tests';
 import { genLineTests } from './line-tests';
+import { genSparklineTests } from './sparkline-tests';
 import { genBumpChartTests } from './line-area-tests';
 import { genSlopeTests, genEChartsSlopeTests, genChartJsSlopeTests } from './slope-tests';
 import { genConnectedScatterTests, genEChartsConnectedScatterTests, genChartJsConnectedScatterTests } from './connected-scatter-tests';
@@ -147,6 +149,7 @@ export const TEST_GENERATORS: Record<string, () => TestCase[]> = {
     'Histogram': genHistogramTests,
     'Heatmap': genHeatmapTests,
     'Line Chart': () => [...genLineTests(), galleryFacetLineExample()],
+    'Sparkline': genSparklineTests,
     'Bump Chart': genBumpChartTests,
     'Slope Chart': genSlopeTests,
     'Connected Scatter Plot': genConnectedScatterTests,

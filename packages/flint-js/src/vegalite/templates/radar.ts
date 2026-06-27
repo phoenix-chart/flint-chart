@@ -371,7 +371,7 @@ export const radarChartDef: ChartTemplateDef = {
     },
     properties: [
         { key: "filled", label: "Filled", type: "binary", defaultValue: true },
-        { key: "fillOpacity", label: "Fill Opacity", type: "continuous", min: 0, max: 0.5, step: 0.05, defaultValue: 0.15 },
+        { key: "fillOpacity", label: "Fill Opacity", type: "continuous", min: 0, max: 0.5, step: 0.1, defaultValue: 0.15 },
         { key: "strokeWidth", label: "Line Width", type: "continuous", min: 0.5, max: 4, step: 0.5, defaultValue: 1.5 },
     ] as ChartPropertyDef[],
 };

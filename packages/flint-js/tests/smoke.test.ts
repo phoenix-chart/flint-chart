@@ -75,6 +75,29 @@ describe('public API smoke', () => {
     expect(spec.layer[1].encoding.color?.type).toBe('quantitative');
   });
 
+  it('line chart preserves the interpolate chart property', () => {
+    const spec = assembleVegaLite({
+      data: {
+        values: [
+          { Date: '2026-02', Value: 12 },
+          { Date: '2026-03', Value: 18 },
+          { Date: '2026-04', Value: 15 },
+        ],
+      },
+      semantic_types: { Date: 'YearMonth', Value: 'Quantity' },
+      chart_spec: {
+        chartType: 'Line Chart',
+        encodings: {
+          x: { field: 'Date' },
+          y: { field: 'Value' },
+        },
+        chartProperties: { interpolate: 'monotone' },
+      },
+    }) as any;
+
+    expect(spec.mark).toMatchObject({ type: 'line', interpolate: 'monotone' });
+  });
+
   it('chart.js line with quantitative color uses separate datasets per color value', () => {
     const config = assembleChartjs({
       data: {

@@ -831,6 +831,28 @@ export interface ChartTemplateDef {
     ) => LayoutDeclaration;
 
     /**
+     * Optional encoding-normalization hook.
+     * Runs BEFORE semantics resolution and layout, after pivot / encoding-action
+     * overrides have been composed. Lets a template re-route the *authored*
+     * channel map so the WHOLE pipeline (semantics, faceting, overflow, layout)
+     * resolves against the normalized encodings — not just the final spec.
+     *
+     * Example: a sparkline "table" remaps its series field (`color`/`detail`)
+     * onto the `row` facet channel when no `row` is bound, so the layout engine
+     * allocates one stacked strip per series instead of overlaying them.
+     *
+     * Return the (possibly new) encoding map. Returning the input unchanged is a
+     * no-op. Pure — must not mutate the input.
+     *
+     * NOTE: currently honored by the Vega-Lite assembler only; ECharts / Chart.js
+     * wiring is a follow-up.
+     */
+    normalizeEncodings?: (
+        encodings: Record<string, ChartEncoding>,
+        table: any[],
+    ) => Record<string, ChartEncoding>;
+
+    /**
      * Build the final spec from resolved encodings + layout.
      * Runs AFTER layout computation.
      *

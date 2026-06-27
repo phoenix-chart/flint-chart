@@ -17,6 +17,7 @@ import { scatterPlotDef, regressionDef, rangedDotPlotDef, boxplotDef } from './s
 import { connectedScatterDef } from './connected-scatter';
 import { barChartDef, pyramidChartDef, groupedBarChartDef, stackedBarChartDef, histogramDef, heatmapDef } from './bar';
 import { lineChartDef } from './line';
+import { sparklineDef } from './sparkline';
 import { bumpChartDef } from './bump';
 import { slopeChartDef } from './slope';
 import { areaChartDef, streamgraphDef } from './area';
@@ -247,7 +248,7 @@ export const vlTemplateDefs: { [key: string]: ChartTemplateDef[] } = Object.from
         "Points":          [scatterPlotDef, regressionDef, connectedScatterDef, rangedDotPlotDef, stripPlotDef],
         "Bars":            [barChartDef, groupedBarChartDef, stackedBarChartDef, lollipopChartDef, waterfallChartDef, ganttChartDef, bulletChartDef],
         "Distributions":   [histogramDef, densityPlotDef, ecdfPlotDef, violinPlotDef, boxplotDef, pyramidChartDef, candlestickChartDef],
-        "Lines & Areas":   [lineChartDef, bumpChartDef, slopeChartDef, areaChartDef, streamgraphDef, rangeAreaChartDef],
+        "Lines & Areas":   [lineChartDef, sparklineDef, bumpChartDef, slopeChartDef, areaChartDef, streamgraphDef, rangeAreaChartDef],
         "Circular":        [pieChartDef, roseChartDef, radarChartDef],
         "Tables & Maps":   [heatmapDef, barTableDef, kpiCardDef, mapDef, choroplethDef],
     }).map(([category, defs]) => [category, defs.map(withInjectedProperties)]),

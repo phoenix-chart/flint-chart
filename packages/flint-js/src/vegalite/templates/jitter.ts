@@ -117,7 +117,7 @@ export const stripPlotDef: ChartTemplateDef = {
     properties: [
         { key: "stepWidth", label: "Jitter", type: "continuous", min: 10, max: 100, step: 5, defaultValue: 20 },
         { key: "pointSize", label: "Size", type: "continuous", min: 0, max: 150, step: 5, defaultValue: 0 },
-        { key: "opacity", label: "Opacity", type: "continuous", min: 0, max: 1, step: 0.05, defaultValue: 0 },
+        { key: "opacity", label: "Opacity", type: "continuous", min: 0, max: 1, step: 0.1, defaultValue: 0 },
     ] as ChartPropertyDef[],
     pivot: makeCartesianPivot({
         // Reverse of the scatter→Jitter hop: promote the spilled measure on

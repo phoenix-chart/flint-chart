@@ -311,16 +311,6 @@ const SHOWCASE_EXAMPLES: ShowcaseExample[] = [
 ];
 
 
-/** A small labeled hairline divider that marks the start of a subsection. */
-function SectionDivider({ label }: { label: string }) {
-  return (
-    <div style={sectionDividerStyle}>
-      <span style={sectionDividerLabelStyle}>{label}</span>
-      <span style={sectionDividerLineStyle} />
-    </div>
-  );
-}
-
 function HeroCTA({
   label,
   to,
@@ -954,28 +944,6 @@ const howItWorksSectionStyle: CSSProperties = {
   paddingTop: 24,
 };
 
-const sectionDividerStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 14,
-  margin: '0 0 28px',
-};
-
-const sectionDividerLabelStyle: CSSProperties = {
-  fontSize: 11,
-  fontWeight: 600,
-  letterSpacing: '0.08em',
-  textTransform: 'uppercase',
-  color: siteTheme.textMuted,
-  whiteSpace: 'nowrap',
-};
-
-const sectionDividerLineStyle: CSSProperties = {
-  flex: 1,
-  height: 1,
-  background: HAIRLINE,
-};
-
 const heroTitleStyle: CSSProperties = {
   fontSize: 42,
   lineHeight: 1.18,
@@ -986,18 +954,11 @@ const heroTitleStyle: CSSProperties = {
 };
 
 const heroAttributionStyle: CSSProperties = {
-  margin: '0 0 32px',
+  margin: '0 0 36px',
   color: siteTheme.textMuted,
   fontSize: 13,
   fontWeight: 500,
   letterSpacing: '0.03em',
-};
-
-const contributorsStyle: CSSProperties = {
-  margin: '28px 0 0',
-  color: siteTheme.textMuted,
-  fontSize: 13,
-  letterSpacing: '0.01em',
 };
 
 const leadColumnsStyle: CSSProperties = {

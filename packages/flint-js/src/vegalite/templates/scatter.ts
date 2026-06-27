@@ -38,7 +38,7 @@ export const scatterPlotDef: ChartTemplateDef = {
         }
     },
     properties: [
-        { key: "opacity", label: "Opacity", type: "continuous", min: 0.1, max: 1, step: 0.05, defaultValue: 1 },
+        { key: "opacity", label: "Opacity", type: "continuous", min: 0.1, max: 1, step: 0.1, defaultValue: 1 },
     ] as ChartPropertyDef[],
     pivot: makeCartesianPivot({
         // Flip the axes (orientation) as its own generator.

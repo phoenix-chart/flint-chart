@@ -34,23 +34,29 @@ function valueKey(value: unknown): string {
   return JSON.stringify(value ?? null);
 }
 
+function compactSelectLabel(label: string): string {
+  const withoutHint = label.replace(/\s*\([^)]*\)\s*$/u, '').trim();
+  if (withoutHint.length <= 16) return withoutHint;
+  return `${withoutHint.slice(0, 13).trimEnd()}...`;
+}
+
 // Best-effort sizing: measure each option by its label length + the intrinsic
 // width of its widget, then snap to a small set of tiers. Keeps the strip
 // grid-like (few distinct widths) while letting toggles stay compact and
 // sliders/selects get the room they need.
-const LABEL_CHAR_PX = 7;
-const LABEL_MAX_PX = 132;
-const LABEL_GAP = 8;
+const LABEL_CHAR_PX = 6;
+const LABEL_MAX_PX = 96;
+const LABEL_GAP = 6;
 // Small safety margin so short labels (e.g. "Gap") aren't starved by the
 // fixed-width widget and snap up to the next tier when the fit is tight.
 const FIT_BUFFER = 10;
 const WIDGET_PX: Record<string, number> = {
-  continuous: 72 + 6 + 44, // slider track + gap + readout
-  discrete: 128, // select
-  binary: 30, // toggle
-  pivot: 96, // stepper
+  continuous: 56 + 4 + 32, // slider track + gap + readout
+  discrete: 104, // select
+  binary: 24, // toggle
+  pivot: 78, // stepper
 };
-const WIDTH_TIERS = [140, 168, 200, 232, 264, 296];
+const WIDTH_TIERS = [96, 116, 136, 156, 180, 204];
 
 function optionWidth(label: string, kind: string): number {
   const labelPx = Math.min(LABEL_MAX_PX, Math.ceil(label.length * LABEL_CHAR_PX));
@@ -71,6 +77,22 @@ function ControlRow(props: {
   if (spec.type === 'continuous') {
     const step = spec.step ?? ((spec.max - spec.min) / 100 || 1);
     const num = typeof value === 'number' ? value : spec.min;
+    const pct = spec.max > spec.min ? ((num - spec.min) / (spec.max - spec.min)) * 100 : 0;
+    // Reserve exactly enough room for the widest value this slider can actually
+    // show, so the readout sits immediately after the track yet never reflows
+    // the chip while dragging. Scan the real on-grid values (snapped to step) so
+    // we don't over-reserve for off-grid fractions like 0.55 on a 0.1 step.
+    const fmt = (n: number) => Number(n).toLocaleString();
+    const decimals = (String(step).split('.')[1] ?? '').length;
+    const snap = (n: number) => Number(n.toFixed(decimals));
+    const stepN = step > 0 ? step : (spec.max - spec.min) || 1;
+    const count = Math.min(200, Math.max(1, Math.floor((spec.max - spec.min) / stepN)));
+    let readoutCh = 1;
+    for (let i = 0; i <= count; i++) {
+      const v = snap(spec.min + i * stepN);
+      if (v > spec.max + 1e-9) break;
+      readoutCh = Math.max(readoutCh, fmt(v).length);
+    }
     control = (
       <span className="control-inline">
         <input
@@ -79,25 +101,44 @@ function ControlRow(props: {
           max={spec.max}
           step={step}
           value={num}
+          style={{ '--pct': `${pct}%` } as React.CSSProperties}
           onChange={(e) => onChange(Number(e.target.value))}
         />
-        <span className="control-readout">{Number(num).toLocaleString()}</span>
+        <span className="control-readout" style={{ minWidth: `${readoutCh}ch` }}>
+          {fmt(num)}
+        </span>
       </span>
     );
   } else if (spec.type === 'discrete') {
     const current = valueKey(value);
     const idx = spec.options.findIndex((o) => valueKey(o.value) === current);
+    const selectedIndex = idx < 0 ? 0 : idx;
+    const selected = spec.options[selectedIndex];
+    // Hug the *current* value, not the widest option. A sized text label shows
+    // the selection while a transparent native <select> overlays it for picking
+    // (keeps native keyboard + a11y). Without this, the box reserves width for
+    // its longest option, which made short selections like "Default" look long.
     control = (
-      <select
-        value={idx < 0 ? '0' : String(idx)}
-        onChange={(e) => onChange(spec.options[Number(e.target.value)]?.value)}
-      >
-        {spec.options.map((o, i) => (
-          <option key={i} value={String(i)}>
-            {o.label}
-          </option>
-        ))}
-      </select>
+      <span className="select-wrap">
+        <span className="select-value" title={selected?.label}>
+          {compactSelectLabel(selected?.label ?? '')}
+        </span>
+        <svg className="select-chev" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true">
+          <path d="M2.5 4 5 6.5 7.5 4" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        <select
+          className="select-native"
+          value={String(selectedIndex)}
+          title={selected?.label}
+          onChange={(e) => onChange(spec.options[Number(e.target.value)]?.value)}
+        >
+          {spec.options.map((o, i) => (
+            <option key={i} value={String(i)} title={o.label}>
+              {compactSelectLabel(o.label)}
+            </option>
+          ))}
+        </select>
+      </span>
     );
   } else {
     control = (
@@ -207,15 +248,30 @@ function OptionsBar(props: {
             />
           ))
         )}
+        <button
+          className="bar-link"
+          onClick={onSend}
+          disabled={sent}
+          data-tip={sent ? 'Copied to chat' : 'Copy spec'}
+          aria-label={sent ? 'Copied spec to chat' : 'Copy spec to chat'}
+        >
+          {sent ? (
+            <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M3.5 8.5 6.5 11.5 12.5 4.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          ) : (
+            <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true">
+              <rect x="5.5" y="5.5" width="8" height="8" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.3" />
+              <path d="M3.5 10.5 A1.5 1.5 0 0 1 2.5 9.5 V3 A1.5 1.5 0 0 1 4 1.5 H10.5 A1.5 1.5 0 0 1 11.5 2.5" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+            </svg>
+          )}
+        </button>
       </div>
-      <button className="bar-link" onClick={onSend} disabled={sent}>
-        {sent ? 'Copied to chat' : 'Copy spec to chat'}
-      </button>
     </div>
   );
 }
 
-function FlintAppInner(props: {
+export function FlintAppInner(props: {
   app: App;
   input: ChartAssemblyInput;
   hostContext?: McpUiHostContext;
@@ -229,6 +285,13 @@ function FlintAppInner(props: {
 
   // Re-seed when a new tool input arrives from the host.
   useEffect(() => setCurrent(input), [input]);
+
+  // Clear the "Copied" confirmation a couple of seconds after a successful send.
+  useEffect(() => {
+    if (!sent) return;
+    const handle = window.setTimeout(() => setSent(false), 2000);
+    return () => window.clearTimeout(handle);
+  }, [sent]);
 
   // Live render (debounced) whenever the working spec changes.
   useEffect(() => {

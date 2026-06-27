@@ -27,8 +27,8 @@ body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font);
-  font-size: 13px;
-  line-height: 1.45;
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 #root {
@@ -43,8 +43,8 @@ body {
 .app {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 16px;
+  gap: 8px;
+  padding: 10px;
   align-items: stretch;
 }
 
@@ -54,9 +54,8 @@ body {
 }
 
 .chart {
-  border: 1px solid var(--hairline);
   background: var(--paper);
-  padding: 8px;
+  padding: 6px;
   display: flex;
   justify-content: center;
   overflow: auto;
@@ -109,13 +108,11 @@ body {
 
 /* --- options bar (muted, inline, below the chart) --- */
 .optionsbar {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
-  gap: 10px 14px;
-  padding: 10px 14px;
-  background: rgba(0, 0, 0, 0.035);
-  border-radius: 10px;
+  display: block;
+  padding: 4px 2px 2px;
+  background: transparent;
+  /* No fill and no divider: the chips are self-bounded and the chart frame
+     already separates this strip from the plot above. */
   color: var(--muted);
 }
 
@@ -123,7 +120,7 @@ body {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px 28px;
+  gap: 6px 8px;
   min-width: 0;
 }
 
@@ -136,23 +133,50 @@ body {
 .opt {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 5px;
   margin: 0;
   min-width: 0;
-  /* Each cell hugs its own label + widget and left-aligns (no fixed tier width):
-     the label sits immediately left of the control with a single gap, and the
-     flex-wrap row simply flows cells left-to-right, wrapping when they overflow. */
   flex: 0 0 auto;
+  /* Each control reads as one bounded unit: a soft shaded pill rather than an
+     outlined box, so a row of controls isn't a grid of hairlines. The tight
+     internal gap binds the label to *its own* widget; the fill separates it
+     from the control before it. */
+  background: rgba(0, 0, 0, 0.045);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0 5px 0 7px;
+  min-height: 21px;
+  box-sizing: border-box;
+  transition: background 120ms ease;
+}
+
+.opt:hover {
+  /* Hover wakes the *content*, not the box: the fill barely moves (darkening it
+     further just reads as grubbier on a near-white bar) while the label sharpens
+     from muted to ink, so the hovered control becomes more legible. */
+  background: rgba(0, 0, 0, 0.055);
+}
+
+.opt:hover .opt-label {
+  color: var(--ink);
+}
+
+.opt:focus-within {
+  outline: 1.5px solid var(--accent);
+  outline-offset: 0;
 }
 
 .opt-label {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   min-width: 0;
-  max-width: 160px;
+  max-width: 96px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  /* Caption for the widget to its right; the chip already does the grouping. */
+  letter-spacing: 0.01em;
+  transition: color 120ms ease;
 }
 
 /* cyclic pivot control (alternative views) */
@@ -160,14 +184,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 2px;
-  border: 1px solid rgba(0, 0, 0, 0.16);
-  border-radius: 8px;
-  background: var(--paper);
-  padding: 2px;
+  gap: 1px;
   min-width: 0;
-  width: 96px;
-  justify-self: end;
+  width: auto;
+}
+
+/* The chip is the container now -- the stepper drops its own box. */
+.opt.pivot {
+  padding-right: 3px;
 }
 
 .pivot-btn {
@@ -175,11 +199,11 @@ body {
   border: none;
   background: transparent;
   color: inherit;
-  border-radius: 6px;
-  width: 22px;
-  height: 22px;
+  border-radius: 4px;
+  width: 18px;
+  height: 18px;
   line-height: 1;
-  font-size: 14px;
+  font-size: 12px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -196,24 +220,26 @@ body {
   flex: 1 1 auto;
   min-width: 3em;
   text-align: center;
-  font-size: 12px;
+  font-size: 11px;
   color: inherit;
   font-variant-numeric: tabular-nums;
 }
 
 .control-inline {
   display: grid;
-  grid-template-columns: 72px auto;
+  grid-template-columns: 44px auto;
   align-items: center;
   gap: 6px;
   min-width: 0;
 }
 
 .control-readout {
-  min-width: 0;
   text-align: left;
   color: var(--muted);
+  font-size: 11px;
   font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 /* toggle switch (binary options) */
@@ -233,8 +259,8 @@ body {
 }
 
 .switch-track {
-  width: 30px;
-  height: 16px;
+  width: 24px;
+  height: 13px;
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.18);
   transition: background 120ms ease;
@@ -244,8 +270,8 @@ body {
 }
 
 .switch-thumb {
-  width: 12px;
-  height: 12px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: var(--paper);
   transition: transform 120ms ease;
@@ -256,7 +282,7 @@ body {
 }
 
 .switch input:checked + .switch-track .switch-thumb {
-  transform: translateX(14px);
+  transform: translateX(11px);
 }
 
 .switch input:focus-visible + .switch-track {
@@ -267,62 +293,170 @@ body {
 select,
 input[type='range'] {
   font-family: inherit;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--ink);
 }
 
 select {
-  width: 128px;
+  width: auto;
   min-width: 0;
-  padding: 3px 6px;
-  background: var(--paper);
-  border: 1px solid var(--hairline);
-  border-radius: 4px;
-  justify-self: end;
 }
 
+/* Compact dropdown: visible width hugs the current value; a transparent native
+   select overlays the whole control for native picking + keyboard. */
+.select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.select-value {
+  font-size: 11px;
+  color: var(--ink);
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.select-chev {
+  flex: none;
+  display: block;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.select-native {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  opacity: 0;
+  cursor: pointer;
+  appearance: none;
+}
+
+/* Slim slider: a 3px track with a filled-progress left half and a small thumb,
+   so it reads as compact as the surrounding chips rather than a chunky native
+   control. Fill percent comes from --pct (set inline from the current value). */
 input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
   width: 100%;
   min-width: 0;
-  accent-color: var(--accent);
+  height: 12px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type='range']::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--accent) 0 var(--pct, 50%),
+    rgba(0, 0, 0, 0.16) var(--pct, 50%) 100%
+  );
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 9px;
+  height: 9px;
+  margin-top: -3px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+input[type='range']::-moz-range-track {
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+input[type='range']::-moz-range-progress {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+input[type='range']::-moz-range-thumb {
+  width: 9px;
+  height: 9px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
 }
 
 input[type='checkbox'] {
   accent-color: var(--accent);
 }
 
-/* inline text-link actions in the bar */
+/* trailing icon action (copy spec) -- shaded to match the control pills */
 .bar-link {
+  position: relative;
   font-family: inherit;
-  font-size: 12px;
-  justify-self: end;
-  align-self: center;
-  padding: 4px 8px;
-  color: var(--ink);
-  background: transparent;
-  border: 1px solid var(--hairline);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 21px;
+  height: 21px;
+  padding: 0;
+  color: var(--muted);
+  background: rgba(0, 0, 0, 0.045);
+  border: 1px solid transparent;
   border-radius: 6px;
   cursor: pointer;
-  white-space: nowrap;
+  /* Anchor the action to the trailing edge so it never strands mid-wrap
+     between control chips. */
+  margin-left: auto;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.bar-link svg {
+  display: block;
 }
 
 .bar-link:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+  /* Same hover logic as the chips: keep the fill calm, ink the icon. */
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--ink);
 }
 
 .bar-link:disabled {
-  color: var(--muted);
-  border-color: var(--hairline);
+  background: rgba(0, 0, 0, 0.045);
+  color: var(--accent);
   cursor: default;
 }
 
-@media (max-width: 480px) {
-  .optionsbar {
-    grid-template-columns: 1fr;
-  }
-
-  .bar-link {
-    justify-self: start;
-  }
+/* hover hint -- anchored to the button's right edge so it never overflows */
+.bar-link[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  padding: 3px 6px;
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--paper);
+  background: var(--ink);
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 100ms ease;
 }
+
+.bar-link[data-tip]:hover::after,
+.bar-link[data-tip]:focus-visible::after {
+  opacity: 1;
+}
+

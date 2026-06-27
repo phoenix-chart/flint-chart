@@ -5,7 +5,7 @@ import { ChartTemplateDef, ChartPropertyDef, type InstantiateContext } from '../
 import { defaultBuildEncodings, setMarkProp } from './utils';
 import { makeCartesianPivot } from '../../core/pivot';
 
-const interpolateConfigProperty: ChartPropertyDef = {
+export const interpolateConfigProperty: ChartPropertyDef = {
     key: "interpolate", label: "Curve", type: "discrete", options: [
         { value: undefined, label: "Default (linear)" },
         { value: "linear", label: "Linear" },
@@ -23,7 +23,7 @@ const showPointsProperty: ChartPropertyDef = {
     key: "showPoints", label: "Show points", type: "binary", defaultValue: false,
 };
 
-function applyInterpolate(mark: any, config?: Record<string, any>): any {
+export function applyInterpolate(mark: any, config?: Record<string, any>): any {
     if (!config?.interpolate) return mark;
     return setMarkProp(mark, 'interpolate', config.interpolate);
 }
@@ -100,7 +100,7 @@ export const lineChartDef: ChartTemplateDef = {
             return;
         }
         defaultBuildEncodings(spec, ctx.resolvedEncodings);
-        applyInterpolate(spec.mark, ctx.chartProperties);
+        spec.mark = applyInterpolate(spec.mark, ctx.chartProperties);
         spec.mark = applyShowPoints(spec.mark, ctx.chartProperties);
     },
     properties: [interpolateConfigProperty, showPointsProperty],

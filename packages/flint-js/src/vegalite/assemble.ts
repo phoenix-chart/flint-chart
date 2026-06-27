@@ -186,7 +186,14 @@ export function assembleVegaLite(input: ChartAssemblyInput): any {
         const swapped = vlGetTemplateDef(pivoted.chartType) as ChartTemplateDef | undefined;
         if (swapped) chartTemplate = swapped;
     }
-    const encodings = applyEncodingOverrides(chartTemplate, pivoted.encodings, chartProperties);
+    const composedEncodings = applyEncodingOverrides(chartTemplate, pivoted.encodings, chartProperties);
+
+    // Template-level encoding normalization (e.g. Sparkline remaps its series
+    // field onto the `row` facet channel). Runs BEFORE semantics/layout so the
+    // whole pipeline resolves against the normalized channel map.
+    const encodings = chartTemplate.normalizeEncodings
+        ? chartTemplate.normalizeEncodings(composedEncodings, data)
+        : composedEncodings;
 
     // ═══════════════════════════════════════════════════════════════════════
     // PHASE 0: Resolve Semantics (VL-free)

@@ -1,5 +1,6 @@
 import { siteTheme } from '../shared/theme';
 import { SpecPipelineFigure } from '../components/SpecPipelineFigure';
+import { McpAppMockup } from '../components/McpAppMockup';
 import { ChatMockup } from './McpServer';
 
 const PAPER = '#ffffff';
@@ -13,6 +14,8 @@ export function DevPlayground() {
       <section className="dev-playground-dialog-figure" style={dialogFigureStyle}>
         <ChatMockup />
       </section>
+
+      <McpAppMockup />
     </main>
   );
 }
@@ -22,10 +25,10 @@ const pageStyle: React.CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  justifyContent: 'center',
+  justifyContent: 'flex-start',
   gap: 36,
   boxSizing: 'border-box',
-  padding: 18,
+  padding: 24,
   fontFamily: siteTheme.fontSans,
   color: siteTheme.text,
   backgroundColor: PAPER,

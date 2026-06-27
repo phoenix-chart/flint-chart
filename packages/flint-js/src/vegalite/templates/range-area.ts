@@ -84,6 +84,6 @@ export const rangeAreaChartDef: ChartTemplateDef = {
     },
     properties: [
         interpolateConfigProperty,
-        { key: 'opacity', label: 'Opacity', type: 'continuous', min: 0.1, max: 1, step: 0.05, defaultValue: 0.5 },
+        { key: 'opacity', label: 'Opacity', type: 'continuous', min: 0.1, max: 1, step: 0.1, defaultValue: 0.5 },
     ] as ChartPropertyDef[],
 };

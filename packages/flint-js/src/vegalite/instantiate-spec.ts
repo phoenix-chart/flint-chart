@@ -229,7 +229,7 @@ export function vlApplyLayoutToSpec(
         view: {
             continuousWidth: layout.subplotWidth,
             continuousHeight: layout.subplotHeight,
-            ...(!vgObj.encoding && { stroke: null }),
+            ...((!vgObj.encoding || vgObj._hideViewStroke) && { stroke: null }),
         },
         axisX: axisXConfig,
         axisY: axisYConfig,
@@ -321,7 +321,7 @@ export function vlApplyLayoutToSpec(
             vgObj.config.axisY = { ...(vgObj.config.axisY || {}), title: null };
             if (!yEnc.axis) yEnc.axis = {};
             yEnc.axis.title = null;
-        } else if (rowEnc && vgObj.resolve?.scale?.y !== 'independent') {
+        } else if (rowEnc && vgObj.resolve?.scale?.y !== 'independent' && !vgObj._suppressFacetMeasureTitle) {
             const yTitle = (yEnc.axis && yEnc.axis.title) || yEnc.title || yEnc.field;
             const rowTitle = (rowEnc.header && rowEnc.header.title) || rowEnc.title || rowEnc.field;
             if (yTitle && rowTitle) {

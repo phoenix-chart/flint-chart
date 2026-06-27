@@ -42,6 +42,7 @@ const LABEL_TO_FAMILY: Record<string, string> = {
   pyramid: 'bar',
   // Line & Area
   line: 'line',
+  sparkline: 'line',
   area: 'line',
   'range area': 'line',
   streamgraph: 'line',

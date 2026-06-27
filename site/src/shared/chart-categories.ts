@@ -7,6 +7,7 @@ import barIcon from '../assets/chart-icons/chart-icon-column.svg';
 import stackedBarIcon from '../assets/chart-icons/chart-icon-column-stacked.svg';
 import groupedBarIcon from '../assets/chart-icons/chart-icon-column-grouped.svg';
 import lineIcon from '../assets/chart-icons/chart-icon-line.svg';
+import sparklineIcon from '../assets/chart-icons/chart-icon-sparkline.svg';
 import areaIcon from '../assets/chart-icons/chart-icon-area.svg';
 import rangeAreaIcon from '../assets/chart-icons/chart-icon-range-area.svg';
 import pieIcon from '../assets/chart-icons/chart-icon-pie.svg';
@@ -123,6 +124,7 @@ const spec = assembleVegaLite(input);`,
       createChart('vegalite', 'histogram', 'Histogram', 'Histogram', histogramIcon),
       createChart('vegalite', 'heatmap', 'Heatmap', 'Heatmap', heatmapIcon),
       createChart('vegalite', 'line-chart', 'Line Chart', 'Line Chart', lineIcon),
+      createChart('vegalite', 'sparkline', 'Sparkline', 'Sparkline', sparklineIcon),
       createChart('vegalite', 'bump-chart', 'Bump Chart', 'Bump Chart', bumpIcon),
       createChart('vegalite', 'slope-chart', 'Slope Chart', 'Slope Chart', slopeIcon),
       createChart('vegalite', 'boxplot', 'Boxplot', 'Boxplot', boxplotIcon),

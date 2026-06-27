@@ -22,7 +22,7 @@ If you're new to Flint, start with [Getting started](/documentation/getting-star
 
 # §1 What Flint is
 
-Flint separates **data semantics** from **chart intent**, much as an IL separates program logic from target-machine code ([LLVM](https://llvm.org/) analogy in the paper). Authors avoid hand-tuning interdependent low-level parameters, and LLM agents can emit compact Flint programs instead of verbose native specs that are costly to regenerate and brittle under small edits.
+Flint separates **data semantics** from **chart intent**, much as an intermediate language separates program logic from target-machine code. Authors avoid hand-tuning interdependent low-level parameters, and LLM agents can emit compact Flint programs instead of verbose native specs that are costly to regenerate and brittle under small edits.
 
 ---
 
@@ -55,7 +55,7 @@ data  +  semantic_types  +  chart_spec  →  assemble*()  →  native spec
 
 ### dataSpec example
 
-Annotations are **inline** in `semantic_types` — there is no separate `semantic_annotations` field (Game-market dataset example in paper):
+Annotations are **inline** in `semantic_types` — there is no separate `semantic_annotations` field:
 
 ```json
 {
@@ -179,5 +179,4 @@ const spec = assembleVegaLite({
 
 # §9 Further reading
 
-- **Paper:** *Flint: A Semantic-driven Data Visualization Intermediate Language* ([PDF](https://github.com/microsoft/flint-chart/blob/main/docs/figs/AgChart.pdf))
 - Agent-oriented design notes: [docs/README.md](https://github.com/microsoft/flint-chart/blob/main/docs/README.md)

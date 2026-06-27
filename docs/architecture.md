@@ -24,7 +24,7 @@ For motivation and spec examples, see [Overview](/documentation/overview). For i
 
 1. **Semantics first** — `semantic_types` guide parsing, aggregation, zero baseline, diverging detection, and formatting. Raw storage types are only the starting point.
 2. **Minimal chart surface** — `chart_spec` supplies chart type and channel bindings, usually in about 10 lines. Axes, scales, legends, and step sizes are compiler-derived.
-3. **Dynamic templates** — Each `chartType` maps to a `ChartTemplateDef`; its `instantiate()` hook consumes the full compilation context and adapts to cardinality and semantics (paper §5.3).
+3. **Dynamic templates** — Each `chartType` maps to a `ChartTemplateDef`; its `instantiate()` hook consumes the full compilation context and adapts to cardinality and semantics.
 4. **No UI dependencies** — The core is pure TypeScript (`packages/flint-js`), so it can run from agents, notebooks, servers, or this site. A Python package is planned for a later release.
 
 Most design logic lives in Stages 1–2 and is identical across backends.
@@ -160,7 +160,7 @@ New backends implement Stage 3 only; the frontend and optimizer stay unchanged. 
 | **dataSpec** | `semantic_types` | Field meaning; reused across charts on the same dataset |
 | **chartSpec** | `chart_spec` | `chartType` + `encodings`; cheap to edit during exploration |
 
-LLM agents typically infer `semantic_types` once, then iterate on `chart_spec`. This matches the paper's game-market case study: line → heatmap → grouped bar → waterfall → sunburst on one semantic layer.
+LLM agents typically infer `semantic_types` once, then iterate on `chart_spec`: line → heatmap → grouped bar → waterfall → sunburst on one semantic layer.
 
 ---
 
@@ -192,5 +192,4 @@ site/               demo site (gallery, editor, documentation)
 - [API reference](/documentation/api-reference) — `ChartAssemblyInput`, assemblers, options
 - [Semantic Type](/documentation/semantic-types) — type hierarchy and resolution rules
 - [Auto Layout Algorithm](/documentation/layout-model) — stretch and facet models
-- [Paper (PDF)](https://github.com/microsoft/flint-chart/blob/main/docs/figs/AgChart.pdf)
 - [Extending chart templates](/documentation/adding-a-chart-template) — extend Stage 3

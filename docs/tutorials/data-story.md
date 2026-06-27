@@ -3,9 +3,9 @@
 A simple line chart is enough to learn the shape of a Flint spec. The fun starts
 when the question gets messier.
 
-This example uses the game-market dataset from the Flint paper: monthly active
-users for a portfolio of games, split by month, title, game type, and region. We
-will move through the same source data three ways:
+This example uses a game-market dataset: monthly active users for a portfolio of
+games, split by month, title, game type, and region. We will move through the
+same source data three ways:
 
 - **Overview**: where are the users, and how do trends differ by region?
 - **Change**: what moved the portfolio up or down?

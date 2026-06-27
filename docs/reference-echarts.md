@@ -62,7 +62,10 @@ _No template-specific parameters._
 
 **Encoding channels:** `x`, `y`, `color`, `opacity`, `column`, `row`
 
-_No template-specific parameters._
+| Parameter | Control | Domain | Default | Availability | Description |
+|---|---|---|---|---|---|
+| `whiskerMethod` | choice | `Tukey (1.5 × IQR)`, `Min–Max` | `Tukey (1.5 × IQR)` | always | Whiskers |
+| `showOutliers` | toggle | on / off | `true` | conditional | Outliers |
 
 ### ![](chart-icon-strip-plot.svg) Strip Plot
 
@@ -175,6 +178,8 @@ _No template-specific parameters._
 |---|---|---|---|---|---|
 | `innerRadius` | number | 0 – 60 (step 5) | `0` | always | Inner radius as a percentage of the outer radius. |
 | `cornerRadius` | number | 0 – 10 (step 1) | `0` | always | Corner radius for supported marks. |
+| `sortSlices` | choice | `Data order`, `Largest first`, `Smallest first` | `Data order` | always | Sort slices |
+| `labelType` | choice | `Name + %`, `Name`, `Value`, `Percent`, `None` | `Name + %` | always | Labels |
 
 ### ![](chart-icon-funnel.svg) Funnel Chart
 
@@ -219,7 +224,7 @@ _No template-specific parameters._
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `binCount` | number | 5 – 50 (step 1) | `10` | always | Number of histogram bins. |
+| `binCount` | number | 5 – 50 (step 1) | `Auto` | always | Maximum bin cap; Auto lets the backend choose. |
 
 ### ![](chart-icon-density.svg) Density Plot
 
@@ -293,6 +298,7 @@ _No template-specific parameters._
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
 | `alignment` | choice | `Left (default)`, `Center` | — | always | Segment alignment for radial charts. |
+| `sortSlices` | choice | `Data order`, `Largest first`, `Smallest first` | `Data order` | always | Sort slices |
 
 ## Indicator
 

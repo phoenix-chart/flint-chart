@@ -97,7 +97,7 @@ _No template-specific parameters._
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `binCount` | number | 5 – 50 (step 1) | `10` | always | Number of histogram bins. |
+| `binCount` | number | 5 – 50 (step 1) | `Auto` | always | Maximum bin cap; Auto lets the backend choose. |
 
 ### ![](chart-icon-waterfall.svg) Waterfall Chart
 
@@ -160,6 +160,7 @@ _No template-specific parameters._
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
 | `innerRadius` | number | 0 – 60 (step 5) | `0` | always | Inner radius as a percentage of the outer radius. |
+| `sortSlices` | choice | `Data order`, `Largest first`, `Smallest first` | `Data order` | always | Sort slices |
 
 ### ![](chart-icon-doughnut.svg) Doughnut Chart
 
@@ -168,6 +169,7 @@ _No template-specific parameters._
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
 | `innerRadius` | number | 20 – 80 (step 5) | `55` | always | Inner radius as a percentage of the outer radius. |
+| `sortSlices` | choice | `Data order`, `Largest first`, `Smallest first` | `Data order` | always | Sort slices |
 
 ## Polar
 
@@ -187,3 +189,4 @@ _No template-specific parameters._
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
 | `alignment` | choice | `Left (default)`, `Center` | — | always | Segment alignment for radial charts. |
+| `sortSlices` | choice | `Data order`, `Largest first`, `Smallest first` | `Data order` | always | Sort slices |

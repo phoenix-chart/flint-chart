@@ -82,7 +82,7 @@ const PARAM_DESCRIPTIONS: Record<string, string> = {
     showTextLabels: 'Render value labels on the marks.',
     showPercent: 'Show each value as a percentage of the total.',
     stackMode: 'Stacking strategy for overlapping series.',
-    binCount: 'Number of histogram bins.',
+    binCount: 'Maximum bin cap; Auto lets the backend choose.',
     bandwidth: 'Kernel-density bandwidth (0 = auto).',
     innerRadius: 'Inner radius as a percentage of the outer radius.',
     padAngle: 'Angular gap between radial segments.',
@@ -165,7 +165,10 @@ const ICON_BY_CHART: Record<string, string> = {
 };
 
 function esc(s: string): string {
-    return s.replace(/\|/g, '\\|');
+    return s
+        .replace(/\\/g, '\\\\')
+        .replace(/\r?\n/g, '<br>')
+        .replace(/\|/g, '\\|');
 }
 
 function describe(p: ChartPropertyDef): string {
@@ -192,6 +195,7 @@ function defaultValue(p: ChartPropertyDef): string {
     if (p.type === 'binary') raw = p.defaultValue ?? false;
     else raw = p.defaultValue;
     if (raw == null) return '—';
+    if (p.key === 'binCount' && raw === 0) return '`Auto`';
     if (p.type === 'discrete') {
         const match = p.options.find((o) => o.value === raw);
         return match ? `\`${match.label}\`` : `\`${String(raw)}\``;

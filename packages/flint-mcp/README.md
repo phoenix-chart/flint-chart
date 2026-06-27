@@ -167,9 +167,10 @@ const { buffer, warnings } = await renderChart(input, 'echarts', { format: 'png'
 - **ECharts** → server-side SVG rendering → (PNG via resvg).
 - **Chart.js** → `@napi-rs/canvas` → PNG (no SVG engine).
 
-A bundled DejaVu Sans font is registered with both rasterizers for deterministic,
-portable output, and Flint's computed `width`/`height` (its stretch-layout
-result) is applied so the semantic layout shows up in the artifact.
+Bundled Liberation Sans faces are registered for server-side text measurement
+and rasterization, with DejaVu Sans available as a broad Unicode fallback. Flint's
+computed `width`/`height` (its stretch-layout result) is applied so the semantic
+layout shows up in the artifact.
 
 ## Security & limits
 

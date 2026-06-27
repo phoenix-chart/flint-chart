@@ -6,7 +6,7 @@ The Vega-Lite backend serves as Flint's reference implementation and offers the 
 
 ## What this page covers
 
-This reference lists the 33 chart types currently supported by the Vega-Lite backend, grouped into 6 categories. Each chart entry shows:
+This reference lists the 34 chart types currently supported by the Vega-Lite backend, grouped into 6 categories. Each chart entry shows:
 
 - **Encoding channels** — the visual roles accepted in `chart_spec.encodings`, such as `x`, `y`, `color`, `size`, `column`, or `row`.
 - **Options** — template-specific `chart_spec.chartProperties` keys, including control type, domain, default, availability, and description.
@@ -35,7 +35,7 @@ The **Availability** column shows whether a parameter is `always` available or `
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `opacity` | number | 0.1 – 1 (step 0.05) | `1` | always | Mark opacity. |
+| `opacity` | number | 0.1 – 1 (step 0.1) | `1` | always | Mark opacity. |
 | `independentYAxis` | toggle | on / off | `false` | conditional | Use independent y-scales for facets. |
 | `logScale_x` | toggle | on / off | `false` | conditional | Use a log/symlog scale on the x-axis. |
 | `logScale_y` | toggle | on / off | `false` | conditional | Use a log/symlog scale on the y-axis. |
@@ -87,7 +87,7 @@ The **Availability** column shows whether a parameter is `always` available or `
 |---|---|---|---|---|---|
 | `stepWidth` | number | 10 – 100 (step 5) | `20` | always | Jitter spread width. |
 | `pointSize` | number | 0 – 150 (step 5) | `0` | always | Point or marker size. |
-| `opacity` | number | 0 – 1 (step 0.05) | `0` | always | Mark opacity. |
+| `opacity` | number | 0 – 1 (step 0.1) | `0` | always | Mark opacity. |
 | `independentYAxis` | toggle | on / off | `false` | conditional | Use independent y-scales for facets. |
 | `logScale_x` | toggle | on / off | `false` | conditional | Use a log/symlog scale on the x-axis. |
 | `logScale_y` | toggle | on / off | `false` | conditional | Use a log/symlog scale on the y-axis. |
@@ -174,7 +174,7 @@ The **Availability** column shows whether a parameter is `always` available or `
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
-| `binCount` | number | 5 – 50 (step 1) | `10` | always | Number of histogram bins. |
+| `binCount` | number | 5 – 50 (step 1) | `Auto` | always | Maximum bin cap; Auto lets the backend choose. |
 | `independentYAxis` | toggle | on / off | `false` | conditional | Use independent y-scales for facets. |
 
 ### ![](chart-icon-density.svg) Density Plot
@@ -214,6 +214,8 @@ The **Availability** column shows whether a parameter is `always` available or `
 
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
+| `whiskerMethod` | choice | `Tukey (1.5 × IQR)`, `Min–Max` | `Tukey (1.5 × IQR)` | always | Whiskers |
+| `showOutliers` | toggle | on / off | `true` | conditional | Outliers |
 | `independentYAxis` | toggle | on / off | `false` | conditional | Use independent y-scales for facets. |
 | `logScale_x` | toggle | on / off | `false` | conditional | Use a log/symlog scale on the x-axis. |
 | `logScale_y` | toggle | on / off | `false` | conditional | Use a log/symlog scale on the y-axis. |
@@ -256,6 +258,21 @@ _No template-specific parameters._
 | `xAxisType` | choice | `Temporal`, `Discrete` | — | conditional | Interpret the x-axis as a continuous time scale or discrete bands. |
 | `yAxisType` | choice | `Temporal`, `Discrete` | — | conditional | Interpret the y-axis as a continuous time scale or discrete bands. |
 
+### Sparkline
+
+**Encoding channels:** `x`, `y`, `color`, `detail`, `row`, `column`
+
+| Parameter | Control | Domain | Default | Availability | Description |
+|---|---|---|---|---|---|
+| `interpolate` | choice | `Default (linear)`, `Linear`, `Monotone (smooth)`, `Step`, `Step Before`, `Step After`, `Basis (smooth)`, `Cardinal`, `Catmull-Rom` | — | always | Line or area interpolation method. |
+| `baseline` | choice | `Average`, `Zero`, `Median`, `None` | `Average` | always | Reference line |
+| `trendWidth` | number | 80 – 600 (step 10) | `240` | always | Sparkline width |
+| `independentYAxis` | toggle | on / off | `false` | conditional | Use independent y-scales for facets. |
+| `logScale_x` | toggle | on / off | `false` | conditional | Use a log/symlog scale on the x-axis. |
+| `logScale_y` | toggle | on / off | `false` | conditional | Use a log/symlog scale on the y-axis. |
+| `includeZero_x` | toggle | on / off | `false` | conditional | Anchor the x-axis at zero. |
+| `includeZero_y` | toggle | on / off | `false` | conditional | Anchor the y-axis at zero. |
+
 ### ![](chart-icon-bump.svg) Bump Chart
 
 **Encoding channels:** `x`, `y`, `color`, `detail`, `column`, `row`
@@ -287,7 +304,7 @@ _No template-specific parameters._
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
 | `interpolate` | choice | `Default (linear)`, `Linear`, `Monotone (smooth)`, `Step`, `Step Before`, `Step After`, `Basis (smooth)`, `Cardinal`, `Catmull-Rom` | — | always | Line or area interpolation method. |
-| `opacity` | number | 0.1 – 1 (step 0.05) | `0.7` | always | Mark opacity. |
+| `opacity` | number | 0.1 – 1 (step 0.1) | `0.7` | always | Mark opacity. |
 | `stackMode` | choice | `Stacked (default)`, `Normalize (100%)`, `Center`, `Layered (overlap)` | — | conditional | Stacking strategy for overlapping series. |
 | `independentYAxis` | toggle | on / off | `false` | conditional | Use independent y-scales for facets. |
 | `xAxisType` | choice | `Temporal`, `Discrete` | — | conditional | Interpret the x-axis as a continuous time scale or discrete bands. |
@@ -309,7 +326,7 @@ _No template-specific parameters._
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
 | `interpolate` | choice | `Default (linear)`, `Linear`, `Monotone (smooth)`, `Step`, `Step Before`, `Step After`, `Basis (smooth)` | — | always | Line or area interpolation method. |
-| `opacity` | number | 0.1 – 1 (step 0.05) | `0.5` | always | Mark opacity. |
+| `opacity` | number | 0.1 – 1 (step 0.1) | `0.5` | always | Mark opacity. |
 | `independentYAxis` | toggle | on / off | `false` | conditional | Use independent y-scales for facets. |
 
 ## Circular
@@ -321,6 +338,7 @@ _No template-specific parameters._
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
 | `innerRadius` | number | 0 – 100 (step 5) | `0` | always | Inner radius as a percentage of the outer radius. |
+| `sortSlices` | choice | `Data order`, `Largest first`, `Smallest first` | `Data order` | always | Sort slices |
 | `independentYAxis` | toggle | on / off | `false` | conditional | Use independent y-scales for facets. |
 
 ### ![](chart-icon-rose.svg) Rose Chart
@@ -332,6 +350,7 @@ _No template-specific parameters._
 | `innerRadius` | number | 0 – 100 (step 5) | `0` | always | Inner radius as a percentage of the outer radius. |
 | `padAngle` | number | 0 – 0.1 (step 0.005) | `0` | always | Angular gap between radial segments. |
 | `alignment` | choice | `Left (default)`, `Center` | — | always | Segment alignment for radial charts. |
+| `sortSlices` | choice | `Data order`, `Largest first`, `Smallest first` | `Data order` | always | Sort slices |
 | `independentYAxis` | toggle | on / off | `false` | conditional | Use independent y-scales for facets. |
 
 ### ![](chart-icon-radar.svg) Radar Chart
@@ -341,7 +360,7 @@ _No template-specific parameters._
 | Parameter | Control | Domain | Default | Availability | Description |
 |---|---|---|---|---|---|
 | `filled` | toggle | on / off | `true` | always | Fill the enclosed radar area. |
-| `fillOpacity` | number | 0 – 0.5 (step 0.05) | `0.15` | always | Fill opacity for the area or region. |
+| `fillOpacity` | number | 0 – 0.5 (step 0.1) | `0.15` | always | Fill opacity for the area or region. |
 | `strokeWidth` | number | 0.5 – 4 (step 0.5) | `1.5` | always | Line stroke width. |
 | `independentYAxis` | toggle | on / off | `false` | conditional | Use independent y-scales for facets. |
 | `logScale_x` | toggle | on / off | `false` | conditional | Use a log/symlog scale on the x-axis. |

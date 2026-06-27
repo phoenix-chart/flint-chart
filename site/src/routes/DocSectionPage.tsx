@@ -98,6 +98,7 @@ export function DocSectionPage({ section }: { section: DocSection }) {
                       as="link"
                       active={active}
                       to={`/${section}/${doc.slug}`}
+                      icon={doc.icon}
                       dataAttr={{ 'data-doc-nav': doc.slug }}
                     >
                       {doc.title}

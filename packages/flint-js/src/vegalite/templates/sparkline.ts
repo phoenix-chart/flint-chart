@@ -144,6 +144,11 @@ export const sparklineDef: ChartTemplateDef = {
         const hasColor = !!enc.color?.field;
         const baseline = (ctx.chartProperties?.baseline as string) ?? 'mean';
         const useMedian = baseline === 'median';
+        // Independent Y rescales each strip to its own range (shape-at-a-glance
+        // for series on very different scales, e.g. stock prices); the default
+        // shared scale keeps rows comparable by level. Applies to the trend
+        // facet's per-row y resolution.
+        const independentY = !!ctx.chartProperties?.independentYAxis;
 
         // Guard: without both position fields there is no trend to draw; leave
         // a valid single-line spec so assembly still succeeds.
@@ -262,6 +267,9 @@ export const sparklineDef: ChartTemplateDef = {
             data: { values: trendData },
             facet: { row: facetRow },
             spec: { width: trendW, height: stripH, layer: layers },
+            // Per-row y resolution: `independent` self-scales each strip;
+            // `shared` (default) keeps every row on one comparable scale.
+            resolve: { scale: { y: independentY ? 'independent' : 'shared' } },
             title: { text: trendTitle, anchor: 'middle', ...HEADER_STYLE },
         };
         const avgPanel = {
@@ -286,7 +294,10 @@ export const sparklineDef: ChartTemplateDef = {
         delete spec.encoding;
         spec.hconcat = [catPanel, trendPanel, avgPanel];
         spec.spacing = INTER_GAP;
-        spec.resolve = { scale: { y: 'shared', color: 'shared' } };
+        // Trend owns the only real y scale; its per-row resolution is set on the
+        // panel above. At the hconcat level keep y independent so VL never tries
+        // to unify the trend's faceted scale with the text columns' value-y.
+        spec.resolve = { scale: { y: 'independent', color: 'shared' } };
         spec.config = {
             view: { stroke: null },
             axis: { grid: false, domain: false, ticks: false },

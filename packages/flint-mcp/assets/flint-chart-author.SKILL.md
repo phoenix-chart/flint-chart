@@ -178,7 +178,7 @@ properties"). Required channels are noted.
 | `"Regression"` | x, y, size, color, column, row | scatter + fit line; props `regressionMethod`, `polyOrder` |
 | `"Connected Scatter Plot"` | x, y, order, color, detail, column, row | x + y required; `order` = connection sequence (time/index), so the line traces a trajectory and may self-cross |
 | `"Ranged Dot Plot"` | x, y, color | dumbbell of two x per category |
-| `"Strip Plot (Jitter)"` | x, y, color, size, column, row | props `stepWidth`, `pointSize`, `opacity` |
+| `"Strip Plot"` | x, y, color, size, column, row | jittered points; props `stepWidth`, `pointSize`, `opacity` |
 | `"Bar Chart"` | x, y, color, opacity, column, row | one discrete + one measure; prop `cornerRadius` |
 | `"Grouped Bar Chart"` | x, y, group, column, row | `group` = the clustering category |
 | `"Stacked Bar Chart"` | x, y, color, column, row | prop `stackMode` |
@@ -188,8 +188,11 @@ properties"). Required channels are noted.
 | `"Gantt Chart"` | y, x, x2, color, detail, column, row | x = start, x2 = end |
 | `"Bullet Chart"` | y, x, goal, color, column, row | `goal` required (target) |
 | `"Histogram"` | x, color, column, row | x = measure to bin; prop `binCount` |
+| `"Boxplot"` | x, y, color, opacity, column, row | category + measure; props `whiskerMethod`, `showOutliers` |
+| `"ECDF Plot"` | x, color, detail, column, row | x = measure; cumulative distribution (step line); prop `showPoints` |
 | `"Heatmap"` | x, y, color, column, row | color = the measure |
 | `"Line Chart"` | x, y, color, strokeDash, detail, opacity, column, row | props `interpolate`, `showPoints` |
+| `"Sparkline"` | x, y, color, detail, row, column | x + y required; small-multiple mini trend lines, one per series (series from `color` or `detail`); props `interpolate`, `baseline`, `trendWidth` |
 | `"Bump Chart"` | x, y, color, detail, column, row | rank-over-time lines |
 | `"Slope Chart"` | x, y, color, detail, column, row | two-period value change; straight segments + end points, one line per category |
 | `"Area Chart"` | x, y, color, opacity, column, row | props `interpolate`, `opacity`, `stackMode` |
@@ -201,9 +204,9 @@ properties"). Required channels are noted.
 | `"Rose Chart"` | x, y, color, column, row | polar bars; props `alignment`, `innerRadius`, `padAngle` |
 | `"Radar Chart"` | x, y, color, column, row | props `filled`, `fillOpacity`, `strokeWidth` |
 | `"Candlestick Chart"` | x, open, high, low, close, column, row | OHLC all required |
-| `"Bar-Table"` | y, x, color, column, row | compact bars + value labels |
+| `"Bar Table"` | y, x, color, column, row | compact bars + value labels |
 | `"KPI Card"` | metric, value, goal | big-number tile; prop `behindThreshold` |
-| `"Map (Bubble)"` | longitude, latitude, color, size, opacity | props `region`, `projection` |
+| `"Map"` | longitude, latitude, color, size, opacity | bubble map; props `region`, `projection` |
 | `"Choropleth"` | id, color, detail | `id` = geographic key |
 
 **Donut chart:** use `"Pie Chart"` with `chartProperties.innerRadius > 0`.
@@ -230,7 +233,7 @@ side-by-side → Grouped (use `group`); single series → Bar.
 **Backend coverage.** Vega-Lite supports all of the above. Other backends
 support a subset (verify if targeting a non-VL backend):
 
-- **ECharts** adds: `"Boxplot"`, `"Calendar Heatmap"`, `"Gauge"`,
+- **ECharts** adds: `"Calendar Heatmap"`, `"Gauge"`,
   `"Funnel"`, `"Treemap"`, `"Sunburst"`, `"Sankey"`,
   `"Parallel Coordinates"`, `"Graph"`, `"Tree"`.
 - **Chart.js** supports: Scatter, Bubble, Bar, Grouped Bar, Stacked Bar,
@@ -328,8 +331,12 @@ derived). Values are clamped to the ranges shown.
 |---|---|---|---|
 | Bar Chart | `cornerRadius` | 0–15 (0) | Round bar corners (px) |
 | Bar / Area / Stacked Bar | `stackMode` | `stacked` \| `normalize` \| `layered` (unset) | Stacking behavior; `normalize` = 100% |
-| Line / Area | `interpolate` | `linear` \| `monotone` \| `step` \| `step-before` \| `step-after` \| `basis` \| `cardinal` \| `catmull-rom` (`linear`) | Curve shape |
-| Line | `showPoints` | boolean (false) | Draw point markers on the line |
+| Line / Area / Sparkline | `interpolate` | `linear` \| `monotone` \| `step` \| `step-before` \| `step-after` \| `basis` \| `cardinal` \| `catmull-rom` (`linear`) | Curve shape |
+| Line / ECDF Plot | `showPoints` | boolean (false) | Draw point markers on the line |
+| Sparkline | `baseline` | `mean` \| `zero` \| `median` \| `none` (`mean`) | Reference line per spark row |
+| Sparkline | `trendWidth` | 80–600 (240) | Mini line-plot width (px) |
+| Boxplot | `whiskerMethod` | `iqr` \| `minmax` (`iqr`) | Whisker rule (Tukey 1.5×IQR vs min–max) |
+| Boxplot | `showOutliers` | boolean (true) | Show outlier points (Tukey only) |
 | Area | `opacity` | 0.1–1 (0.7) | Fill opacity |
 | Scatter | `opacity` | 0.1–1 (1) | Point opacity |
 | Strip Plot | `stepWidth` | 10–100 (20) | Jitter spread |
@@ -349,8 +356,8 @@ derived). Values are clamped to the ranges shown.
 | Radar | `fillOpacity` | 0–0.5 (0.15) | Polygon fill opacity |
 | Radar | `strokeWidth` | 0.5–4 (1.5) | Line width |
 | KPI Card | `behindThreshold` | 0–1 (0.5) | Value/goal ratio cutoff for color |
-| Map (Bubble) | `region` | `us` \| `world` \| `auto` (`auto`) | Geographic scope |
-| Map (Bubble) | `projection` | `mercator` \| `equalEarth` \| `orthographic` \| `stereographic` \| `conic` \| `mollweide` | Map projection |
+| Map | `region` | `us` \| `world` \| `auto` (`auto`) | Geographic scope |
+| Map | `projection` | `mercator` \| `equalEarth` \| `orthographic` \| `stereographic` \| `conic` \| `mollweide` | Map projection |
 
 **Cross-cutting properties** (apply to position/faceted charts when
 relevant; set only to force non-default behavior):

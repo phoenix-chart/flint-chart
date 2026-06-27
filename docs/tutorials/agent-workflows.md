@@ -1,210 +1,28 @@
 # Agent workflows
 
-Flint can sit in an agent workflow in two different ways.
+This guide walks through a Data Formulator-style integration: a custom agentic
+product where the agent helps create a chart, but the host owns data execution,
+validation, state, UI controls, compilation, rendering, and review.
 
-- **I want an agent to create good-looking charts powered by Flint.** Use Flint as a chart tool in
-  a chat app, VS Code, Claude, Cursor, or another MCP client. Ask the agent to
-  open an interactive chart view, validate a chart request, render a PNG or SVG,
-  try a different chart type, or switch backend if needed.
-- **I want to build Flint into my own agentic product.** Import Flint into an
-  app, notebook, service, or system like Data Formulator. Your agent may
-  generate a spec, but your product owns the workflow: storing specs, building
-  UI controls, compiling to Vega-Lite/ECharts/Chart.js, and rendering the
-  result.
+If you only want to connect Flint as an MCP tool in a chat or IDE client, start
+with [Set up Flint MCP](/documentation/setup-flint-mcp). This page focuses on
+library-style integration: the pattern used by products like
+[Data Formulator](https://github.com/microsoft/data-formulator), where the agent
+can propose data shaping and a chart request, while the product controls what
+actually runs and what gets stored.
 
-Both paths use the same contract under the hood: `ChartAssemblyInput`. You can
-ignore that contract at first if you only want chart output from an MCP tool;
-you will use it directly if you are building on top of Flint.
+## The core idea
 
-## I want an agent to create good-looking charts powered by Flint
-
-Use this workflow when you are in chat, VS Code, Claude, Cursor, or another MCP
-client and mostly want chart output. The spec can stay mostly invisible. Your
-main loop is: ask for a chart, let the agent open a chart view, then ask for
-changes or request a static artifact when you need one.
-
-### Give the agent the Flint skill
-
-The chart-author skill lives in this repo at [agent-skills/flint-chart-author/SKILL.md](https://github.com/microsoft/flint-chart/blob/main/agent-skills/flint-chart-author/SKILL.md).
-Use it anywhere your coding agent can load Markdown instructions: VS Code
-Copilot, Claude Code, Cursor, or another agent shell.
-
-When you use the MCP server, the same instructions are also available through
-the server as `flint://agent-skill`, and through the `author_flint_chart` prompt
-for clients that support MCP prompts. That keeps the rendering tools and the
-authoring contract together: the agent can load the Flint rules before it calls
-`create_chart_view`, `validate_chart`, `render_chart`, or `compile_chart`.
-
-The skill teaches the agent the semantic chart contract and the operational
-steps around it:
-
-- infer or write `semantic_types` for the data fields;
-- choose a supported `chartType`;
-- map fields to channels like `x`, `y`, `color`, `column`, or `size`;
-- return a valid `ChartAssemblyInput`;
-- validate, preview, and render with MCP tools when chart output is requested;
-- install/import Flint and call assemblers when the task is project integration.
-
-The boundary stays the same: the agent works through Flint's semantic input. It
-should not hand-write Vega-Lite marks, ECharts series, axis formats, color
-scales, or layout math.
-
-### Add the MCP server
-
-For chart output inside an agent workflow, run the MCP server. It gives the
-agent local tools plus the context it needs to use them correctly:
-
-For a shorter setup overview with the interactive app experience, see the
-[MCP server page](/mcp).
-
-| Tool | Use it for |
-|------|------------|
-| `create_chart_view` | Preferred default when the host supports MCP Apps: open an interactive chart view with a live SVG preview and chart options. |
-| `validate_chart` | Check whether the input is valid and see warnings. |
-| `render_chart` | Render a static PNG or SVG locally when you need an artifact or the host has no App UI. |
-| `compile_chart` | Return the backend-native Vega-Lite, ECharts, or Chart.js spec. |
-| `list_chart_types` | Inspect supported chart types and channels. |
-
-| Resource or prompt | Use it for |
-|--------------------|------------|
-| `flint://agent-skill` | Load the bundled chart-author instructions. |
-| `flint://chart-types` | Inspect the supported chart catalog. |
-| `ui://flint-chart/chart-view.html` | Bundled UI resource used by `create_chart_view` in MCP App hosts. |
-| `author_flint_chart` | Start from a prompt that embeds the skill. |
-
-Most MCP clients can run it with `npx`, no global install:
-
-```jsonc
-// Claude Desktop / Cursor
-{
-  "mcpServers": {
-    "flint": {
-      "command": "npx",
-      "args": ["-y", "flint-chart-mcp"]
-    }
-  }
-}
-```
-
-```jsonc
-// VS Code .vscode/mcp.json
-{
-  "servers": {
-    "flint": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "flint-chart-mcp"]
-    }
-  }
-}
-```
-
-Rendering is local and in-process. Inline data stays on your machine. In hosts
-that support MCP Apps, `create_chart_view` opens the interactive Flint view
-inline in the conversation; chart rendering and edits happen in the host UI.
-
-To let the MCP server read local data files by `data.url`, add an allowed data
-root. Files outside that root are rejected, and remote URLs are not fetched.
-
-```jsonc
-// Claude Desktop / Cursor, with local file references enabled
-{
-  "mcpServers": {
-    "flint": {
-      "command": "npx",
-      "args": ["-y", "flint-chart-mcp", "--data-roots", "./data"]
-    }
-  }
-}
-```
-
-### MCP App: interactive chart view
-
-When the MCP client supports MCP Apps, `create_chart_view` is the default way to
-show a chart. The tool opens a live Vega-Lite SVG preview with Flint chart
-options, so the user can inspect the result, tweak supported settings, and send
-the revised Flint spec back into the conversation.
-
-Use `create_chart_view` when the user asks to see a chart, compare a design, or
-iterate visually. Use `render_chart` only when the user needs a static PNG/SVG
-artifact or the host does not support MCP App UIs. Use `compile_chart` when the
-user needs the backend-native JSON instead of a rendered chart.
-
-### How the MCP loop works
-
-The normal loop is:
-
-1. The client loads `flint://agent-skill` or runs the `author_flint_chart`
-   prompt.
-2. The agent inspects the available data. If needed, it uses another coding,
-   notebook, SQL, or data tool to clean, aggregate, or reshape the table first.
-3. The agent binds data in the form the MCP server can actually render:
-   embedded `data.values`, or a local `data.url` file under an allowed data root.
-4. The agent writes the Flint `semantic_types` and `chart_spec`.
-5. The agent calls `validate_chart` and fixes any schema, field, chart-type, or
-   backend warnings when it needs a separate validation pass.
-6. The agent calls `create_chart_view` to open the interactive chart when the
-   host supports MCP Apps. Otherwise, it calls `render_chart` for PNG/SVG output.
-7. The agent calls `compile_chart` when you want Vega-Lite, ECharts, or Chart.js
-   JSON instead of a rendered chart.
-8. The MCP client returns the chart view, image, SVG, or spec artifact to the
-   user.
-
-There are three data-binding cases to keep separate:
-
-- **MCP with small or prepared rows:** pass rows directly as
-  `data: { values: [...] }` in the tool call.
-- **MCP with a prepared local file:** save `.json`, `.csv`, or `.tsv` under a
-  configured data root, then pass `data: { url: "sales.csv" }` or a file URL.
-- **Generated application or notebook code:** load data into a real runtime
-  variable such as `rows`, then call Flint with `data: { values: rows }`. This
-  variable pattern belongs in generated code; it is not valid inside a direct
-  MCP tool call.
-
-Data transformation belongs before Flint. If the request needs aggregation,
-filtering, joins, pivots, derived columns, or a long-form table, the agent should
-use another coding, notebook, SQL, or data tool first, then author the Flint spec
-against that chart-ready table.
-
-Use backend customization only for post-Flint style/presentation tweaks. The
-preferred path is to keep chart structure in Flint's `chart_spec`, because that
-remains portable across backends. When a user asks for a visual detail that
-Flint cannot express, the agent should create and inspect the Flint chart first,
-then call `compile_chart` with `backend: "vegalite"`, make the smallest necessary
-style edit to the returned Vega-Lite JSON, and render it in the host environment
-with a Vega-Lite renderer. That edited Vega-Lite JSON is not a Flint spec, so it
-should not be sent to `render_chart`.
-
-### Ask for chart output
-
-Start with a concrete request. For example:
-
-```text
-Load flint://agent-skill or run the author_flint_chart prompt.
-
-I have rows with columns: month, product, revenue, profit.
-Create a monthly revenue trend by product.
-Validate it with validate_chart.
-Open it with create_chart_view if this client supports MCP Apps.
-```
-
-When you need a static artifact, ask for that explicitly:
-
-```text
-Use the same Flint chart, but render a PNG with render_chart using the vegalite backend.
-```
-
-The agent may show a `ChartAssemblyInput`, or it may only show the rendered
-result. If it does show the input, it should be shaped like this:
+Do not ask the agent to write Vega-Lite, ECharts, Chart.js, or renderer code as
+the primary artifact. Ask it to write a Flint `ChartAssemblyInput`:
 
 ```jsonc
 {
-  "data": { "values": [ /* your rows */ ] },
+  "data": { "values": [/* rows, or bound by the host */] },
   "semantic_types": {
     "month": "YearMonth",
     "product": "Category",
-    "revenue": "Quantity",
-    "profit": "Profit"
+    "revenue": "Quantity"
   },
   "chart_spec": {
     "chartType": "Line Chart",
@@ -217,108 +35,57 @@ result. If it does show the input, it should be shaped like this:
 }
 ```
 
-When you want a different design, ask for a ChartSpec change:
+This makes the chart request small, inspectable, and editable. Flint's compiler
+derives the lower-level chart decisions: axis types, zero baselines, temporal
+parsing, number formatting, color defaults, sizing, layout, and backend-specific
+mark details.
+
+Think of Flint as the semantic chart layer between an agent and a renderer:
 
 ```text
-Keep the same data, but switch this from a line chart to a heatmap.
-Use month on x, product on y, and profit on color.
-Validate and render it.
+user intent + data context
+        ↓
+agent proposes data preparation + ChartAssemblyInput
+        ↓
+host validates fields, schema, policy, and backend support
+        ↓
+Flint compiles to Vega-Lite / ECharts / Chart.js
+        ↓
+product renders, stores, edits, or asks the agent for a revision
 ```
 
-When you need a backend-specific chart, ask for the backend switch explicitly:
+## Product responsibilities
 
-```text
-Use the same data view, but make a Sunburst Chart and render it with ECharts.
-```
+In a custom workflow, the agent should not own the whole visualization system.
+Give each part a clear job:
 
-The useful habit is to ask for the visual change, not backend JSON. Let Flint
-and the MCP server answer the backend questions.
+| Layer | Responsibility |
+|------|----------------|
+| Agent | Interpret the user request, inspect data context, propose transformations, choose semantic types, and draft or revise `chart_spec`. |
+| Host product | Execute data transforms, bind rows, validate fields, enforce policy, store chart state, expose UI controls, and choose the backend. |
+| Flint | Compile the semantic chart request into backend-native chart specs with deterministic design defaults. |
+| Renderer | Draw the backend spec in the browser, notebook, service, or export pipeline. |
 
-### Check the result
+That split is what makes the workflow robust. The agent works at the semantic
+level, where language models are useful. The product keeps control of execution,
+state, security, and user experience. Flint handles the visualization rules that
+should not live in prompts.
 
-Before you accept an agent-authored chart, skim these things:
+## Store Flint input as chart state
 
-- Do the `semantic_types` match the actual columns? `YearMonth` for month-like
-  strings, `Quantity` for additive measures, `Profit` for signed gain/loss.
-- Does the `chart_spec` use fields that really exist in the data view?
-- Did `validate_chart` return warnings about unsupported channels, crowded axes,
-  or a backend that does not support that chart type?
-- Is the requested backend appropriate? Vega-Lite is great for grammar-style
-  charts; ECharts covers richer interactive and hierarchical designs such as
-  sunburst.
-
-That is usually enough. The compiler handles axis types, temporal parsing,
-zero baselines, color defaults, and layout choices.
-
-## I want to build Flint into my own agentic product
-
-Use this workflow when you are building an app, notebook, service, or system
-like Data Formulator. The agent can still help author the chart request, but
-your product owns the state, UI controls, compilation, rendering, and review.
-
-### Use `ChartAssemblyInput` as the product contract
-
-Store the Flint input when you can. It is smaller and easier to inspect than a
-backend-native chart spec.
+Store the Flint input, not the generated backend JSON, whenever you can.
 
 - **DataSpec** is the `data` and `semantic_types` section. It tells Flint what
   columns exist and what they mean.
 - **ChartSpec** is the `chart_spec` section. It tells Flint which chart template
   to use and how fields map to channels.
 
-Your product can expose UI for the ChartSpec, ask an agent to draft or revise
-it, and compile it only when it is time to render.
+The stored input is usually small enough for a product database, a notebook
+cell, a dashboard config, or a conversation state object. It also stays editable:
+your UI can change a channel, chart type, sort option, size, or chart property
+without asking the agent to regenerate low-level backend JSON.
 
-### Let the agent write the spec inside your workflow
-
-A product prompt is usually stricter than a chat prompt because you need a
-machine-readable result:
-
-```text
-Use the Flint chart authoring skill.
-
-Return only a valid ChartAssemblyInput JSON object.
-The data rows have fields: month, product, revenue, profit.
-Create a chart_spec for a monthly revenue trend by product.
-Infer semantic_types, use only fields that exist, and do not write backend JSON.
-```
-
-Your system can then validate the returned JSON, store it, show editable chart
-controls, or send it back to the agent for a revision.
-
-### Let the agent transform data and write the spec together
-
-If the source table is not chart-ready, use the chart-author reference skill at
-[agent-skills/flint-chart-author/SKILL.md](https://github.com/microsoft/flint-chart/blob/main/agent-skills/flint-chart-author/SKILL.md).
-It is designed for a single structured turn: the agent returns Python pandas
-code that produces a chart-ready DataFrame, plus an explicit top-level Flint
-`chart_input` that can be rendered after the host binds the transformed rows.
-
-```text
-Use the Flint data-agent skill.
-
-From the orders table, create monthly revenue by region.
-Return Python transformation code and a Flint chart_input in one JSON object.
-```
-
-That pattern is useful for Data Formulator-style products: the product executes
-the transformation, stores or previews the derived table, fills
-`chart_input.data.values`, then compiles the Flint input for the selected
-backend.
-
-### Compile inside your app
-
-Install Flint, then add the renderer dependency for the backend your product
-uses:
-
-```bash
-npm install flint-chart
-npm install vega vega-lite vega-embed  # browser Vega-Lite rendering
-npm install echarts                    # ECharts rendering
-npm install chart.js                   # Chart.js rendering
-```
-
-In JavaScript or TypeScript, choose the backend at render time:
+Compile backend specs on demand:
 
 ```ts
 import { assembleChartjs, assembleECharts, assembleVegaLite } from 'flint-chart';
@@ -328,36 +95,304 @@ const echartsOption = assembleECharts(input);
 const chartjsConfig = assembleChartjs(input);
 ```
 
+Install only the renderer dependencies your product needs:
+
+```bash
+npm install flint-chart
+npm install vega vega-lite vega-embed  # browser Vega-Lite rendering
+npm install echarts                    # ECharts rendering
+npm install chart.js                   # Chart.js rendering
+```
+
 Python support will use the same input shape, but it is planned for a later
 release and is not part of the first public launch. For now, use the npm package
-or MCP server in released workflows.
+or the MCP server in released workflows.
 
-The product decides which renderer to mount, how to size the chart, how to store
-the spec, and whether users can edit the chart request directly.
+## Give the agent the authoring skill
 
-### Build review into the product
+The chart-author skill lives at
+[agent-skills/flint-chart-author/SKILL.md](https://github.com/microsoft/flint-chart/blob/main/agent-skills/flint-chart-author/SKILL.md).
+Use it as a reference instruction in your agent prompt, tool description, or
+retrieval context.
 
-Before rendering or saving an agent-authored spec, check the parts your product
-cares about most:
+The skill is important when the agent does not have the library installed or
+cannot call a live catalog tool. It contains the exact chart type names,
+supported channels, chart properties, semantic types, and data-binding rules.
 
-- validate that every encoded field exists in the current data view;
-- reject chart types or backends your UI does not support;
-- keep derived or aggregated data shaping upstream of Flint;
-- store the Flint input when possible, then compile backend specs on demand;
-- expose ChartSpec controls instead of asking users to edit backend JSON.
+The durable instruction for the agent is:
 
-This keeps Flint as the semantic chart layer while your product remains in
-charge of the surrounding experience.
+- choose semantic types for fields, such as `YearMonth`, `Quantity`,
+  `Category`, `Price`, `Profit`, or `Percentage`;
+- choose a supported `chartType` by exact name;
+- bind real fields to supported channels like `x`, `y`, `color`, `row`,
+  `column`, `size`, or `group`;
+- transform data before Flint when the requested view needs aggregation,
+  filtering, joins, pivots, derived columns, or wide/long reshaping;
+- return Flint input, not backend-native JSON, unless the user is explicitly
+  asking for a post-Flint backend customization.
+
+## Walkthrough: Data Formulator-style authoring
+
+Imagine a Data Formulator-style product with a raw `orders` table. The user asks:
+
+```text
+Show monthly revenue by region.
+```
+
+The raw table has columns like:
+
+| Field | Example | Meaning |
+|-------|---------|---------|
+| `order_date` | `2025-01-17` | Date of each order |
+| `region` | `West` | Sales region |
+| `segment` | `Consumer` | Customer segment |
+| `sales` | `1240.50` | Revenue for the order |
+| `profit` | `310.20` | Signed profit for the order |
+
+The user did not ask for a chart over individual orders. They asked for a
+monthly aggregate, so the product should not ask the agent to hide aggregation
+inside a Vega-Lite transform. The product should ask for two things:
+
+1. code or a declarative plan that creates the chart-ready table;
+2. a Flint `ChartAssemblyInput` for that derived table.
+
+### 1. Send compact context to the agent
+
+The host sends the user request plus a data profile. It usually does not need to
+send the whole dataset.
+
+```text
+Use the Flint chart authoring skill.
+
+User request: Show monthly revenue by region.
+
+Current table: orders
+Fields:
+- order_date: Date, examples 2025-01-17, 2025-01-22
+- region: Category, examples West, East, Central, South
+- segment: Category, examples Consumer, Corporate
+- sales: Quantity, numeric, non-negative
+- profit: Profit, numeric, signed
+
+Return one JSON object with:
+- transform_code: Python pandas code that creates a chart-ready DataFrame named chart_df
+- chart_input: a Flint ChartAssemblyInput for chart_df
+
+Do not write Vega-Lite, ECharts, Chart.js, or renderer code.
+Use only fields produced by chart_df in chart_input.
+Leave chart_input.data.values empty; the host will bind rows after executing the transform.
+```
+
+### 2. Let the agent propose data shaping and Flint input
+
+A good response separates the data transformation from the chart request:
+
+```jsonc
+{
+  "transform_code": "import pandas as pd\nchart_df = orders.copy()\nchart_df['month'] = pd.to_datetime(chart_df['order_date']).dt.to_period('M').astype(str)\nchart_df = chart_df.groupby(['month', 'region'], as_index=False).agg(revenue=('sales', 'sum'))",
+  "chart_input": {
+    "data": { "values": [] },
+    "semantic_types": {
+      "month": "YearMonth",
+      "region": "Region",
+      "revenue": "Amount"
+    },
+    "chart_spec": {
+      "chartType": "Line Chart",
+      "encodings": {
+        "x": { "field": "month" },
+        "y": { "field": "revenue" },
+        "color": { "field": "region" }
+      }
+    }
+  }
+}
+```
+
+The important property is the split: the agent does not smuggle aggregation into
+backend JSON, and the Flint input references only fields that will exist in the
+derived table.
+
+### 3. Execute and inspect in the host
+
+The product executes `transform_code` in its own trusted or sandboxed compute
+path, then inspects `chart_df` before rendering. For example:
+
+```text
+month    region   revenue
+2025-01  East     18420.50
+2025-01  West     21310.10
+2025-02  East     19770.00
+2025-02  West     22640.75
+```
+
+At this point the host can reject the result if the code uses unknown columns,
+creates too many rows, produces unexpected nulls, or fails a policy check. The
+agent proposed the operation; the product decides whether to run and keep it.
+
+### 4. Bind rows and compile with Flint
+
+After execution, the host fills `chart_input.data.values` with rows from
+`chart_df` and compiles the chart.
+
+```ts
+import { assembleVegaLite } from 'flint-chart';
+
+const chartInput = {
+  ...agentResult.chart_input,
+  data: { values: chartRows },
+};
+
+const vegaLiteSpec = assembleVegaLite(chartInput);
+```
+
+The same stored Flint input can later be compiled to a different backend:
+
+```ts
+import { assembleECharts } from 'flint-chart';
+
+const echartsOption = assembleECharts(chartInput);
+```
+
+### 5. Build the UI around Flint state
+
+In a Data Formulator-style UI, the product can show both artifacts:
+
+- the derived data view (`chart_df`) so the user can inspect the table being
+  charted;
+- the ChartSpec controls so the user can change chart type, channels, sort, size,
+  or chart properties without editing backend JSON.
+
+If the user says "split this by segment too," the host can ask the agent for a
+revision, or it can expose a direct UI operation that adds `segment` to
+`column`, `row`, or `color` depending on the chart design. Either way, the
+revision changes the Flint input and then recompiles.
+
+### 6. Keep backend tweaks downstream
+
+If the product needs a backend-specific annotation or interaction, apply that
+after Flint compiles the semantic chart. Keep the Flint input as the canonical
+state; treat patched Vega-Lite or ECharts JSON as a render-time artifact.
+
+## Reusable prompt templates
+
+For product integration, use stricter prompts than you would in free-form chat.
+Ask the agent for a machine-readable object your system can validate. When the
+data view is already chart-ready, ask only for Flint input:
+
+```text
+Use the Flint chart authoring skill.
+
+Return only a valid ChartAssemblyInput JSON object.
+The current data view has fields: month, product, revenue, profit.
+Create a monthly revenue trend by product.
+Infer semantic_types, use only fields that exist, and do not write Vega-Lite,
+ECharts, Chart.js, or renderer code.
+```
+
+When the data is not chart-ready, ask for transformation code plus Flint input:
+
+```text
+Use the Flint chart authoring skill.
+
+From the orders table, create monthly revenue by region.
+Return one JSON object with:
+- transform_code: Python pandas code that creates a chart-ready DataFrame named chart_df
+- chart_input: a Flint ChartAssemblyInput for the transformed rows
+
+The chart_input.data field should be empty or placeholder rows. The host will
+execute the code, inspect the derived table, and bind data.values afterward.
+```
+
+Your system can then parse the JSON, validate it, execute or reject the transform,
+store the accepted Flint input, compile it, render a preview, or send concrete
+feedback back to the agent.
+
+## Validate before rendering or saving
+
+Validation belongs in the host, not only in the prompt. Before accepting an
+agent-authored chart, check:
+
+- every encoded field exists in the current or derived data view;
+- `semantic_types` use Flint's registered labels rather than invented names;
+- the `chartType` is allowed for the selected backend and product surface;
+- encoded channels are supported by that chart type;
+- required channels are present;
+- local policy allows the requested backend, data size, chart size, and file
+  access pattern;
+- derived data shaping happened upstream of Flint, not through invented Flint
+  transform properties.
+
+If your product uses the MCP server internally, `validate_chart` can perform a
+separate server-side validation pass. If your product embeds the library
+directly, call the relevant assembler in a try/catch and surface warnings or
+errors in your own review UI.
+
+## Build an editing loop
+
+After the first chart renders, keep revisions semantic. Ask the agent or UI to
+change the Flint input, not the backend spec:
+
+| User intent | Product action |
+|-------------|----------------|
+| "Compare regions side by side" | Change chart type or route the region field to `group`, `color`, `column`, or `row`, depending on the chart family. |
+| "Show profit instead of revenue" | Replace the measure field in `chart_spec.encodings`. |
+| "Use a small multiple view" | Move the grouping field to `column` or `row` when the chart supports facets. |
+| "Make it a donut" | Keep `Pie Chart` and set `chartProperties.innerRadius`. |
+| "Try ECharts" | Recompile the same Flint input with `assembleECharts`. |
+
+This keeps user edits cheap and deterministic. The agent is useful for ambiguous
+intent, data transformation, or chart design suggestions. Routine UI edits can
+modify the ChartSpec directly.
+
+## Use backend customization only after Flint
+
+Some product requirements are backend-specific: annotations, exact axis styling,
+custom mark decorations, or a renderer-specific interaction. Keep those changes
+after the Flint compile step.
+
+Recommended path:
+
+1. Store the Flint input as the canonical chart state.
+2. Compile it to the target backend.
+3. Apply the smallest backend-specific presentation patch.
+4. Render the patched backend spec.
+
+Do not feed patched Vega-Lite, ECharts, or Chart.js JSON back into Flint. Once
+you edit backend JSON, it is no longer portable Flint state.
+
+## A practical host loop
+
+A typical custom agent implementation looks like this:
+
+1. Collect the user's request and a compact data profile: column names, sample
+   rows, semantic hints, cardinalities, min/max values, and known units.
+2. Ask the agent for either a `ChartAssemblyInput` or transformation code plus a
+   `ChartAssemblyInput`.
+3. Execute transformations in a sandbox or trusted compute path owned by the
+   product.
+4. Bind `data.values` from the current or derived table.
+5. Validate fields, semantic types, chart type, channels, backend support, size,
+   and policy.
+6. Store the Flint input as canonical chart state.
+7. Compile to the selected backend and render.
+8. Let UI controls or the agent revise the Flint input, then repeat from
+   validation.
+
+That loop lets Flint serve as a stable contract between natural-language chart
+intent and production rendering.
 
 ## Next steps
 
 - [Getting started](/documentation/getting-started) explains the DataSpec and
   ChartSpec shape with a tiny first chart.
-- [Example: a data story](/documentation/data-story) shows a larger workflow where
-  one source dataset becomes several chart designs.
-- [MCP server README](https://github.com/microsoft/flint-chart/tree/main/packages/flint-mcp)
-  has the full tool reference and CLI options.
-- [Flint chart-author skill](https://github.com/microsoft/flint-chart/blob/main/agent-skills/flint-chart-author/SKILL.md)
-  shows a one-turn pattern for Python transformation code plus a Flint spec.
+- [Example: a data story](/documentation/data-story) shows how one source data
+  view can become several chart designs by changing only the ChartSpec.
+- [Set up Flint MCP](/documentation/setup-flint-mcp) explains how to expose
+  Flint as an MCP server when you want a ready-made agent tool surface.
+- [Vega-Lite charts](/documentation/reference-vegalite),
+  [ECharts charts](/documentation/reference-echarts), and
+  [Chart.js charts](/documentation/reference-chartjs) list supported chart
+  types by backend.
 - [Semantic Type](/documentation/semantic-types) lists the labels the agent can
   use for fields.

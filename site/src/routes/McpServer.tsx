@@ -170,8 +170,8 @@ export function McpServer() {
           </Prose>
 
           <div style={nextRowStyle}>
-            <Link to="/documentation/agent-workflows#mcp-server-execution" style={primaryBtn}>
-              Read the MCP docs
+            <Link to="/documentation/setup-flint-mcp" style={primaryBtn}>
+              Read setup docs
             </Link>
             <a href={`${GITHUB_REPO}/tree/main/packages/flint-mcp`} style={secondaryBtn} target="_blank" rel="noreferrer">
               GitHub README
@@ -370,7 +370,7 @@ const mainStyle: CSSProperties = {
 const heroSectionStyle: CSSProperties = {
   maxWidth: READING_WIDTH,
   margin: '0 auto',
-  padding: '42px 24px 0',
+  padding: '62px 24px 0',
   width: '100%',
   boxSizing: 'border-box',
 };
@@ -378,7 +378,7 @@ const heroSectionStyle: CSSProperties = {
 const heroTitleStyle: CSSProperties = {
   fontSize: 36,
   lineHeight: 1.2,
-  margin: '0 0 28px',
+  margin: '0 0 34px',
   fontWeight: 700,
   letterSpacing: 0,
 };
@@ -395,7 +395,7 @@ const installRowStyle: CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   gap: 16,
-  marginTop: 22,
+  marginTop: 32,
   flexWrap: 'wrap',
 };
 
@@ -425,7 +425,7 @@ const ghLinkStyle: CSSProperties = {
 const articleStyle: CSSProperties = {
   maxWidth: READING_WIDTH,
   margin: '0 auto',
-  padding: '0 24px 56px',
+  padding: '12px 24px 72px',
   width: '100%',
   boxSizing: 'border-box',
 };
@@ -438,19 +438,19 @@ const h2Style: CSSProperties = {
   fontSize: 22,
   fontWeight: 700,
   letterSpacing: 0,
-  margin: '36px 0 12px',
+  margin: '52px 0 18px',
 };
 
 const firstH2Style: CSSProperties = {
   ...h2Style,
-  marginTop: 24,
+  marginTop: 40,
 };
 
 const pStyle: CSSProperties = {
   fontSize: 16,
-  lineHeight: 1.7,
+  lineHeight: 1.75,
   color: siteTheme.text,
-  margin: '0 0 16px',
+  margin: '0 0 20px',
 };
 
 const captionStyle: CSSProperties = {
@@ -461,11 +461,11 @@ const captionStyle: CSSProperties = {
 };
 
 const stepListStyle: CSSProperties = {
-  margin: '10px 0 0',
+  margin: '14px 0 0',
   padding: '0 0 0 22px',
   display: 'flex',
   flexDirection: 'column',
-  gap: 12,
+  gap: 16,
 };
 
 const stepItemStyle: CSSProperties = {
@@ -491,7 +491,7 @@ const linkStyle: CSSProperties = {
 /* ---- chat mockup ---- */
 
 const chatFrameStyle: CSSProperties = {
-  margin: '24px 0 0',
+  margin: '32px 0 0',
   border: `1px solid ${HAIRLINE}`,
   borderRadius: 12,
   overflow: 'hidden',

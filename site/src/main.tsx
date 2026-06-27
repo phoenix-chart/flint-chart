@@ -15,10 +15,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <HashRouter>
       <Routes>
         <Route path="/" element={<Landing />} />
-        <Route path="/wall/:backend?" element={<ChartWall />} />
-        {/* The wall is now the gallery; keep old links working. */}
-        <Route path="/gallery" element={<Navigate to="/wall" replace />} />
-        <Route path="/gallery/:chartId" element={<Navigate to="/wall" replace />} />
+        <Route path="/gallery/:backend?" element={<ChartWall />} />
+        {/* Keep old /wall links working; /gallery is canonical. */}
+        <Route path="/wall" element={<WallRedirect />} />
+        <Route path="/wall/:backend" element={<WallRedirect />} />
         <Route path="/editor" element={<Editor />} />
         <Route path="/mcp" element={<McpServer />} />
         <Route path="/dev-playground" element={<DevPlayground />} />
@@ -37,4 +37,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 function TutorialRedirect() {
   const { slug } = useParams<{ slug?: string }>();
   return <Navigate to={`/documentation/${slug ?? 'getting-started'}`} replace />;
+}
+
+/** Preserve old /wall and /wall/:backend links by redirecting to /gallery. */
+function WallRedirect() {
+  const { backend } = useParams<{ backend?: string }>();
+  return <Navigate to={`/gallery${backend ? `/${backend}` : ''}`} replace />;
 }

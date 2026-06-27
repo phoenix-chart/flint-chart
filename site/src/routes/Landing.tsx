@@ -30,7 +30,7 @@ export function Landing() {
 
       <main style={mainStyle}>
         {/* ---- Hero ------------------------------------------------------ */}
-        <section style={{ ...sectionStyle, paddingTop: 72, paddingBottom: 24 }}>
+        <section style={{ ...sectionStyle, paddingTop: 88, paddingBottom: 36 }}>
           <h1 style={heroTitleStyle}>Flint: A Visualization Language for the AI Era</h1>
           <div style={heroAttributionStyle}>A Microsoft Research project</div>
 
@@ -140,18 +140,18 @@ export function Landing() {
         </section>
 
         {/* ---- Closing CTA -------------------------------------------- */}
-        <section style={{ ...sectionStyle, paddingBottom: 72, textAlign: 'center' }}>
-          <h2 style={{ fontSize: 26, margin: '0 0 8px', fontWeight: 500 }}>
+        <section style={{ ...sectionStyle, paddingTop: 56, paddingBottom: 88, textAlign: 'center' }}>
+          <h2 style={{ fontSize: 26, margin: '0 0 14px', fontWeight: 500 }}>
             Start building with Flint.
           </h2>
-          <p style={{ margin: '0 0 22px', color: siteTheme.text, fontSize: 16, lineHeight: 1.6 }}>
+          <p style={{ margin: '0 0 30px', color: siteTheme.text, fontSize: 16, lineHeight: 1.7 }}>
             Open source and ready to use. Start from GitHub or browse examples in the gallery.
           </p>
           <div style={{ ...ctaRowStyle, marginTop: 0, justifyContent: 'center' }}>
             <a href={GITHUB_REPO} style={primaryBtn} target="_blank" rel="noreferrer">
               View on GitHub
             </a>
-            <Link to="/wall" style={secondaryBtn}>
+            <Link to="/gallery" style={secondaryBtn}>
               Browse the gallery
             </Link>
           </div>
@@ -553,7 +553,7 @@ function LeadHighlight({ children }: { children: string }) {
 const LEAD_INTRO = (
   <>
     Flint is a visualization intermediate language that lets{' '}
-    <LeadHighlight>AI agents create expressive, good-looking charts from simple, human-editable chart specs</LeadHighlight>. Instead of requiring verbose
+    <LeadHighlight>AI agents reliably create expressive, good-looking charts from simple, human-editable chart specs</LeadHighlight>. Instead of requiring verbose
     low-level parameters such as scales, axes, spacing, and layout, the Flint compiler derives
     optimized chart settings from the data, semantic types, chart type, and encodings. {' '}
     <LeadHighlight>Flint specs can be rendered in different backends (Vega-Lite, ECharts, Chart.js)</LeadHighlight>.
@@ -585,7 +585,7 @@ const FEATURES: Feature[] = [
       'Flint optimizes the chart layout based on an elastic layout model and banking principles. ' + 
       'The compiler dynamically manages sizing, spacing, and arrangement so the chart nicely fits into the canvas. ',
     example:
-      'As the grouped bar chart grows from 5 categories to 22, Flint stretches the canvas and reduces the band width so the dense version still fits the canvas nicely, similar to how springs settle into an expandable container.',
+      'As the grouped bar chart number increases, Flint stretches the canvas and reduces the band width so the dense version still fits the canvas nicely, similar to how springs settle into an expandable container.',
     demo: demoLayout,
   },
   {
@@ -596,7 +596,7 @@ const FEATURES: Feature[] = [
       'the chart type and rebinding visual encodings, and the compiler cascades the new ' +
       'encoding choices to the low-level settings.',
     example:
-      'To turn a faceted bar showing the population distribution by gender and age (the 2000 U.S. Census) into a pyramid chart, the user can simply switch the chart type. The compiler adapts low-level settings based on new layout requirements automatically.',
+      'The user can easily turn a faceted bar chart of the 2000 U.S. Census population distribution by gender and age into a pyramid chart by switching the chart type. The compiler handles the rest.',
     demo: demoAdapt,
   },
   {
@@ -605,7 +605,7 @@ const FEATURES: Feature[] = [
       'Flint specs can be compiled to 34 different chart types in different backends (Vega-Lite, ECharts, and Chart.js). Despite their different APIs and ' +
       'programming models, Flint hides them behind a unified interface. The user can easily switch to different backends and leverage their unique features.',
     example:
-      'Vega-Lite has no native sunburst, but the user can easily convert Vega-Lite bar chart that shows region \u00d7 gameType \u00d7 game to a sunburst chart in ECharts by simply switching the chart type and the rendering backend.',
+      'Vega-Lite has no native sunburst, but the user can easily switch to ECharts. The sunburst chart is a better alternative than the grouped bar chart for visualizing the hierarchy of region \u00d7 gameType \u00d7 game.',
     demo: demoBackends,
   },
 ];
@@ -935,26 +935,27 @@ const sectionStyle: CSSProperties = {
 
 const heroShowcaseSectionStyle: CSSProperties = {
   ...sectionStyle,
-  paddingTop: 24,
-  paddingBottom: 18,
+  paddingTop: 34,
+  paddingBottom: 34,
 };
 
 const howItWorksSectionStyle: CSSProperties = {
   ...sectionStyle,
-  paddingTop: 24,
+  paddingTop: 64,
+  paddingBottom: 48,
 };
 
 const heroTitleStyle: CSSProperties = {
   fontSize: 42,
   lineHeight: 1.18,
-  margin: '0 0 8px',
+  margin: '0 0 14px',
   maxWidth: 960,
   fontWeight: 700,
   letterSpacing: '-0.02em',
 };
 
 const heroAttributionStyle: CSSProperties = {
-  margin: '0 0 36px',
+  margin: '0 0 46px',
   color: siteTheme.textMuted,
   fontSize: 13,
   fontWeight: 500,
@@ -965,7 +966,7 @@ const leadColumnsStyle: CSSProperties = {
   display: 'flex',
   flexDirection: 'row',
   alignItems: 'flex-start',
-  gap: 56,
+  gap: 72,
   flexWrap: 'wrap',
 };
 
@@ -980,7 +981,7 @@ const leadButtonsColStyle: CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   borderLeft: `1px solid ${HAIRLINE}`,
-  paddingLeft: 20,
+  paddingLeft: 28,
 };
 
 // Right-side quick actions kept flat to avoid competing with the hero copy.
@@ -1008,8 +1009,8 @@ const leadHighlightStyle: CSSProperties = {
 const installLinesStyle: CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
-  gap: 4,
-  margin: '20px 0 0',
+  gap: 8,
+  margin: '28px 0 0',
 };
 
 const installLineStyle: CSSProperties = {
@@ -1173,13 +1174,13 @@ const carouselRowStyle: CSSProperties = {
 const showcaseIntroStyle: CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
-  margin: '0 0 20px',
+  margin: '0 0 30px',
 };
 
 const showcaseHeadingStyle: CSSProperties = {
   fontSize: 30,
   fontWeight: 600,
-  margin: '0 0 12px',
+  margin: '0 0 18px',
   letterSpacing: '0.01em',
 };
 
@@ -1187,7 +1188,7 @@ const showcaseIntroBodyStyle: CSSProperties = {
   display: 'flex',
   flexDirection: 'row',
   alignItems: 'stretch',
-  gap: 56,
+  gap: 72,
   flexWrap: 'wrap',
 };
 
@@ -1208,7 +1209,7 @@ const showcaseIntroCtaColStyle: CSSProperties = {
   flexDirection: 'column',
   justifyContent: 'center',
   borderLeft: `1px solid ${HAIRLINE}`,
-  paddingLeft: 20,
+  paddingLeft: 28,
 };
 
 const pagerArrowStyle: CSSProperties = {
@@ -1268,7 +1269,7 @@ const specPreStyle: CSSProperties = {
 };
 
 const pipelineFigureStyle: CSSProperties = {
-  margin: '0 0 32px',
+  margin: '8px 0 54px',
 };
 
 const featureTransitionStyle: CSSProperties = {
@@ -1286,7 +1287,7 @@ const featureTransitionTextStyle: CSSProperties = {
 const featureGridStyle: CSSProperties = {
   display: 'grid',
   gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 440px), 1fr))',
-  gap: '48px 40px',
+  gap: '44px 56px',
   alignItems: 'start',
 };
 
@@ -1300,10 +1301,12 @@ const featureGridItemStyle: CSSProperties = {
 const featureGridVisualStyle: CSSProperties = {
   minWidth: 0,
   height: 360,
+  marginTop: 0,
 };
 
 const featureGridTextStyle: CSSProperties = {
   minWidth: 0,
+  maxWidth: 620,
 };
 
 // Overlapping before/after cards (Halden-style fan on hover).
@@ -1379,21 +1382,24 @@ const demoSpecHotLineStyle: CSSProperties = {
 const featureTitleStyle: CSSProperties = {
   display: 'flex',
   alignItems: 'baseline',
-  gap: 8,
-  fontSize: 19.5,
+  gap: 9,
+  fontSize: 20,
+  lineHeight: 1.35,
   fontWeight: 500,
-  margin: '0 0 10px',
+  margin: '0 0 14px',
 };
 
 const featureNumberStyle: CSSProperties = {
   color: siteTheme.accent,
+  fontSize: 18,
+  fontWeight: 500,
   fontVariantNumeric: 'tabular-nums',
 };
 
 const featureBodyStyle: CSSProperties = {
-  fontSize: 15,
+  fontSize: 15.5,
   color: siteTheme.text,
-  lineHeight: 1.65,
+  lineHeight: 1.75,
   margin: 0,
 };
 
@@ -1410,12 +1416,11 @@ function featureExampleRowStyle(): CSSProperties {
 }
 
 const featureExampleStyle: CSSProperties = {
-  margin: 0,
-  paddingLeft: 12,
-  borderLeft: `2px solid ${HAIRLINE}`,
+  margin: '0',
+  padding: 0,
   fontSize: 14,
-  lineHeight: 1.6,
-  color: siteTheme.text,
+  lineHeight: 1.7,
+  color: siteTheme.textMuted,
 };
 
 const codeStyle: CSSProperties = {

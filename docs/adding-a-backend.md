@@ -110,7 +110,7 @@ Register in `templates/index.ts`: import defs, add them to the category map, and
 
 # §5 Site and gallery
 
-- **Gallery dev server:** `npm run site` from the repo root, then open `/wall`
+- **Gallery dev server:** `npm run site` from the repo root, then open `/gallery`
 - **Supported backends:** update `site/src/shared/supported-backends.ts` if the new backend should appear in the UI
 - **Renderers:** only add a new React view (`site/src/components/`) when the spec format cannot reuse `VegaLiteView`, `EChartsView`, or `ChartjsView`. `TripleChart` currently covers VL + ECharts + Chart.js.
 

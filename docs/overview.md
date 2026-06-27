@@ -92,7 +92,7 @@ Faceted line chart:
 }
 ```
 
-**Exploration workflow:** change only `chart_spec` to try a heatmap, grouped bar, waterfall, or sunburst. The **dataSpec stays fixed**, and you can switch backend (for example, Vega-Lite → ECharts) without rewriting the Flint input. See the [gallery](/wall) for template and backend coverage.
+**Exploration workflow:** change only `chart_spec` to try a heatmap, grouped bar, waterfall, or sunburst. The **dataSpec stays fixed**, and you can switch backend (for example, Vega-Lite → ECharts) without rewriting the Flint input. See the [gallery](/gallery) for template and backend coverage.
 
 Semantic types use a three-level hierarchy. Details: [Semantic Type](/documentation/semantic-types).
 
@@ -170,7 +170,9 @@ const spec = assembleVegaLite({
 | Page | Use for |
 |------|---------|
 | [Getting started](/documentation/getting-started) | Step-by-step first chart |
-| [Gallery](/wall) | Every template + multi-backend preview |
+| [Set up Flint MCP](/documentation/setup-flint-mcp) | MCP server setup, data roots, tools, and verification |
+| [Agent workflows](/documentation/agent-workflows) | Custom agent and product integration patterns |
+| [Gallery](/gallery) | Every template + multi-backend preview |
 | [Editor](/editor) | Paste JSON, switch Vega-Lite / ECharts / Chart.js |
 
 ---

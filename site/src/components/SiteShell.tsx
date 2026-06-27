@@ -52,7 +52,7 @@ export function SiteNavBar(_props: { flush?: boolean } = {}) {
         <NavLink to="/mcp" active={pathname.startsWith('/mcp')}>
           MCP Server
         </NavLink>
-        <NavLink to="/wall" active={pathname.startsWith('/wall') || pathname.startsWith('/gallery')}>
+        <NavLink to="/gallery" active={pathname.startsWith('/gallery') || pathname.startsWith('/wall')}>
           Gallery
         </NavLink>
         <NavLink

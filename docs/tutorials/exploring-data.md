@@ -193,7 +193,7 @@ The same `ChartAssemblyInput` compiles to every supported backend:
 | `assembleChartjs(input)` | Chart.js config |
 
 Not every `chartType` exists in every backend. The
-[gallery](/wall) shows only tabs for supported engines — e.g. **Sankey** is
+[gallery](/gallery) shows only tabs for supported engines — e.g. **Sankey** is
 ECharts-only. Lookup helpers:
 
 ```ts
@@ -308,13 +308,13 @@ tutorials and gallery examples work with defaults.
 
 ## Load examples from the gallery
 
-The [gallery](/wall) links each example to the editor (`Open in editor`). That loads a full `ChartAssemblyInput` built from real
+The [gallery](/gallery) links each example to the editor (`Open in editor`). That loads a full `ChartAssemblyInput` built from real
 test cases — useful when you want to see encodings for bump charts, heatmaps,
 facets, and other templates.
 
 Workflow:
 
-1. Browse [gallery](/wall) by chart family.
+1. Browse [gallery](/gallery) by chart family.
 2. Open an example in the editor.
 3. Change one field name or semantic type and watch the compiler rebuild all
    three backends.
@@ -327,7 +327,7 @@ Workflow:
 |------|-------------|
 | Full API & architecture | [Overview](/documentation/overview) |
 | Semantic type reference | [Semantic Type](/documentation/semantic-types) |
-| All chart templates | [Gallery](/wall) |
+| All chart templates | [Gallery](/gallery) |
 | Author a new template | [Extending chart templates](/documentation/adding-a-chart-template) |
 | Local dev setup | [Development](/documentation/development) |
 

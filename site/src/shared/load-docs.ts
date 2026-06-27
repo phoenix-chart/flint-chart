@@ -10,7 +10,7 @@ const RAW_MODULES = import.meta.glob<string>(
     eager: true,
   },
 );
-// Tutorials: getting-started, data-story, agent-workflows, exploring-data, chart-sizing.
+// Tutorials: getting-started, data-story, setup-flint-mcp, agent-workflows, exploring-data, chart-sizing.
 
 /** Doc figures under docs/figs/ — resolved to bundled asset URLs. Images only;
  * non-image assets (e.g. the paper PDF) are linked externally, not bundled. */

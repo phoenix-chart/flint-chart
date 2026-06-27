@@ -132,10 +132,10 @@ export function ChartWall() {
   const [activeChartId, setActiveChartId] = useState<string | null>(null);
   const [active, setActive] = useState<ActiveModal | null>(null);
 
-  // Keep the URL canonical (e.g. /wall -> /wall/vegalite) without adding history.
+  // Keep the URL canonical (e.g. /gallery -> /gallery/vegalite) without adding history.
   useEffect(() => {
     if (backendParam !== category.id) {
-      navigate(`/wall/${category.id}`, { replace: true });
+      navigate(`/gallery/${category.id}`, { replace: true });
     }
   }, [backendParam, category.id, navigate]);
 
@@ -204,7 +204,7 @@ export function ChartWall() {
 
   const scrollToGallery = useCallback((id: PreviewBackend) => {
     if (id !== category.id) {
-      navigate(`/wall/${id}`);
+      navigate(`/gallery/${id}`);
       return;
     }
 

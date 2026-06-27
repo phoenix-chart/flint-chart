@@ -1,9 +1,12 @@
+import agentIcon from '../assets/agent-icon.svg';
+
 export type DocSection = 'documentation';
 
 export interface DocEntry {
   slug: string;
   title: string;
   description: string;
+  icon?: string;
   /** Path relative to site/ — resolved by Vite raw import glob. */
   file: string;
 }
@@ -34,10 +37,19 @@ export const DOCUMENTATION_GROUPS: DocGroup[] = [
         file: '../../../docs/tutorials/data-story.md',
       },
       {
+        slug: 'setup-flint-mcp',
+        title: 'Set up Flint MCP',
+        description:
+          'Configure the MCP server, data roots, tools, resources, backends, and first verification prompt.',
+        icon: agentIcon,
+        file: '../../../docs/tutorials/setup-flint-mcp.md',
+      },
+      {
         slug: 'agent-workflows',
         title: 'Agent workflows',
         description:
-          'Use Flint through MCP tools, or embed it as a library inside an agentic product.',
+          'Walk through a Data Formulator-style agent workflow that uses Flint as the semantic chart layer.',
+        icon: agentIcon,
         file: '../../../docs/tutorials/agent-workflows.md',
       },
       {

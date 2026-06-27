@@ -68,5 +68,5 @@ Start with the guide that matches the surface you want to extend:
 ## Test coverage
 
 - **Smoke tests:** `packages/flint-js/tests/smoke.test.ts`
-- **Visual coverage:** [Gallery](/wall), driven by `TEST_GENERATORS` in test-data
+- **Visual coverage:** [Gallery](/gallery), driven by `TEST_GENERATORS` in test-data
 - **Shared fixtures:** `shared/test-data/`, consumed by JS and Python tests

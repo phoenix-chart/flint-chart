@@ -158,11 +158,13 @@ Python support will use the same input shape and is planned for a later release.
 
 - [Example: a data story](/documentation/data-story) shows why the split matters:
   one DataSpec becomes five different charts by changing only the ChartSpec.
-- [Agent workflows](/documentation/agent-workflows) shows how an AI agent can help
-  infer the DataSpec and author chart requests.
+- [Set up Flint MCP](/documentation/setup-flint-mcp) shows how to connect the
+  MCP server when you want an agent to render charts from chat or an IDE.
+- [Agent workflows](/documentation/agent-workflows) shows how to embed Flint's
+  chart contract inside a custom agent or product workflow.
 - [Semantic Type](/documentation/semantic-types) explains the semantic labels
   Flint understands, such as `YearMonth`, `Quantity`, `Category`, and `Profit`.
-- [Gallery](/wall) lists the chart templates available across Vega-Lite,
+- [Gallery](/gallery) lists the chart templates available across Vega-Lite,
   ECharts, and Chart.js.
 - [Overview](/documentation/overview) gives the deeper architecture when you
   are ready for the full model.

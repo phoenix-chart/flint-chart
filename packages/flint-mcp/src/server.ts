@@ -24,7 +24,9 @@ import {
 } from './tools/schemas.js';
 
 /** Package version, kept in lockstep with the npm release. */
-export const VERSION = '0.1.0';
+export const VERSION = JSON.parse(
+  readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
+).version as string;
 
 export const AGENT_SKILL_RESOURCE_URI = 'flint://agent-skill';
 const AGENT_SKILL_ASSET = new URL('../assets/flint-chart-author.SKILL.md', import.meta.url);

@@ -23,6 +23,8 @@ import {
   type ResolvedAction,
 } from './options';
 
+declare const __FLINT_MCP_VERSION__: string;
+
 /** Control descriptor shared by chart properties and encoding actions. */
 type ControlSpec =
   | { type: 'continuous'; min: number; max: number; step?: number }
@@ -384,7 +386,7 @@ export function FlintApp() {
   const [hostContext, setHostContext] = useState<McpUiHostContext | undefined>();
 
   const { app, error } = useApp({
-    appInfo: { name: 'Flint Chart', version: '0.1.0' },
+    appInfo: { name: 'Flint Chart', version: __FLINT_MCP_VERSION__ },
     capabilities: {},
     autoResize: true,
     onAppCreated: (app) => {

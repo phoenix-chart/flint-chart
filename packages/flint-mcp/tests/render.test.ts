@@ -24,6 +24,10 @@ const sales: ChartAssemblyInput = {
 
 const PNG_MAGIC = Buffer.from([0x89, 0x50, 0x4e, 0x47]);
 
+function pngDimensions(buffer: Buffer): { width: number; height: number } {
+  return { width: buffer.readUInt32BE(16), height: buffer.readUInt32BE(20) };
+}
+
 describe('renderChart → PNG', () => {
   for (const backend of ['vegalite', 'echarts', 'chartjs'] as const) {
     it(`renders a ${backend} bar chart to a non-trivial PNG`, async () => {
@@ -33,6 +37,7 @@ describe('renderChart → PNG', () => {
       expect(res.buffer).toBeInstanceOf(Buffer);
       expect(res.buffer!.length).toBeGreaterThan(1000);
       expect(res.buffer!.subarray(0, 4).equals(PNG_MAGIC)).toBe(true);
+      expect(pngDimensions(res.buffer!)).toEqual({ width: res.width, height: res.height });
       expect(res.base64).toBeTruthy();
       expect(Array.isArray(res.warnings)).toBe(true);
     });

@@ -6,7 +6,12 @@ import {
   assembleECharts,
   assembleChartjs,
   type ChartAssemblyInput,
+  type ChartEncoding,
+  type ChartTemplateDef,
   type ChartWarning,
+  vlGetTemplateDef,
+  ecGetTemplateDef,
+  cjsGetTemplateDef,
 } from 'flint-chart';
 import {
   resolveDataSource,
@@ -27,6 +32,12 @@ const ASSEMBLERS: Record<
   vegalite: assembleVegaLite,
   echarts: assembleECharts,
   chartjs: assembleChartjs,
+};
+
+const TEMPLATE_LOOKUP: Record<RenderBackend, (chartType: string) => ChartTemplateDef | undefined> = {
+  vegalite: vlGetTemplateDef,
+  echarts: ecGetTemplateDef,
+  chartjs: cjsGetTemplateDef,
 };
 
 export interface AssembleResult {
@@ -56,6 +67,7 @@ export function validateInput(
 export function prepareInput(
   input: ChartAssemblyInput,
   options: DataSourceOptions = {},
+  backend?: RenderBackend,
 ): ChartAssemblyInput {
   if (input == null || typeof input !== 'object') {
     throw new Error('input must be a ChartAssemblyInput object');
@@ -82,6 +94,10 @@ export function prepareInput(
   if (cs == null || typeof cs !== 'object' || typeof cs.chartType !== 'string') {
     throw new Error('input.chart_spec.chartType is required');
   }
+  if (resolvedData.values.length === 0) {
+    throw new Error('input.data.values must contain at least one row');
+  }
+  validateChartSpec(cs, resolvedData.values, backend);
   for (const field of ['baseSize', 'canvasSize'] as const) {
     const size = cs[field];
     if (size) {
@@ -98,6 +114,77 @@ export function prepareInput(
   return resolvedInput;
 }
 
+function validateChartSpec(cs: any, rows: Record<string, unknown>[], backend?: RenderBackend): void {
+  const encodings = cs.encodings;
+  if (encodings == null || typeof encodings !== 'object' || Array.isArray(encodings)) {
+    throw new Error('input.chart_spec.encodings must be a channel-to-encoding object');
+  }
+
+  const entries = Object.entries(encodings);
+  if (entries.length === 0) {
+    throw new Error('input.chart_spec.encodings must bind at least one channel');
+  }
+
+  const template = backend ? TEMPLATE_LOOKUP[backend]?.(cs.chartType) : undefined;
+  if (backend && !template) return;
+
+  if (template) {
+    const allowed = new Set(template.channels ?? []);
+    for (const [channel] of entries) {
+      if (!allowed.has(channel)) {
+        throw new Error(
+          `chart_spec.encodings.${channel} is not supported by ${cs.chartType} for ${backend}`,
+        );
+      }
+    }
+
+    for (const channel of requiredChannels(template)) {
+      if (!hasEncodingBinding(encodings[channel])) {
+        throw new Error(`chart_spec.encodings.${channel} is required for ${cs.chartType}`);
+      }
+    }
+  }
+
+  const dataFields = new Set(rows.flatMap((row) => Object.keys(row)));
+  for (const [channel, encoding] of entries) {
+    for (const field of encodingFields(encoding)) {
+      if (!dataFields.has(field)) {
+        throw new Error(`chart_spec.encodings.${channel}.field "${field}" does not exist in data.values`);
+      }
+    }
+  }
+}
+
+function requiredChannels(template: ChartTemplateDef): string[] {
+  const channels = template.channels ?? [];
+  if (channels.includes('x') && channels.includes('y')) return ['x', 'y'];
+  if (template.chart === 'KPI Card') return ['metric', 'value'];
+  return [];
+}
+
+function hasEncodingBinding(value: unknown): boolean {
+  if (typeof value === 'string') return value.trim().length > 0;
+  if (Array.isArray(value)) return value.some(hasEncodingBinding);
+  if (value && typeof value === 'object') {
+    const encoding = value as ChartEncoding;
+    return (
+      (typeof encoding.field === 'string' && encoding.field.trim().length > 0) ||
+      encoding.aggregate === 'count'
+    );
+  }
+  return false;
+}
+
+function encodingFields(value: unknown): string[] {
+  if (typeof value === 'string') return value.trim() ? [value] : [];
+  if (Array.isArray(value)) return value.flatMap(encodingFields);
+  if (value && typeof value === 'object') {
+    const field = (value as ChartEncoding).field;
+    return typeof field === 'string' && field.trim() ? [field] : [];
+  }
+  return [];
+}
+
 /**
  * Assemble a Flint spec for one backend and split out Flint's private metadata
  * (`_warnings`, `_width`, `_height`). The returned `spec` is left untouched so
@@ -112,7 +199,7 @@ export function assembleForBackend(
   if (!assemble) {
     throw new Error(`unknown backend: ${backend}`);
   }
-  const resolvedInput = prepareInput(input, options);
+  const resolvedInput = prepareInput(input, options, backend);
   const spec = assemble(resolvedInput);
   const warnings: ChartWarning[] = Array.isArray(spec?._warnings)
     ? spec._warnings

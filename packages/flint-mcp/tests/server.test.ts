@@ -116,6 +116,25 @@ describe('MCP server', () => {
     expect(payload.valid).toBe(true);
   });
 
+  it('validate_chart rejects malformed specs before assembly', async () => {
+    for (const chart_spec of [
+      { ...barChart.chart_spec, encodings: {} },
+      { ...barChart.chart_spec, encodings: { x: { field: 'missing' }, y: { field: 'revenue' } } },
+      {
+        ...barChart.chart_spec,
+        encodings: { x: { field: 'region' }, y: { field: 'revenue' }, banana: { field: 'region' } },
+      },
+    ]) {
+      const res: any = await client.callTool({
+        name: 'validate_chart',
+        arguments: { ...barChart, chart_spec, backend: 'vegalite' },
+      });
+      const payload = JSON.parse(res.content[0].text);
+      expect(payload.valid).toBe(false);
+      expect(payload.errors.length).toBeGreaterThan(0);
+    }
+  });
+
   it('list_chart_types enumerates chart types per backend', async () => {
     const res: any = await client.callTool({
       name: 'list_chart_types',

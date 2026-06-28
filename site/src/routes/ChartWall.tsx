@@ -254,8 +254,10 @@ export function ChartWall() {
 
   return (
     <SiteShell>
+      <style>{galleryResponsiveStyles}</style>
       <div
         ref={mainRef}
+        className="gallery-scroll-root"
         style={{
           flex: 1,
           minHeight: 0,
@@ -264,6 +266,7 @@ export function ChartWall() {
         }}
       >
         <div
+          className="gallery-layout"
           style={{
             display: 'flex',
             alignItems: 'flex-start',
@@ -282,11 +285,12 @@ export function ChartWall() {
           />
 
           <main style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ maxWidth: 1100, margin: '0 auto', padding: '36px 40px 96px' }}>
-              <header style={{ marginBottom: 18 }}>
-                <h1 style={{ margin: 0, fontSize: 28, fontWeight: 600, letterSpacing: -0.4 }}>
-                  Example Gallery ({category.label} backend)
+            <div className="gallery-content" style={{ maxWidth: 1100, margin: '0 auto', padding: '36px 40px 96px' }}>
+              <header className="gallery-header" style={{ marginBottom: 18 }}>
+                <h1 className="gallery-title" style={{ margin: 0, fontSize: 28, fontWeight: 600, letterSpacing: -0.4 }}>
+                  Example Gallery<span className="gallery-title-backend"> ({category.label} backend)</span>
                 </h1>
+                <MobileBackendTabs category={category} onSelectBackend={scrollToGallery} />
               </header>
 
               <BackendIntro
@@ -324,6 +328,8 @@ export function ChartWall() {
                     </div>
 
                     <div
+                      className="gallery-card-grid"
+                      data-gallery-grid=""
                       style={{
                         display: 'grid',
                         gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
@@ -476,6 +482,38 @@ function BackendNavItem({
   );
 }
 
+function MobileBackendTabs({
+  category,
+  onSelectBackend,
+}: {
+  category: ChartCategory;
+  onSelectBackend: (id: PreviewBackend) => void;
+}) {
+  return (
+    <div className="gallery-mobile-backends" aria-label="Choose gallery backend">
+      {CHART_CATEGORIES.map((candidate) => {
+        const active = candidate.id === category.id;
+        return (
+          <button
+            key={candidate.id}
+            type="button"
+            onClick={() => onSelectBackend(candidate.id)}
+            aria-pressed={active}
+            style={{
+              ...mobileBackendTabStyle,
+              background: active ? siteTheme.text : siteTheme.surface,
+              color: active ? '#fff' : siteTheme.text,
+              borderColor: active ? siteTheme.text : siteTheme.border,
+            }}
+          >
+            {candidate.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function BackendIntro({
   category,
   groups,
@@ -511,8 +549,9 @@ function BackendIntro({
 const ${resultNames[category.id]} = ${category.fn}(input);`;
 
   return (
-    <div style={{ marginTop: 22 }}>
+    <div className="gallery-intro" data-gallery-intro="" style={{ marginTop: 22 }}>
       <p
+        className="gallery-intro-copy"
         style={{
           margin: 0,
           maxWidth: 720,
@@ -525,11 +564,14 @@ const ${resultNames[category.id]} = ${category.fn}(input);`;
         semantic types, and a chart spec) to <code style={inlineCodeStyle}>{category.fn}()</code>.
       </p>
 
-      <CodeBlock customStyle={{ marginTop: 12, maxWidth: 560, fontSize: 12.5 }}>
-        {snippet}
-      </CodeBlock>
+      <div className="gallery-intro-code">
+        <CodeBlock customStyle={{ marginTop: 12, maxWidth: 560, fontSize: 12.5 }}>
+          {snippet}
+        </CodeBlock>
+      </div>
 
       <p
+        className="gallery-intro-link"
         style={{
           margin: '10px 0 0',
           maxWidth: 720,
@@ -550,8 +592,8 @@ const ${resultNames[category.id]} = ${category.fn}(input);`;
         .
       </p>
 
-      <div style={{ margin: '12px 0 0', maxWidth: 760 }}>
-        <div style={chartNameChipListStyle}>
+      <div className="gallery-chip-panel" style={{ margin: '12px 0 0', maxWidth: 760 }}>
+        <div data-gallery-chip-list="" style={chartNameChipListStyle}>
           {chartLinks.map((link) => (
             <ChartChip key={link.id} link={link} onNavigate={onNavigate} />
           ))}
@@ -616,6 +658,8 @@ function VariantCard({ tile, onOpen }: { tile: Tile; onOpen: () => void }) {
   return (
     <button
       ref={ref}
+      className="gallery-card"
+      data-gallery-card=""
       type="button"
       onClick={onOpen}
       onMouseEnter={() => setHovered(true)}
@@ -720,3 +764,92 @@ const chartNameChipIconStyle: CSSProperties = {
   height: 13,
   flexShrink: 0,
 };
+
+const mobileBackendTabStyle: CSSProperties = {
+  flex: '0 0 auto',
+  border: `1px solid ${siteTheme.border}`,
+  borderRadius: 999,
+  padding: '6px 12px',
+  font: 'inherit',
+  fontSize: 13,
+  lineHeight: 1.2,
+  cursor: 'pointer',
+};
+
+const galleryResponsiveStyles = `
+  .gallery-mobile-backends {
+    display: none;
+  }
+
+  @media (max-width: 640px) {
+    .gallery-scroll-root {
+      overflow-x: hidden !important;
+    }
+
+    .gallery-layout {
+      display: block !important;
+      max-width: none !important;
+    }
+
+    .gallery-layout .app-sidebar {
+      display: none !important;
+    }
+
+    .gallery-content {
+      max-width: none !important;
+      padding: 24px 20px 72px !important;
+    }
+
+    .gallery-header {
+      margin-bottom: 14px !important;
+    }
+
+    .gallery-title {
+      font-size: 26px !important;
+      line-height: 1.16 !important;
+      letter-spacing: 0 !important;
+    }
+
+    .gallery-title-backend {
+      display: none;
+    }
+
+    .gallery-mobile-backends {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 14px 0 2px;
+      scrollbar-width: none;
+    }
+
+    .gallery-mobile-backends::-webkit-scrollbar {
+      display: none;
+    }
+
+    .gallery-intro {
+      margin-top: 10px !important;
+      margin-bottom: 30px;
+    }
+
+    .gallery-intro-copy {
+      font-size: 15.5px !important;
+      line-height: 1.6 !important;
+      max-width: none !important;
+    }
+
+    .gallery-intro-code,
+    .gallery-intro-link,
+    .gallery-chip-panel {
+      display: none !important;
+    }
+
+    .gallery-card-grid {
+      grid-template-columns: minmax(0, 1fr) !important;
+      gap: 22px !important;
+    }
+
+    .gallery-card {
+      text-align: left !important;
+    }
+  }
+`;

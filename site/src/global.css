@@ -21,3 +21,36 @@
   text-decoration-line: underline !important;
   text-decoration-color: currentColor !important;
 }
+
+@media (max-width: 640px) {
+  .site-nav-bar {
+    gap: 14px !important;
+    padding: 0 16px !important;
+    height: auto !important;
+    min-height: 48px;
+    flex-wrap: wrap;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    overflow: hidden;
+  }
+
+  .site-nav-scroll {
+    order: 3;
+    flex: 0 0 100% !important;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    scrollbar-width: none;
+  }
+
+  .site-nav-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .site-nav-actions {
+    order: 2;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+}

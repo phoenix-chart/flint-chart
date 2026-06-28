@@ -26,7 +26,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          registry-url: https://registry.npmjs.org/
 
       - name: Use npm 11 for trusted publishing
         run: npm install -g npm@11
@@ -76,6 +75,21 @@ jobs:
 
       - name: Publish flint-chart-mcp
         run: npm publish --workspace packages/flint-mcp --access public
+
+      - name: Wait for flint-chart-mcp to resolve
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in {1..30}; do
+            if npm view "flint-chart-mcp@${mcp_version}" version >/dev/null 2>&1; then
+              npm view "flint-chart-mcp@${mcp_version}" version
+              exit 0
+            fi
+            echo "Waiting for flint-chart-mcp@${mcp_version} to be visible on npm (${attempt}/30)..."
+            sleep 10
+          done
+          echo "::error::flint-chart-mcp@${mcp_version} did not become visible on npm in time."
+          exit 1
 
       - name: Verify published packages
         run: |

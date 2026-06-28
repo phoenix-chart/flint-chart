@@ -30,11 +30,13 @@ export function SiteNavBar(_props: { flush?: boolean } = {}) {
 
   return (
     <header
+      className="site-nav-bar"
       style={{
         display: 'flex',
         alignItems: 'center',
         gap: 20,
         width: '100%',
+        boxSizing: 'border-box',
         maxWidth: CONTENT_MAX_WIDTH,
         margin: '0 auto',
         padding: '0 20px',
@@ -45,7 +47,7 @@ export function SiteNavBar(_props: { flush?: boolean } = {}) {
     >
       <BrandLink />
 
-      <nav style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1 }}>
+      <nav className="site-nav-scroll" style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1, minWidth: 0 }}>
         <NavLink to="/" active={pathname === '/'}>
           About
         </NavLink>
@@ -70,7 +72,7 @@ export function SiteNavBar(_props: { flush?: boolean } = {}) {
         <NavLinkExternal href={`${GITHUB_REPO}#ecosystem`} label="Ecosystem" /> */}
       </nav>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div className="site-nav-actions" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <GitHubLink />
       </div>
     </header>

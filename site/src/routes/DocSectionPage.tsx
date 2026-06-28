@@ -69,8 +69,10 @@ export function DocSectionPage({ section }: { section: DocSection }) {
 
   return (
     <SiteShell>
+      <style>{docResponsiveStyles}</style>
       <div
         ref={mainRef}
+        className="doc-scroll-root"
         style={{
           flex: 1,
           minHeight: 0,
@@ -78,6 +80,8 @@ export function DocSectionPage({ section }: { section: DocSection }) {
         }}
       >
         <div
+          className="doc-layout"
+          data-doc-layout=""
           style={{
             display: 'grid',
             gridTemplateColumns: `${SIDEBAR_NAV_WIDTH}px 1fr`,
@@ -109,7 +113,16 @@ export function DocSectionPage({ section }: { section: DocSection }) {
             ))}
           </SidebarNav>
 
-          <main style={{ minWidth: 0, padding: '24px 32px 48px' }}>
+          <main className="doc-main" data-doc-main="" style={{ minWidth: 0, padding: '24px 32px 48px' }}>
+            <MobileDocPicker
+              section={section}
+              groups={groups}
+              activeSlug={activeSlug}
+              onNavigate={(nextSlug) => {
+                mainRef.current?.scrollTo({ top: 0 });
+                navigate(`/${section}/${nextSlug}`);
+              }}
+            />
             {!entry || !markdown ? (
               <p style={{ color: siteTheme.textMuted }}>Document not found.</p>
             ) : (
@@ -121,3 +134,114 @@ export function DocSectionPage({ section }: { section: DocSection }) {
     </SiteShell>
   );
 }
+
+function MobileDocPicker({
+  section,
+  groups,
+  activeSlug,
+  onNavigate,
+}: {
+  section: DocSection;
+  groups: ReturnType<typeof getDocGroups>;
+  activeSlug?: string;
+  onNavigate: (slug: string) => void;
+}) {
+  return (
+    <label className="doc-mobile-picker" style={docMobilePickerStyle}>
+      <span style={docMobilePickerLabelStyle}>Documentation</span>
+      <select
+        value={activeSlug ?? ''}
+        onChange={(event) => onNavigate(event.currentTarget.value)}
+        style={docMobileSelectStyle}
+        aria-label="Choose documentation page"
+      >
+        {groups.map((group) => (
+          <optgroup key={group.id} label={group.label}>
+            {group.docs.map((doc) => (
+              <option key={doc.slug} value={doc.slug}>
+                {doc.title}
+              </option>
+            ))}
+          </optgroup>
+        ))}
+      </select>
+      <span style={docMobilePathStyle}>/{section}</span>
+    </label>
+  );
+}
+
+const docMobilePickerStyle: React.CSSProperties = {
+  display: 'none',
+};
+
+const docMobilePickerLabelStyle: React.CSSProperties = {
+  display: 'block',
+  marginBottom: 6,
+  color: siteTheme.textMuted,
+  fontSize: 12,
+  fontWeight: 600,
+  letterSpacing: '0.04em',
+  textTransform: 'uppercase',
+};
+
+const docMobileSelectStyle: React.CSSProperties = {
+  display: 'block',
+  width: '100%',
+  minHeight: 40,
+  padding: '7px 12px',
+  border: `1px solid ${siteTheme.border}`,
+  borderRadius: 8,
+  background: siteTheme.surface,
+  color: siteTheme.text,
+  font: 'inherit',
+  fontSize: 15,
+};
+
+const docMobilePathStyle: React.CSSProperties = {
+  display: 'block',
+  marginTop: 6,
+  color: siteTheme.textMuted,
+  fontSize: 12,
+};
+
+const docResponsiveStyles = `
+  @media (max-width: 640px) {
+    .doc-scroll-root {
+      overflow-x: hidden !important;
+    }
+
+    .doc-layout {
+      display: block !important;
+      max-width: none !important;
+    }
+
+    .doc-layout .app-sidebar {
+      display: none !important;
+    }
+
+    .doc-main {
+      padding: 22px 20px 56px !important;
+    }
+
+    .doc-mobile-picker {
+      display: block !important;
+      margin-bottom: 22px;
+    }
+
+    .doc-markdown {
+      max-width: none !important;
+      font-size: 15.5px !important;
+      line-height: 1.68 !important;
+    }
+
+    .doc-markdown h1 {
+      font-size: 26px !important;
+      line-height: 1.16 !important;
+    }
+
+    .doc-markdown h2 {
+      font-size: 19px !important;
+      line-height: 1.25 !important;
+    }
+  }
+`;

@@ -8,6 +8,13 @@ import type { RenderResult, RenderFormat } from './types.js';
 const DEFAULT_W = 400;
 const DEFAULT_H = 320;
 
+function readSvgDimension(svg: string, attr: 'width' | 'height'): number | undefined {
+  const match = svg.match(new RegExp(`<svg[^>]*\\s${attr}="([^\"]+)"`, 'i'));
+  if (!match) return undefined;
+  const value = Number.parseFloat(match[1]);
+  return Number.isFinite(value) && value > 0 ? Math.round(value) : undefined;
+}
+
 export interface VegaLiteRenderArgs {
   format: RenderFormat;
   scale: number;
@@ -49,9 +56,10 @@ export async function renderVegaLite(
   const svg = await view.toSVG();
   view.finalize();
 
-  // Vega reports the rendered content box; fall back to the assembler size.
-  const width = Math.round((view.width?.() as number) || args.width || DEFAULT_W);
-  const height = Math.round((view.height?.() as number) || args.height || DEFAULT_H);
+  // Vega's View width/height report the content box, excluding axes/legends.
+  // The root SVG dimensions are the actual artifact dimensions used by resvg.
+  const width = readSvgDimension(svg, 'width') ?? args.width ?? DEFAULT_W;
+  const height = readSvgDimension(svg, 'height') ?? args.height ?? DEFAULT_H;
 
   return svgToResult(svg, {
     backend: 'vegalite',

@@ -140,12 +140,14 @@ export function Editor() {
 
   return (
     <SiteShell>
+      <style>{editorResponsiveStyles}</style>
       <ResizeSplit
+        className="editor-main-split"
         direction="horizontal"
         initialRatio={32}
         storageKey="flint-editor-split-h"
       >
-        <section style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
+        <section className="editor-code-pane" style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
           <InputPane
             label="Flint spec"
             loadedFromGallery={loadedFromGallery}
@@ -163,6 +165,7 @@ export function Editor() {
         </section>
 
         <ResizeSplit
+          className="editor-preview-split"
           direction="vertical"
           initialRatio={52}
           storageKey="flint-editor-split-v"
@@ -213,7 +216,7 @@ function InputPane({
   foldKey: number;
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
+    <div className="editor-input-pane" style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
       <PaneHeader label={label}>
         {loadedFromGallery ? (
           <span style={galleryBadgeStyle}>loaded from Gallery</span>
@@ -269,7 +272,7 @@ function PreviewPane({
   compiled: CompileResult<unknown> | null;
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
+    <div className="editor-preview-pane" style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
       <header style={paneHeaderStyle}>
         <span style={paneTitleStyle}>Preview</span>
         <div style={backendToggleStyle} role="tablist" aria-label="Rendering backend">
@@ -289,7 +292,7 @@ function PreviewPane({
         <div style={{ flex: 1 }} />
       </header>
 
-      <div style={{ flex: 1, overflow: 'auto', padding: 16, background: siteTheme.surface }}>
+      <div className="editor-preview-body" style={{ flex: 1, overflow: 'auto', padding: 16, background: siteTheme.surface }}>
         {!parsed.ok ? (
           <pre style={{ color: siteTheme.error, fontSize: 13, whiteSpace: 'pre-wrap', margin: 0 }}>
             JSON error: {String((parsed.err as Error).message)}
@@ -426,7 +429,7 @@ function OutputPane({
 }) {
   const spec = compiled?.ok ? compiled.value : null;
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
+    <div className="editor-output-pane" style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
       <PaneHeader label={label} hint={`${OUTPUT_LANG[backend]} · read-only`}>
         {spec != null && <OutputActions backend={backend} spec={spec} text={text} />}
         {compileError && (
@@ -538,3 +541,76 @@ const outputBtnStyle: React.CSSProperties = {
   cursor: 'pointer',
   whiteSpace: 'nowrap',
 };
+
+const editorResponsiveStyles = `
+  @media (max-width: 640px) {
+    .editor-main-split {
+      flex-direction: column !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+    }
+
+    .editor-main-split > [role="separator"],
+    .editor-preview-split > [role="separator"] {
+      display: none !important;
+    }
+
+    .editor-main-split > div:not([role="separator"]),
+    .editor-preview-split > div:not([role="separator"]) {
+      flex: 0 0 auto !important;
+      min-height: 0 !important;
+    }
+
+    .editor-main-split > div:not([role="separator"]):first-child {
+      flex-basis: 430px !important;
+      height: 430px !important;
+      overflow: hidden !important;
+    }
+
+    .editor-code-pane,
+    .editor-input-pane {
+      height: 430px !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+    }
+
+    .editor-preview-split {
+      display: block !important;
+      flex: 0 0 auto !important;
+      min-height: 360px !important;
+      overflow: visible !important;
+    }
+
+    .editor-preview-pane {
+      min-height: 360px !important;
+      border-top: 1px solid ${siteTheme.border};
+    }
+
+    .editor-preview-body {
+      min-height: 320px;
+      padding: 12px !important;
+    }
+
+    .editor-output-pane {
+      display: none !important;
+    }
+
+    .editor-input-pane header,
+    .editor-preview-pane header {
+      flex-wrap: wrap;
+      align-items: center !important;
+      min-height: 42px !important;
+      gap: 6px !important;
+    }
+
+    .editor-preview-pane [role="tablist"] {
+      max-width: 100%;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .editor-preview-pane [role="tablist"]::-webkit-scrollbar {
+      display: none;
+    }
+  }
+`;

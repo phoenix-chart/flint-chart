@@ -5,6 +5,7 @@ type SplitDirection = 'horizontal' | 'vertical';
 
 interface ResizeSplitProps {
   direction: SplitDirection;
+  className?: string;
   /** Initial size of the first pane, as a percentage (0–100). */
   initialRatio?: number;
   minFirst?: number;
@@ -35,6 +36,7 @@ function clampRatio(value: number, minFirst: number, minSecond: number) {
  */
 export function ResizeSplit({
   direction,
+  className,
   initialRatio = 50,
   minFirst = 15,
   minSecond = 15,
@@ -104,6 +106,7 @@ export function ResizeSplit({
   return (
     <div
       ref={containerRef}
+      className={className}
       style={{
         display: 'flex',
         flexDirection: isHorizontal ? 'row' : 'column',

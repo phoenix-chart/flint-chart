@@ -7,6 +7,7 @@ import { ScaleToFit } from '../components/ScaleToFit';
 import { SpecPipelineFigure } from '../components/SpecPipelineFigure';
 import { testCaseToFlintSummary, testCaseToAssemblyInput } from '../shared/test-case-utils';
 import { buildGalleryEditorHref, openEditorWithPayload } from '../shared/editor-payload';
+import { CHART_CATEGORIES } from '../shared/chart-categories';
 import { MOVIE_RATINGS } from './movie-ratings-data';
 import {
   ALL_BACKENDS,
@@ -34,7 +35,7 @@ export function Landing() {
           <h1 style={heroTitleStyle}>Flint: A Visualization Language for the AI Era</h1>
           <div style={heroAttributionStyle}>A Microsoft Research project</div>
 
-          <div style={leadColumnsStyle}>
+          <div className="landing-lead-columns" style={leadColumnsStyle}>
             <div style={leadTextColStyle}>
               <p style={leadStyle}>{LEAD_INTRO}</p>
 
@@ -61,12 +62,21 @@ export function Landing() {
                   </Link>
                   .
                 </div>
+                <div style={installLineStyle}>
+                  <span style={promptMarkStyle}>&gt;</span> Explore {CHART_FAMILY_COUNT} chart types and{' '}
+                  {CHART_GALLERY_ENTRY_COUNT} examples in the{' '}
+                  <Link to="/gallery" className="landing-skill-link" style={installLineLinkStyle}>
+                    gallery
+                  </Link>
+                  .
+                </div>
               </div>
             </div>
-            <div style={leadButtonsColStyle}>
+            <div className="landing-hero-actions" style={leadButtonsColStyle}>
               <div style={actionBoxStyle}>
-                <HeroCTA href={GITHUB_REPO} label="Visit GitHub" variant="primary" />
+                <HeroCTA to="/gallery" label="Explore Gallery" variant="primary" />
                 <HeroCTA to="/mcp" label="Get MCP Server" variant="secondary" />
+                <HeroCTA href={GITHUB_REPO} label="Visit GitHub" variant="secondary" />
               </div>
             </div>
           </div>
@@ -106,9 +116,9 @@ export function Landing() {
                 and the chart spec. From there, the compiler produces a complete backend-native spec (shown
                 here in Vega-Lite) filling with the necessary low-level details and renders a good-looking chart. 
               </p>
-              <div style={showcaseIntroCtaColStyle}>
+              <div className="landing-docs-actions" style={showcaseIntroCtaColStyle}>
                 <div style={actionBoxStyle}>
-                  <HeroCTA to="/documentation/overview" label="Read the docs" variant="secondary" />
+                  <HeroCTA className="landing-docs-cta" to="/documentation/overview" label="Read the docs" variant="secondary" />
                 </div>
               </div>
             </div>
@@ -316,11 +326,13 @@ function HeroCTA({
   to,
   href,
   variant,
+  className,
 }: {
   label: string;
   to?: string;
   href?: string;
   variant: 'primary' | 'secondary';
+  className?: string;
 }) {
   const [active, setActive] = useState(false);
   const handlers = {
@@ -332,14 +344,14 @@ function HeroCTA({
 
   if (href) {
     return (
-      <a href={href} style={heroCtaStyle(variant, active)} target="_blank" rel="noreferrer" {...handlers}>
+      <a className={className} href={href} style={heroCtaStyle(variant, active)} target="_blank" rel="noreferrer" {...handlers}>
         {label}
       </a>
     );
   }
 
   return (
-    <Link to={to ?? '/'} style={heroCtaStyle(variant, active)} {...handlers}>
+    <Link className={className} to={to ?? '/'} style={heroCtaStyle(variant, active)} {...handlers}>
       {label}
     </Link>
   );
@@ -370,6 +382,7 @@ function HeroShowcase() {
     <section style={heroShowcaseSectionStyle}>
       <div className="landing-showcase-row" style={carouselRowStyle}>
         <button
+          className="landing-carousel-arrow"
           type="button"
           onClick={goPrev}
           aria-label="Previous example"
@@ -379,7 +392,7 @@ function HeroShowcase() {
           <ChevronIcon dir="left" />
         </button>
 
-        <div style={{ ...showcaseCardStyle, flex: 1, minWidth: 0 }}>
+        <div className="landing-showcase-card" style={{ ...showcaseCardStyle, flex: 1, minWidth: 0 }}>
           <div style={showcasePaneStyle}>
             <div style={paneHeaderRowStyle}>
               <span style={paneLabelStyle}>Flint spec</span>
@@ -399,10 +412,10 @@ function HeroShowcase() {
             <FlintSpecCode testCase={testCase} canvasSize={example.canvasSize} />
           </div>
 
-          <div style={{ ...showcasePaneStyle, ...chartPaneStyle, borderLeft: `1px solid ${HAIRLINE}` }}>
-            <div style={paneHeaderRowStyle}>
+          <div className="landing-chart-pane" style={{ ...showcasePaneStyle, ...chartPaneStyle, borderLeft: `1px solid ${HAIRLINE}` }}>
+            <div className="landing-pane-header" style={paneHeaderRowStyle}>
               <span style={paneLabelStyle}>Compiled chart</span>
-              <div style={backendToggleStyle} role="tablist" aria-label="Rendering backend">
+              <div className="landing-backend-toggle" style={backendToggleStyle} role="tablist" aria-label="Rendering backend">
                 {ALL_BACKENDS.map((b) => {
                   const isSupported = supported.includes(b);
                   const active = b === backend;
@@ -430,8 +443,9 @@ function HeroShowcase() {
             </div>
           </div>
         </div>
-                
+
         <button
+          className="landing-carousel-arrow"
           type="button"
           onClick={goNext}
           aria-label="Next example"
@@ -531,11 +545,16 @@ function FlintSpecCode({ testCase, canvasSize }: { testCase: TestCase; canvasSiz
 
 function PipelineDiagram() {
   return (
-    <figure style={pipelineFigureStyle}>
-      <ScaleToFit height={520} minHeight={260} padding={0} adaptiveHeight>
-        <SpecPipelineFigure />
-      </ScaleToFit>
-    </figure>
+    <>
+      <figure className="landing-pipeline-figure--desktop" style={pipelineFigureStyle}>
+        <ScaleToFit height={520} minHeight={260} padding={0} adaptiveHeight>
+          <SpecPipelineFigure />
+        </ScaleToFit>
+      </figure>
+      <figure className="landing-pipeline-figure--mobile" style={pipelineFigureStyle}>
+        <SpecPipelineFigure orientation="vertical" />
+      </figure>
+    </>
   );
 }
 
@@ -549,6 +568,16 @@ function LeadHighlight({ children }: { children: string }) {
   return <span style={leadHighlightStyle}>{children}</span>;
 }
 
+const CHART_FAMILY_COUNT = new Set(
+  CHART_CATEGORIES.flatMap((category) =>
+    category.charts.map((chart) => chart.label.replace(/\s+\*$/u, '')),
+  ),
+).size;
+const CHART_GALLERY_ENTRY_COUNT = CHART_CATEGORIES.reduce(
+  (count, category) => count + category.charts.length,
+  0,
+);
+
 // Lead paragraph shown in the hero (the single intro to Flint).
 const LEAD_INTRO = (
   <>
@@ -556,7 +585,7 @@ const LEAD_INTRO = (
     <LeadHighlight>AI agents reliably create expressive, good-looking charts from simple, human-editable chart specs</LeadHighlight>. Instead of requiring verbose
     low-level parameters such as scales, axes, spacing, and layout, the Flint compiler derives
     optimized chart settings from the data, semantic types, chart type, and encodings. {' '}
-    <LeadHighlight>Flint specs can be rendered in different backends (Vega-Lite, ECharts, Chart.js)</LeadHighlight>.
+    <LeadHighlight>{`Flint supports ${CHART_FAMILY_COUNT} chart types, and it supports rendering in Vega-Lite, ECharts, and Chart.js`}</LeadHighlight>.
   </>
 );
 
@@ -602,8 +631,8 @@ const FEATURES: Feature[] = [
   {
     title: 'Render with different backends',
     body:
-      'Flint specs can be compiled to 34 different chart types in different backends (Vega-Lite, ECharts, and Chart.js). Despite their different APIs and ' +
-      'programming models, Flint hides them behind a unified interface. The user can easily switch to different backends and leverage their unique features.',
+      `Flint supports ${CHART_FAMILY_COUNT} chart types across Vega-Lite, ECharts, and Chart.js, with ${CHART_GALLERY_ENTRY_COUNT} backend-specific examples in the gallery. ` +
+      'Despite their different APIs and programming models, Flint hides them behind a unified interface. The user can easily switch to different backends and leverage their unique features.',
     example:
       'Vega-Lite has no native sunburst, but the user can easily switch to ECharts. The sunburst chart is a better alternative than the grouped bar chart for visualizing the hierarchy of region \u00d7 gameType \u00d7 game.',
     demo: demoBackends,
@@ -1039,11 +1068,97 @@ const landingInteractiveStyles = `
     margin-right: -48px;
   }
 
+  .landing-pipeline-figure--mobile {
+    display: none;
+  }
+
   @media (max-width: 900px) {
     .landing-showcase-row {
       width: 100%;
       margin-left: 0;
       margin-right: 0;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .landing-lead-columns {
+      gap: 24px !important;
+    }
+
+    .landing-hero-actions {
+      width: 100% !important;
+      border-left: 0 !important;
+      border-top: 1px solid ${HAIRLINE} !important;
+      padding-left: 0 !important;
+      padding-top: 18px !important;
+    }
+
+    .landing-docs-actions {
+      width: 100% !important;
+      max-width: 220px;
+      border-left: 0 !important;
+      padding-left: 0 !important;
+      justify-content: flex-start !important;
+    }
+
+    .landing-docs-cta {
+      padding-top: 7px !important;
+      padding-bottom: 7px !important;
+      line-height: 1.1 !important;
+    }
+
+    .landing-showcase-row {
+      align-items: stretch !important;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px 12px !important;
+    }
+
+    .landing-showcase-card {
+      order: 1;
+      flex: 0 0 100% !important;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    .landing-carousel-arrow {
+      order: 2;
+    }
+
+    .landing-chart-pane {
+      border-left: 0 !important;
+      border-top: 1px solid ${HAIRLINE} !important;
+    }
+
+    .landing-pane-header {
+      flex-direction: column;
+      flex-wrap: wrap;
+      align-items: flex-start !important;
+      justify-content: flex-start !important;
+      gap: 4px;
+    }
+
+    .landing-backend-toggle {
+      max-width: calc(100vw - 72px);
+      margin-left: 14px;
+      margin-top: 0 !important;
+      margin-bottom: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .landing-backend-toggle::-webkit-scrollbar {
+      display: none;
+    }
+
+    .landing-pipeline-figure--desktop {
+      display: none;
+    }
+
+    .landing-pipeline-figure--mobile {
+      display: block;
+      margin-bottom: 42px !important;
     }
   }
 `;

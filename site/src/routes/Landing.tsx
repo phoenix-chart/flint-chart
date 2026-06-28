@@ -32,7 +32,7 @@ export function Landing() {
       <main style={mainStyle}>
         {/* ---- Hero ------------------------------------------------------ */}
         <section style={{ ...sectionStyle, paddingTop: 88, paddingBottom: 36 }}>
-          <h1 style={heroTitleStyle}>Flint: A Semantic Visualization Language for AI Agents and Humans</h1>
+          <h1 style={heroTitleStyle}>Flint: A Visualization Language for the AI Era</h1>
           <div style={heroAttributionStyle}>A Microsoft Research project</div>
 
           <div className="landing-lead-columns" style={leadColumnsStyle}>

@@ -1,4 +1,4 @@
-# Flint: A Semantic Visualization Language for AI Agents and Humans
+# Flint: A Visualization Language for the AI Era
 
 [![npm: flint-chart](https://img.shields.io/npm/v/flint-chart.svg?label=npm%3A%20flint-chart)](https://www.npmjs.com/package/flint-chart)
 [![npm: flint-chart-mcp](https://img.shields.io/npm/v/flint-chart-mcp.svg?label=npm%3A%20flint-chart-mcp)](https://www.npmjs.com/package/flint-chart-mcp)

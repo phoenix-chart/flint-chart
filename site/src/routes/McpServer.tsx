@@ -316,15 +316,11 @@ function CodeBlock({ children }: { children: string }) {
   );
 }
 
-const setupPrompt = `Set up Flint as an MCP server for this project.
+const setupPrompt = `Help me set up Flint as an MCP server!
 
 1. Add a stdio MCP server named "flint" to my client config that runs:
      npx -y flint-chart-mcp
-2. (Optional) Set up a data directory for local files (CSV/TSV/JSON). If I do
-   not already have one, help me create ./flint-data so I can drop in existing
-   files, or ones you download or generate. Flint reads local files referenced
-   by data.url by default, so no extra flags or config are needed.
-3. Verify the setup by asking the server to list the available Flint chart types.`;
+2. Verify the setup by asking the server to list the available Flint chart types.`;
 
 const clientConfig = `{
   "mcpServers": {

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { SiteNavBar, MicrosoftDisclosures } from '../components/SiteShell';
@@ -6,6 +7,10 @@ import chartPreview from '../assets/mcp-chart-preview.svg';
 
 /** Dedicated page for the Flint MCP server, matching the landing page canvas. */
 export function McpServer() {
+  function scrollToInstallConfig() {
+    document.getElementById('install-config')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   return (
     <div style={pageStyle}>
       <style>{interactiveStyles}</style>
@@ -14,26 +19,34 @@ export function McpServer() {
       <main style={mainStyle}>
         {/* ---- Hero -------------------------------------------------- */}
         <header style={heroSectionStyle}>
-          <h1 style={heroTitleStyle}>Use Flint as a MCP server for your agent</h1>
+          <h1 style={heroTitleStyle}>Use Flint as an MCP server for your agent</h1>
           <p style={leadStyle}>
             Install <code style={codeInlineStyle}>flint-chart-mcp</code> as a{' '}
             <a href="https://modelcontextprotocol.io" className="mcp-link" style={linkStyle} target="_blank" rel="noreferrer">
               Model Context Protocol
             </a>{' '}
-            server and your agent can create charts from the same conversation
-            where the question starts. By default it opens an interactive Flint
+            server and your agent can create charts as an interactive MCP app. By default it opens an interactive Flint
             chart view; when you need artifacts, it can also return static images
             or backend-native specs.
           </p>
 
-          <div style={installRowStyle}>
-            <code style={installCodeStyle}>
-              <span style={promptMarkStyle}>$</span> npx -y flint-chart-mcp
-            </code>
-            <a href={`${GITHUB_REPO}/tree/main/packages/flint-mcp`} className="mcp-link" style={ghLinkStyle} target="_blank" rel="noreferrer">
-              View on GitHub →
+          <p style={setupLeadStyle}>
+            <span style={setupLabelStyle}>
+              <span aria-hidden="true" style={setupLabelIconStyle}>⚡</span>Quick start:
+            </span>{' '}
+            paste this setup request into your agent and let it configure Flint for the current project. For manual setup,
+            see{' '}
+            <button type="button" className="mcp-link" style={setupInlineButtonStyle} onClick={scrollToInstallConfig}>
+              install &amp; configure
+            </button>{' '}
+            or the{' '}
+            <a href={`${GITHUB_REPO}/tree/main/packages/flint-mcp`} className="mcp-link" style={setupInlineLinkStyle} target="_blank" rel="noreferrer">
+              GitHub README
             </a>
-          </div>
+            .
+          </p>
+
+          <CodeBlock copyable>{setupPrompt}</CodeBlock>
         </header>
 
         {/* ---- Article body ----------------------------------------- */}
@@ -43,9 +56,13 @@ export function McpServer() {
             <h2 style={firstH2Style}>The experience</h2>
             <p style={pStyle}>
               Using Flint through MCP is a simple loop: connect the server, ask
-              for the chart you want, and work with the rendered result in the
-              same chat.
+              for the chart you want, and work with a visualization with dynamic widgets provided by the MCP server.
             </p>
+          </Prose>
+
+          <ChatMockup />
+
+          <Prose>
             <ol style={stepListStyle}>
               <li style={stepItemStyle}>
                 <strong>Connect Flint MCP server.</strong> Add the stdio server to your
@@ -64,17 +81,6 @@ export function McpServer() {
                 backend spec instead.
               </li>
             </ol>
-          </Prose>
-
-          <ChatMockup />
-
-          <Prose>
-            <p style={captionStyle}>
-              The embedded chart is genuinely Flint-rendered, using the same path
-              as the MCP App. The frame and toolbar mirror the real{' '}
-              <code style={codeInlineStyle}>create_chart_view</code> UI: a live
-              preview with chart options and a <em>Copy spec to chat</em> action.
-            </p>
           </Prose>
 
           {/* ---- What it provides ------------------------------------- */}
@@ -133,18 +139,11 @@ export function McpServer() {
 
           {/* ---- Install ---------------------------------------------- */}
           <Prose>
-            <h2 style={h2Style}>Install &amp; configure</h2>
+            <h2 id="install-config" style={h2Style}>Install &amp; configure</h2>
             <p style={pStyle}>
-              The server speaks <strong>stdio</strong> and runs zero-install with{' '}
-              <code style={codeInlineStyle}>npx</code>. If your MCP client can
-              edit its own configuration, you can ask your agent to set it up:
+              For manual setup, the server speaks <strong>stdio</strong> and runs zero-install with{' '}
+              <code style={codeInlineStyle}>npx</code>. Point your MCP client at the package:
             </p>
-          </Prose>
-
-          <CodeBlock>{setupPrompt}</CodeBlock>
-
-          <Prose>
-            <p style={pStyle}>Or point your MCP client at the package manually:</p>
           </Prose>
 
           <CodeBlock>{clientConfig}</CodeBlock>
@@ -308,10 +307,24 @@ function SurfaceCard(props: { tag: string; name: string; desc: string; highlight
   );
 }
 
-function CodeBlock({ children }: { children: string }) {
+function CodeBlock({ children, copyable = false }: { children: string; copyable?: boolean }) {
+  const [copied, setCopied] = useState(false);
+
+  async function copyCode() {
+    await navigator.clipboard.writeText(children);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1600);
+  }
+
   return (
     <div style={codeBlockWrapStyle}>
-      <pre style={codeBlockStyle}>{children}</pre>
+      {copyable ? (
+        <button type="button" style={copyButtonStyle} onClick={copyCode}>
+          <span aria-hidden="true" style={copyIconStyle}>{copied ? '✓' : '⧉'}</span>
+          {copied ? 'Copied' : 'Copy prompt'}
+        </button>
+      ) : null}
+      <pre style={{ ...codeBlockStyle, ...(copyable ? codeBlockCopyableStyle : null) }}>{children}</pre>
     </div>
   );
 }
@@ -394,35 +407,37 @@ const leadStyle: CSSProperties = {
   fontWeight: 400,
 };
 
-const installRowStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 16,
-  marginTop: 32,
-  flexWrap: 'wrap',
+const setupLeadStyle: CSSProperties = {
+  ...leadStyle,
+  marginTop: 24,
+  marginBottom: 16,
 };
 
-const installCodeStyle: CSSProperties = {
-  fontFamily: siteTheme.fontMono,
-  fontSize: 14,
+const setupLabelStyle: CSSProperties = {
   color: siteTheme.text,
-  background: 'rgba(0,0,0,0.04)',
-  border: `1px solid ${HAIRLINE}`,
-  borderRadius: siteTheme.radius,
-  padding: '9px 14px',
+  fontWeight: 700,
 };
 
-const promptMarkStyle: CSSProperties = {
-  color: siteTheme.textMuted,
-  userSelect: 'none',
-  marginRight: 8,
+const setupLabelIconStyle: CSSProperties = {
+  marginRight: 6,
 };
 
-const ghLinkStyle: CSSProperties = {
+const setupInlineLinkStyle: CSSProperties = {
   color: siteTheme.accent,
-  fontSize: 14,
-  fontWeight: 500,
   textDecoration: 'none',
+  fontWeight: 500,
+};
+
+const setupInlineButtonStyle: CSSProperties = {
+  color: siteTheme.accent,
+  background: 'none',
+  border: 0,
+  padding: 0,
+  cursor: 'pointer',
+  fontFamily: 'inherit',
+  fontSize: 'inherit',
+  fontWeight: 500,
+  lineHeight: 'inherit',
 };
 
 const articleStyle: CSSProperties = {
@@ -464,7 +479,7 @@ const captionStyle: CSSProperties = {
 };
 
 const stepListStyle: CSSProperties = {
-  margin: '14px 0 0',
+  margin: '32px 0 0',
   padding: '0 0 0 22px',
   display: 'flex',
   flexDirection: 'column',
@@ -855,6 +870,7 @@ const codeBlockWrapStyle: CSSProperties = {
   borderRadius: 8,
   background: 'rgba(0,0,0,0.025)',
   overflow: 'auto',
+  position: 'relative',
 };
 
 const codeBlockStyle: CSSProperties = {
@@ -864,6 +880,33 @@ const codeBlockStyle: CSSProperties = {
   fontSize: 13,
   lineHeight: 1.6,
   color: siteTheme.text,
+};
+
+const codeBlockCopyableStyle: CSSProperties = {
+  paddingRight: 128,
+};
+
+const copyButtonStyle: CSSProperties = {
+  position: 'absolute',
+  top: 8,
+  right: 8,
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 6,
+  border: `1px solid rgba(0, 102, 204, 0.24)`,
+  borderRadius: 7,
+  background: 'rgba(0, 102, 204, 0.08)',
+  color: siteTheme.accent,
+  fontFamily: siteTheme.fontSans,
+  fontSize: 12.5,
+  fontWeight: 600,
+  padding: '5px 10px',
+  cursor: 'pointer',
+};
+
+const copyIconStyle: CSSProperties = {
+  fontSize: 13,
+  lineHeight: 1,
 };
 
 /* ---- next actions ---- */

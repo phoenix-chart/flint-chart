@@ -106,14 +106,15 @@ describe('Vega-Lite Sparkline', () => {
     expect(avgPanel(spec).spec.encoding.color.field).toBe('Metric');
   });
 
-  it('shares one y scale across all strips by default, but honors Independent Y', () => {
-    const shared = assembleVegaLite(toInput(byTitle(cases, MULTI))) as any;
-    // The trend facet owns the only real y scale; its rows share it by default.
-    expect(trendPanel(shared).resolve?.scale?.y).toBe('shared');
+  it('self-scales each strip by default, but honors a shared Y when requested', () => {
+    const auto = assembleVegaLite(toInput(byTitle(cases, MULTI))) as any;
+    // Each strip owns its own y scale by default so the trace fills the band and
+    // lines up with its centered category label and value.
+    expect(trendPanel(auto).resolve?.scale?.y).toBe('independent');
 
-    const indep = assembleVegaLite(toInput(byTitle(cases, MULTI), { independentYAxis: true })) as any;
-    // Independent Y self-scales each strip (per-row facet resolution).
-    expect(trendPanel(indep).resolve?.scale?.y).toBe('independent');
+    const shared = assembleVegaLite(toInput(byTitle(cases, MULTI), { independentYAxis: false })) as any;
+    // Opting into a shared scale keeps every row comparable by absolute level.
+    expect(trendPanel(shared).resolve?.scale?.y).toBe('shared');
   });
 
   it('honors the interpolate (curve) property', () => {

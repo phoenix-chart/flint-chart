@@ -54,7 +54,20 @@ Data can be provided in two ways:
 
 - **Embedded rows:** pass `data: { values: [...] }` directly in the MCP tool call.
 - **Local file references:** pass `data: { url: "..." }` for a `.json`, `.csv`, or
-  `.tsv` file under a configured data root. Remote URLs are not fetched.
+  `.tsv` file. Remote URLs are never fetched.
+
+By default the server **trusts the agent's host** for file access: any local file
+the agent references can be read (the host already governs what the agent may
+touch, and the agent can already inline the same rows via `data.values`).
+Relative `data.url` paths resolve against the server's working directory; absolute
+paths and `file://` URLs are read as given. For data it downloads or generates,
+the agent can simply create a folder in the project (e.g. `./flint-data`) and
+reference files from it — the server doesn't create or require any special
+directory.
+
+For untrusted/server deployments, pass `--disable-file-reference` to reject local
+`data.url` file references entirely, accepting only inline `data.values`. Reads
+stay read-only either way — the server never writes your data.
 
 `backend` is one of `vegalite`, `echarts`, `chartjs`. The `chartjs` backend
 renders **PNG only** (its engine has no SVG output).
@@ -80,15 +93,15 @@ npx -y flint-chart-mcp
 }
 ```
 
-To let MCP tools render local files referenced by `data.url`, add an allowed
-data root:
+To **disable local file references** (accept only inline `data.values` — useful
+for untrusted/server deployments), pass `--disable-file-reference`:
 
 ```json
 {
   "mcpServers": {
     "flint": {
       "command": "npx",
-      "args": ["-y", "flint-chart-mcp", "--data-roots", "./data"]
+      "args": ["-y", "flint-chart-mcp", "--disable-file-reference"]
     }
   }
 }
@@ -103,9 +116,14 @@ Works with Claude Desktop, Cursor, VS Code, and any MCP client that speaks
 --transport <stdio>   Transport (only "stdio" is supported). Default: stdio.
 --backends <list>     Comma-separated subset of vegalite,echarts,chartjs.
                       Overridden by FLINT_MCP_BACKENDS if set.
---data-roots <list>   Comma-separated directories local data.url files may read.
-                      Overridden by FLINT_MCP_DATA_ROOTS if set.
---data-root <dir>     Add one allowed local data root. May be repeated.
+--disable-file-reference
+                      Reject local data.url file references; accept only inline
+                      data.values. When unset, any local file the agent
+                      references is readable (relative paths resolve against the
+                      working directory). Also enabled by
+                      FLINT_MCP_DISABLE_FILE_REFERENCE.
+--data-roots <list>   Deprecated and ignored. Local files are readable by default.
+--data-root <dir>     Deprecated and ignored. Local files are readable by default.
 -v, --version         Print version.
 -h, --help            Print help.
 ```
@@ -116,10 +134,11 @@ Gate the exposed backends at deploy time:
 FLINT_MCP_BACKENDS=vegalite,echarts npx -y flint-chart-mcp
 ```
 
-Allow local file references for MCP rendering:
+Local `data.url` files are readable by default. To harden an untrusted
+deployment, reject local file references and accept only inline rows:
 
 ```bash
-npx -y flint-chart-mcp --data-roots ./data
+npx -y flint-chart-mcp --disable-file-reference
 ```
 
 ## Example `render_chart` call
@@ -175,9 +194,12 @@ layout shows up in the artifact.
 ## Security & limits
 
 - **No remote upload.** All rendering is in-process; data stays on the host.
-- **Explicit local data roots.** `data.url` can read local `.json`, `.csv`, or
-  `.tsv` files only under configured roots. Remote URLs are disabled to avoid SSRF.
-- **DoS guards.** Row count and canvas dimensions are capped for hostile specs.
+- **Read-only file access.** `data.url` reads local `.json`, `.csv`, or `.tsv`
+  files only — the server never writes your data. By default it trusts the
+  agent's host for which files are readable (the agent could already inline the
+  same rows); use `--disable-file-reference` to reject local file references in
+  untrusted deployments. Remote URLs are disabled to avoid SSRF.
+- **DoS guards.** Row count, file size, and canvas dimensions are capped for hostile specs.
 
 ## Development
 

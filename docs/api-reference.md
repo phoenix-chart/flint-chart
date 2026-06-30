@@ -129,14 +129,19 @@ Maps column name → semantic type. This drives encoding type, formatting, aggre
 interface ChartEncoding {
   field?: string;
   type?: 'quantitative' | 'nominal' | 'ordinal' | 'temporal';
-  aggregate?: 'count' | 'sum' | 'average';
+  aggregate?: 'count' | 'sum' | 'average' | 'mean';
   sortOrder?: 'ascending' | 'descending';
   sortBy?: string;
   scheme?: string;
 }
 ```
 
-Explicit `type` overrides semantic inference. Explicit `aggregate` overrides auto-aggregation when auto-aggregation is enabled.
+Explicit `type` overrides semantic inference. Setting `aggregate` asks Flint to
+collapse the rows itself — grouping by the other (non-aggregated) field channels
+and producing a derived column named `${field}_${aggregate}` (`count` →
+`_count`). `average` and `mean` are synonyms. Most callers should still
+aggregate their data upstream; if you do, omit `aggregate` and reference the
+derived column by name.
 
 Common channels: `x`, `y`, `color`, `size`, `shape`, `column`, `row`, `group`, `detail`.
 

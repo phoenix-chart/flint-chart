@@ -53,8 +53,8 @@ export interface AssembleResult {
 
 /**
  * Validate caller-supplied input before it reaches an assembler. Inline rows
- * pass through directly. Local `data.url` references are resolved only when the
- * server has explicit data roots; remote URLs stay blocked.
+ * pass through directly. Local `data.url` references are read unless
+ * `disableFileReference` is set; remote URLs stay blocked.
  */
 export function validateInput(
   input: ChartAssemblyInput,
@@ -82,7 +82,7 @@ export function prepareInput(
   }
   if (!Array.isArray(resolvedData.values)) {
     throw new Error(
-      'input.data must provide inline values or a local data.url under configured data roots',
+      'input.data must provide inline values or a readable local data.url',
     );
   }
   if (resolvedData.values.length > MAX_DATA_ROWS) {

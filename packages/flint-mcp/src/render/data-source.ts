@@ -2,12 +2,7 @@
 // Licensed under the MIT License.
 
 import { readFileSync, realpathSync, statSync } from 'node:fs';
-import {
-  extname,
-  isAbsolute,
-  relative,
-  resolve as resolvePath,
-} from 'node:path';
+import { extname, resolve as resolvePath } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { ChartAssemblyInput } from 'flint-chart';
 
@@ -15,36 +10,27 @@ import type { ChartAssemblyInput } from 'flint-chart';
 export const MAX_DATA_FILE_BYTES = 10 * 1024 * 1024;
 
 export interface DataSourceOptions {
-  /** Directories from which local data.url references may be read. */
-  dataRoots?: readonly string[];
+  /**
+   * When true, local `data.url` file references are rejected; only inline
+   * `data.values` are accepted. By default the server trusts the host and reads
+   * any local file the agent references.
+   */
+  disableFileReference?: boolean;
   /** File-size guard for local data references. */
   maxDataFileBytes?: number;
   /** Row-count guard after loading inline or referenced data. */
   maxDataRows?: number;
 }
 
-/** Resolve configured data roots to real absolute directories. */
-export function resolveDataRoots(dataRoots: readonly string[] | undefined): string[] {
-  const resolvedRoots = new Set<string>();
-  for (const rawRoot of dataRoots ?? []) {
-    const trimmedRoot = rawRoot.trim();
-    if (!trimmedRoot) continue;
-    const absoluteRoot = resolvePath(trimmedRoot);
-    const stats = statSync(absoluteRoot);
-    if (!stats.isDirectory()) {
-      throw new Error(`data root is not a directory: ${rawRoot}`);
-    }
-    resolvedRoots.add(realpathSync(absoluteRoot));
-  }
-  return [...resolvedRoots];
-}
-
 /**
  * Resolve an input data reference for local MCP rendering.
  *
- * Inline rows pass through unchanged. Local `data.url` references are loaded
- * into inline rows only when they are under an explicitly configured data root.
- * Remote URLs stay blocked.
+ * Inline rows pass through unchanged. Remote URLs stay blocked. Local
+ * `data.url` references are read into inline rows unless
+ * {@link DataSourceOptions.disableFileReference} is set, in which case they are
+ * rejected. By default the server trusts the host: any local file the agent can
+ * name is read (relative paths resolve against the working directory), since the
+ * host already governs the agent's file access.
  */
 export function resolveDataSource(
   input: ChartAssemblyInput,
@@ -71,19 +57,18 @@ export function resolveDataSource(
   if (isRemoteReference(data.url)) {
     throw new Error(
       'remote data.url fetching is disabled in this server; use inline data.values ' +
-        'or a local file under --data-roots',
+        'or a local file path',
     );
   }
 
-  const dataRoots = resolveDataRoots(options.dataRoots);
-  if (dataRoots.length === 0) {
+  if (options.disableFileReference) {
     throw new Error(
-      'local data.url references require --data-roots, --data-root, or FLINT_MCP_DATA_ROOTS; ' +
-        'pass inline data.values otherwise',
+      'local data.url file references are disabled on this server; ' +
+        'pass the rows inline with data.values instead',
     );
   }
 
-  const filePath = resolveLocalDataPath(data.url, dataRoots);
+  const filePath = resolveTrustedDataPath(data.url);
   const rows = readLocalRows(filePath, options);
   return { ...input, data: { values: rows } } as ChartAssemblyInput;
 }
@@ -93,9 +78,13 @@ function isRemoteReference(rawUrl: string): boolean {
   return new URL(rawUrl).protocol !== 'file:';
 }
 
-function resolveLocalDataPath(rawUrl: string, dataRoots: readonly string[]): string {
-  const rawReference = rawUrl.trim();
-  const candidatePaths = referenceToPaths(rawReference, dataRoots);
+/**
+ * Resolve a local data.url. Any local file the agent can name is read — the host
+ * governs the agent's file access. Relative references resolve against the
+ * working directory.
+ */
+function resolveTrustedDataPath(rawUrl: string): string {
+  const candidatePaths = trustedReferenceToPaths(rawUrl.trim());
   let lastError: unknown;
   for (const candidatePath of candidatePaths) {
     try {
@@ -103,44 +92,32 @@ function resolveLocalDataPath(rawUrl: string, dataRoots: readonly string[]): str
       if (!stats.isFile()) {
         throw new Error(`data.url must point to a file: ${rawUrl}`);
       }
-      const realCandidate = realpathSync(candidatePath);
-      if (!dataRoots.some((root) => isPathInsideRoot(realCandidate, root))) {
-        throw new Error('data.url is outside the configured data roots');
-      }
-      return realCandidate;
+      return realpathSync(candidatePath);
     } catch (err) {
       lastError = err;
     }
   }
-
   if (lastError instanceof Error && !/no such file or directory/i.test(lastError.message)) {
     throw lastError;
   }
-  throw new Error(`data.url file not found under configured data roots: ${rawUrl}`);
+  throw new Error(
+    `data.url local file not found: ${rawUrl} (looked in: ${candidatePaths.join(', ')})`,
+  );
 }
 
-function referenceToPaths(rawReference: string, dataRoots: readonly string[]): string[] {
+function trustedReferenceToPaths(rawReference: string): string[] {
   if (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(rawReference)) {
     const parsedUrl = new URL(rawReference);
     if (parsedUrl.protocol !== 'file:') {
       throw new Error(
         'remote data.url fetching is disabled in this server; use inline data.values ' +
-          'or a local file under --data-roots',
+          'or a local file path',
       );
     }
     return [fileURLToPath(parsedUrl)];
   }
-  return isAbsolute(rawReference)
-    ? [rawReference]
-    : dataRoots.map((root) => resolvePath(root, rawReference));
-}
-
-function isPathInsideRoot(candidatePath: string, rootPath: string): boolean {
-  const relativePath = relative(rootPath, candidatePath);
-  return (
-    relativePath === '' ||
-    (!!relativePath && !relativePath.startsWith('..') && !isAbsolute(relativePath))
-  );
+  // Absolute paths are used as given; relative paths resolve against cwd.
+  return [resolvePath(rawReference)];
 }
 
 function readLocalRows(

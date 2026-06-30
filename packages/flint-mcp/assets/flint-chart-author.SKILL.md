@@ -104,13 +104,15 @@ Use the binding mode that matches the runtime. Do not mix them.
   data is small or already transformed by another tool, pass it as
   `data: { values: [...] }`. Do not pass runtime variable names in
   MCP tool calls — the MCP server cannot see your local variables.
-2. **Direct MCP rendering: reference a local file only when configured.**
+2. **Direct MCP rendering: reference a local file.**
   The `flint-chart-mcp` server can load `data: { url: "..." }` from local
-  `.json`, `.csv`, or `.tsv` files, but only under directories that the host
-  explicitly allowed with `--data-roots`, `--data-root`, or
-  `FLINT_MCP_DATA_ROOTS`. Remote URL fetching is disabled. If the data must be
-  transformed first, use a coding/data tool to write a small prepared file
-  under an allowed root, then reference that file.
+  `.json`, `.csv`, or `.tsv` files. By default any local file the agent can
+  name is readable (relative paths resolve against the working directory); a
+  hardened deployment may reject local file references entirely via
+  `--disable-file-reference` (or `FLINT_MCP_DISABLE_FILE_REFERENCE`), in which
+  case pass rows inline with `data.values`. Remote URL
+  fetching is disabled. If the data must be transformed first, use a
+  coding/data tool to write a small prepared file, then reference that file.
 3. **Generated application or notebook code: bind runtime variables.** If the
   user asks you to add Flint to code, write normal data-loading code first and
   pass a real runtime value, e.g. `data: { values: rows }`, to
@@ -262,7 +264,7 @@ string shorthand, expanded to `{ field: "<string>" }`):
 |---|---|---|
 | `field` | column name | Bind the channel to a data column |
 | `type` | `quantitative`, `nominal`, `ordinal`, `temporal` | Override the inferred encoding type (rarely needed) |
-| `aggregate` | `count`, `sum`, `average` | Force an aggregation on a measure channel |
+| `aggregate` | `count`, `sum`, `average`, `mean` | Force an aggregation on a measure channel |
 | `sortOrder` | `ascending`, `descending` | Sort direction for a discrete/sorted axis |
 | `sortBy` | channel name (e.g. `"y"`) or field | Sort a category axis by another channel's measure |
 | `scheme` | Vega scheme name (e.g. `viridis`, `redblue`) | Color scheme for the `color` channel |

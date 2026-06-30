@@ -60,6 +60,7 @@ import {
 } from '../core/types';
 import type { ChartWarning } from '../core/types';
 import { applyEncodingOverrides } from '../core/encoding-overrides';
+import { applyAggregation } from '../core/aggregate';
 import { applyPivot, PivotSurface } from '../core/pivot';
 import { ecGetTemplateDef } from './templates';
 import { resolveChannelSemantics, convertTemporalData } from '../core/resolve-semantics';
@@ -118,7 +119,7 @@ export function assembleECharts(input: ChartAssemblyInput): any {
     const normalized = normalizeStaticSeries(
         input.chart_spec.encodings, rawData, semanticTypes,
     );
-    const data = normalized.data;
+    let data = normalized.data;
     const staticSeries = normalized.staticSeries;
 
     const prelimConvertedData = convertTemporalData(data, semanticTypes);
@@ -143,6 +144,9 @@ export function assembleECharts(input: ChartAssemblyInput): any {
     // any pipeline phase runs. Flint owns the transform; the host only stores
     // the override value. See applyEncodingOverrides / EncodingActionDef.
     const encodings = applyEncodingOverrides(chartTemplate, pivoted.encodings, chartProperties);
+
+    // Optional aggregation transform — see vegalite/assemble for rationale.
+    data = applyAggregation(encodings, data);
 
     // ═══════════════════════════════════════════════════════════════════════
     // PHASE 0: Resolve Semantics (shared with VL — completely target-agnostic)

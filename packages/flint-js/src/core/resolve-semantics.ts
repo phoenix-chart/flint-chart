@@ -398,7 +398,8 @@ export function resolveChannelSemantics(
             stackable,
         };
 
-        // Adjust field name for aggregated fields
+        // Adjust field name for aggregated fields (the derived column is either
+        // computed by applyAggregation or supplied pre-aggregated by the caller)
         if (encoding.aggregate) {
             if (encoding.aggregate === 'count') {
                 cs.field = '_count';

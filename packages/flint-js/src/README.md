@@ -191,7 +191,7 @@ interface ChartAssemblyInput {
 interface ChartEncoding {
   field?: string;
   type?: 'quantitative' | 'nominal' | 'ordinal' | 'temporal';
-  aggregate?: 'count' | 'sum' | 'average';
+  aggregate?: 'count' | 'sum' | 'average' | 'mean';
   sortOrder?: 'ascending' | 'descending';
   sortBy?: string;
   scheme?: string;

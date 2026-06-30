@@ -31,7 +31,6 @@ export {
 } from './assemble.js';
 export {
   MAX_DATA_FILE_BYTES,
-  resolveDataRoots,
   resolveDataSource,
   type DataSourceOptions,
 } from './data-source.js';
@@ -71,7 +70,7 @@ export async function renderChart(
   }
 
   const { spec, warnings, width, height } = assembleForBackend(backend, input, {
-    dataRoots: options.dataRoots,
+    disableFileReference: options.disableFileReference,
   });
 
   // Extract sizing before stripping Flint's private annotation keys. Vega-Lite

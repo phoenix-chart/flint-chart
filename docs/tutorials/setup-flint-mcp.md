@@ -41,11 +41,11 @@ You need:
 
 - an MCP client that can run stdio servers;
 - Node.js and npm available to that client;
-- chart data either embedded directly in the tool call or stored in an allowed
-  local data root.
+- chart data either embedded directly in the tool call or read from a local
+  file on the host.
 
-The server renders in-process on the host machine. Inline rows and allowed local
-files stay local; the server does not upload data to a remote rendering service.
+The server renders in-process on the host machine. Inline rows and local files
+stay local; the server does not upload data to a remote rendering service.
 
 ## Run with `npx`
 
@@ -76,7 +76,9 @@ For VS Code, add a server entry in `.vscode/mcp.json`:
 ```
 
 If the agent should chart local `.csv`, `.tsv`, or `.json` files by `data.url`,
-grant an explicit data root:
+it can do so by default. To harden an untrusted deployment, reject local file
+references entirely with `--disable-file-reference` (the agent must then pass
+rows inline via `data.values`):
 
 ```jsonc
 {
@@ -84,7 +86,7 @@ grant an explicit data root:
     "flint": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "flint-chart-mcp", "--data-roots", "./data"]
+      "args": ["-y", "flint-chart-mcp", "--disable-file-reference"]
     }
   }
 }
@@ -109,31 +111,32 @@ Many MCP clients use an `mcpServers` object:
 }
 ```
 
-With local file access enabled:
+To disable local file reads entirely (inline `data.values` only):
 
 ```jsonc
 {
   "mcpServers": {
     "flint": {
       "command": "npx",
-      "args": ["-y", "flint-chart-mcp", "--data-roots", "./data"]
+      "args": ["-y", "flint-chart-mcp", "--disable-file-reference"]
     }
   }
 }
 ```
 
-Use an absolute path for the data root if your client starts servers from a
-different working directory than your project.
-
 ## Run from this repository
 
-When developing Flint itself, build the MCP package and point the client at the
-local CLI:
+When developing Flint itself, build the packages and point the client at the
+local CLI. The MCP package depends on `flint-chart`, so build both (the root
+`build` script builds `flint-js` first, then `flint-mcp`):
 
 ```bash
 npm install
-npm --prefix packages/flint-mcp run build
+npm run build
 ```
+
+To rebuild only the MCP package after the library is already built, run
+`npm run build:mcp`.
 
 VS Code local-source config:
 
@@ -144,9 +147,7 @@ VS Code local-source config:
       "type": "stdio",
       "command": "node",
       "args": [
-        "${workspaceFolder}/packages/flint-mcp/dist/cli.js",
-        "--data-roots",
-        "${workspaceFolder}/shared/test-data"
+        "${workspaceFolder}/packages/flint-mcp/dist/cli.js"
       ]
     }
   }
@@ -163,17 +164,19 @@ MCP tool calls can bind data in two ways:
 - **Embedded rows:** pass `data: { values: [...] }` directly in the tool call.
   This is the simplest path for small or already prepared tables.
 - **Local file references:** pass `data: { url: "..." }` for a `.json`, `.csv`,
-  or `.tsv` file under a configured data root.
+  or `.tsv` file on the host.
 
-Local file reads are intentionally restricted. Files outside the configured data
-roots are rejected, and remote URLs are not fetched.
+By default the server trusts the host and reads any local file the agent
+references (relative paths resolve against the working directory); the agent
+could already inline the same rows. Remote URLs are never fetched.
 
-Useful data-root options:
+For untrusted deployments, reject local file references entirely with
+`--disable-file-reference`. The agent must then pass rows inline via
+`data.values`:
 
 ```bash
-npx -y flint-chart-mcp --data-roots ./data,./fixtures
-npx -y flint-chart-mcp --data-root ./data --data-root ./fixtures
-FLINT_MCP_DATA_ROOTS=./data,./fixtures npx -y flint-chart-mcp
+npx -y flint-chart-mcp --disable-file-reference
+FLINT_MCP_DISABLE_FILE_REFERENCE=1 npx -y flint-chart-mcp
 ```
 
 If the chart request needs aggregation, filtering, joins, pivots, derived
@@ -219,8 +222,9 @@ Use region as Category and revenue as Quantity.
 Open it with create_chart_view if this client supports MCP Apps; otherwise render an SVG.
 ```
 
-If `list_chart_types` works but a local file chart fails, check the configured
-data root first. If `create_chart_view` is unavailable, the host likely does not
+If `list_chart_types` works but a local file chart fails, check that the file
+path is correct and that `--disable-file-reference` is not set. If
+`create_chart_view` is unavailable, the host likely does not
 support MCP Apps; ask the agent to use `render_chart` instead.
 
 ## Next steps

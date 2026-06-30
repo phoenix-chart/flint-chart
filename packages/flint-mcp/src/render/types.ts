@@ -19,8 +19,8 @@ export interface RenderOptions {
   scale?: number;
   /** Background color for the artifact. Default: `#ffffff`. */
   background?: string;
-  /** Directories from which local `data.url` files may be read. */
-  dataRoots?: readonly string[];
+  /** When true, reject local `data.url` file references (inline rows only). */
+  disableFileReference?: boolean;
 }
 
 /** A rendered artifact plus the assembly warnings that produced it. */

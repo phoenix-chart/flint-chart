@@ -49,8 +49,8 @@ export function McpServer() {
             <ol style={stepListStyle}>
               <li style={stepItemStyle}>
                 <strong>Connect Flint MCP server.</strong> Add the stdio server to your
-                MCP client. If the agent should chart local CSV, TSV, or JSON
-                files, grant a data root explicitly.
+                MCP client. The agent can chart local CSV, TSV, or JSON
+                files by default.
               </li>
               <li style={stepItemStyle}>
                 <strong>Ask for a chart.</strong> The agent turns your request
@@ -152,13 +152,17 @@ export function McpServer() {
           <Prose>
             <p style={pStyle}>
               Tool calls can embed rows directly with{' '}
-              <code style={codeInlineStyle}>data.values</code>. If you want the
-              agent to chart a local CSV, TSV, or JSON file instead, grant an
-              explicit data root. Remote URLs are never fetched:
+              <code style={codeInlineStyle}>data.values</code>. The agent can
+              also chart a local CSV, TSV, or JSON file by{' '}
+              <code style={codeInlineStyle}>data.url</code> out of the box.
+              Remote URLs are never fetched. For an untrusted deployment, pass{' '}
+              <code style={codeInlineStyle}>--disable-file-reference</code> to
+              reject local file references and accept only inline{' '}
+              <code style={codeInlineStyle}>data.values</code>:
             </p>
           </Prose>
 
-          <CodeBlock>{dataRootsConfig}</CodeBlock>
+          <CodeBlock>{disableFileReferenceConfig}</CodeBlock>
 
           {/* ---- Next ------------------------------------------------- */}
           <Prose>
@@ -314,10 +318,13 @@ function CodeBlock({ children }: { children: string }) {
 
 const setupPrompt = `Set up Flint as an MCP server for this project.
 
-Use the package flint-chart-mcp through npx:
-  npx -y flint-chart-mcp
-
-Add it to the MCP client config as a stdio server named "flint". If this workspace has a ./data folder, allow it with --data-roots ./data. After setup, verify the server by listing the available Flint chart types.`;
+1. Add a stdio MCP server named "flint" to my client config that runs:
+     npx -y flint-chart-mcp
+2. (Optional) Set up a data directory for local files (CSV/TSV/JSON). If I do
+   not already have one, help me create ./flint-data so I can drop in existing
+   files, or ones you download or generate. Flint reads local files referenced
+   by data.url by default, so no extra flags or config are needed.
+3. Verify the setup by asking the server to list the available Flint chart types.`;
 
 const clientConfig = `{
   "mcpServers": {
@@ -328,11 +335,11 @@ const clientConfig = `{
   }
 }`;
 
-const dataRootsConfig = `{
+const disableFileReferenceConfig = `{
   "mcpServers": {
     "flint": {
       "command": "npx",
-      "args": ["-y", "flint-chart-mcp", "--data-roots", "./data"]
+      "args": ["-y", "flint-chart-mcp", "--disable-file-reference"]
     }
   }
 }`;

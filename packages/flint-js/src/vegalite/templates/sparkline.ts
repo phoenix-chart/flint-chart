@@ -144,11 +144,15 @@ export const sparklineDef: ChartTemplateDef = {
         const hasColor = !!enc.color?.field;
         const baseline = (ctx.chartProperties?.baseline as string) ?? 'mean';
         const useMedian = baseline === 'median';
-        // Independent Y rescales each strip to its own range (shape-at-a-glance
-        // for series on very different scales, e.g. stock prices); the default
-        // shared scale keeps rows comparable by level. Applies to the trend
-        // facet's per-row y resolution.
-        const independentY = !!ctx.chartProperties?.independentYAxis;
+        // Per-strip independent Y is the default: each strip self-scales to its
+        // own range so the trace fills the band and sits centered next to its
+        // category label and value (Tufte's "dataword" — shape-at-a-glance). A
+        // shared scale instead pins every trace to one global range, which
+        // shoves low-level series to the strip floor (and high ones to the top),
+        // visibly misaligning them from their centered label/number. Set
+        // `independentYAxis: false` to opt back into the shared, level-comparable
+        // scale. Applies to the trend facet's per-row y resolution.
+        const independentY = ctx.chartProperties?.independentYAxis !== false;
 
         // Guard: without both position fields there is no trend to draw; leave
         // a valid single-line spec so assembly still succeeds.
@@ -222,12 +226,21 @@ export const sparklineDef: ChartTemplateDef = {
         const facetRow = { field: facetField, type: 'nominal', sort: regions, header: null };
         const lineMark = applyInterpolate({ type: 'line', strokeWidth: 1.5 }, ctx.chartProperties);
 
+        // Inset the trace's y range a couple px inside the strip. A faceted
+        // cell uses Vega `bounds: full`, so a line touching the top/bottom edge
+        // (plus its stroke) makes the cell render ~4px taller than its declared
+        // `height`. The text columns have no such overflow, so over many rows
+        // the trend column would drift out of step with its labels. Keeping the
+        // trace off the edges holds every column on the same row pitch.
+        const Y_INSET = 2;
+        const trendYScale = { range: [stripH - Y_INSET, Y_INSET] };
+
         // ── Trend panel layers: the line plus an optional dashed reference.
         const layers: any[] = [{
             mark: lineMark,
             encoding: {
                 x: { ...enc.x, axis: null },
-                y: { ...enc.y, axis: null },
+                y: { ...enc.y, axis: null, scale: { ...(enc.y as any).scale, ...trendYScale } },
                 ...(hasColor
                     ? { color: { field: facetField, type: 'nominal', legend: null } }
                     : { color: { value: MONO_LINE } }),
@@ -267,8 +280,10 @@ export const sparklineDef: ChartTemplateDef = {
             data: { values: trendData },
             facet: { row: facetRow },
             spec: { width: trendW, height: stripH, layer: layers },
-            // Per-row y resolution: `independent` self-scales each strip;
-            // `shared` (default) keeps every row on one comparable scale.
+            // Per-row y resolution: `independent` (default) self-scales each
+            // strip so its trace fills the band and aligns with its row label;
+            // `shared` (via `independentYAxis: false`) keeps every row on one
+            // comparable scale.
             resolve: { scale: { y: independentY ? 'independent' : 'shared' } },
             title: { text: trendTitle, anchor: 'middle', ...HEADER_STYLE },
         };

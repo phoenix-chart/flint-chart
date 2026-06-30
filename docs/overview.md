@@ -170,7 +170,7 @@ const spec = assembleVegaLite({
 | Page | Use for |
 |------|---------|
 | [Getting started](/documentation/getting-started) | Step-by-step first chart |
-| [Set up Flint MCP](/documentation/setup-flint-mcp) | MCP server setup, data roots, tools, and verification |
+| [Set up Flint MCP](/documentation/setup-flint-mcp) | MCP server setup, file access, tools, and verification |
 | [Agent workflows](/documentation/agent-workflows) | Custom agent and product integration patterns |
 | [Gallery](/gallery) | Every template + multi-backend preview |
 | [Editor](/editor) | Paste JSON, switch Vega-Lite / ECharts / Chart.js |

@@ -57,8 +57,12 @@ function readChartViewHtml(): string {
 export interface CreateServerOptions {
   /** Restrict which backends are exposed (default: all supported). */
   enabledBackends?: SupportedBackend[];
-  /** Directories from which local data.url references may be read. */
-  dataRoots?: string[];
+  /**
+   * When true, reject local `data.url` file references and accept only inline
+   * `data.values`. When unset the server trusts the host and reads any local
+   * file the agent references.
+   */
+  disableFileReference?: boolean;
 }
 
 type JsonContent = { content: { type: 'text'; text: string }[]; isError?: boolean };
@@ -70,6 +74,26 @@ function jsonResult(value: unknown): JsonContent {
 function errorResult(err: unknown): JsonContent {
   const message = err instanceof Error ? err.message : String(err);
   return { content: [{ type: 'text', text: `Error: ${message}` }], isError: true };
+}
+
+/**
+ * Build a short instruction note telling the agent how to reference local data,
+ * tailored to whether local file references are enabled.
+ */
+function dataAccessNote(options: CreateServerOptions): string {
+  if (options.disableFileReference) {
+    return (
+      ' Local data: local data.url file references are disabled on this server. ' +
+      'Pass rows inline via data.values. Remote URLs are not fetched.'
+    );
+  }
+  return (
+    ' Local data: reference a local CSV/TSV/JSON file by path in data.url ' +
+    '(relative paths resolve against the working directory) or pass rows inline ' +
+    'via data.values. For data you download or generate, create a folder in the ' +
+    'current project (e.g. ./flint-data) and reference files from it. Remote ' +
+    'URLs are not fetched.'
+  );
 }
 
 /** Resolve and validate the set of enabled backends. */
@@ -94,7 +118,9 @@ export function resolveBackends(options: CreateServerOptions = {}): SupportedBac
  */
 export function createServer(options: CreateServerOptions = {}): McpServer {
   const backends = resolveBackends(options);
-  const dataSourceOptions = { dataRoots: options.dataRoots };
+  const dataSourceOptions = {
+    disableFileReference: options.disableFileReference,
+  };
   const backendEnum = z
     .enum(backends as [SupportedBackend, ...SupportedBackend[]])
     .describe(`Rendering backend. One of: ${backends.join(', ')}.`);
@@ -112,7 +138,8 @@ export function createServer(options: CreateServerOptions = {}): McpServer {
         'static image. Use compile_chart for the backend spec JSON, ' +
         'validate_chart to check a spec, and list_chart_types to discover chart ' +
         'types and their channels. Before authoring specs, read the ' +
-        'flint://agent-skill resource or use the author_flint_chart prompt.',
+        'flint://agent-skill resource or use the author_flint_chart prompt.' +
+        dataAccessNote(options),
     },
   );
 
@@ -153,7 +180,7 @@ export function createServer(options: CreateServerOptions = {}): McpServer {
           format: args.format,
           scale: args.scale,
           background: args.background,
-          dataRoots: dataSourceOptions.dataRoots,
+          disableFileReference: dataSourceOptions.disableFileReference,
         });
         const note =
           `${res.backend} · ${res.format} · ${res.width}×${res.height}px` +

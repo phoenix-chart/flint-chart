@@ -70,30 +70,49 @@ describe('input guards', () => {
     await expect(renderChart(bad, 'vegalite')).rejects.toThrow(/url fetching is disabled/i);
   });
 
-  it('rejects local data.url without configured data roots', async () => {
+  it('rejects a local data.url that cannot be found', async () => {
     const bad = {
       ...sales,
-      data: { url: 'sales.csv' },
+      data: { url: 'definitely-missing.csv' },
     } as unknown as ChartAssemblyInput;
-    await expect(renderChart(bad, 'vegalite')).rejects.toThrow(/data.url references require/i);
+    await expect(renderChart(bad, 'vegalite')).rejects.toThrow(/not found/i);
   });
 
-  it('loads local CSV data.url from configured data roots', async () => {
-    const dataRoot = mkdtempSync(join(tmpdir(), 'flint-mcp-data-'));
+  it('loads local CSV data.url in trust mode (default)', async () => {
+    const dataDir = mkdtempSync(join(tmpdir(), 'flint-mcp-data-'));
+    const previousCwd = process.cwd();
     try {
-      writeFileSync(join(dataRoot, 'sales.csv'), 'region,revenue\nNorth,120\nSouth,90\n');
+      writeFileSync(join(dataDir, 'sales.csv'), 'region,revenue\nNorth,120\nSouth,90\n');
+      process.chdir(dataDir);
       const input = {
         ...sales,
         data: { url: 'sales.csv' },
       } as unknown as ChartAssemblyInput;
       const res = await renderChart(input, 'vegalite', {
         format: 'svg',
-        dataRoots: [dataRoot],
       });
       expect(res.mimeType).toBe('image/svg+xml');
       expect(res.svg).toContain('<svg');
     } finally {
-      rmSync(dataRoot, { recursive: true, force: true });
+      process.chdir(previousCwd);
+      rmSync(dataDir, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects local CSV data.url when file references are disabled', async () => {
+    const dataDir = mkdtempSync(join(tmpdir(), 'flint-mcp-data-'));
+    try {
+      const abs = join(dataDir, 'sales.csv');
+      writeFileSync(abs, 'region,revenue\nNorth,120\nSouth,90\n');
+      const input = {
+        ...sales,
+        data: { url: abs },
+      } as unknown as ChartAssemblyInput;
+      await expect(
+        renderChart(input, 'vegalite', { format: 'svg', disableFileReference: true }),
+      ).rejects.toThrow(/disabled on this server/i);
+    } finally {
+      rmSync(dataDir, { recursive: true, force: true });
     }
   });
 });

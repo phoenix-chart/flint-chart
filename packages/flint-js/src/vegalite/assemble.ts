@@ -54,6 +54,7 @@ import {
 } from '../core/types';
 import type { ChartWarning, ChartOption, OptionEvalContext } from '../core/types';
 import { applyEncodingOverrides } from '../core/encoding-overrides';
+import { applyAggregation } from '../core/aggregate';
 import { applyPivot, type PivotSurface } from '../core/pivot';
 import { vlGetTemplateDef } from './templates';
 import { inferVisCategory, computeZeroDecision } from '../core/semantic-types';
@@ -130,7 +131,7 @@ export function assembleVegaLite(input: ChartAssemblyInput): any {
     const normalized = normalizeStaticSeries(
         input.chart_spec.encodings, rawData, semanticTypes,
     );
-    const data = normalized.data;
+    let data = normalized.data;
     const staticSeries = normalized.staticSeries;
 
     // Compose Category-B encoding-action overrides (stored by the host in
@@ -194,6 +195,12 @@ export function assembleVegaLite(input: ChartAssemblyInput): any {
     const encodings = chartTemplate.normalizeEncodings
         ? chartTemplate.normalizeEncodings(composedEncodings, data)
         : composedEncodings;
+
+    // Optional aggregation transform: when an encoding sets `aggregate`, collapse
+    // the rows here (grouping by the dimension channels) so the derived
+    // `${field}_${op}` / `_count` columns the assemblers reference actually
+    // exist. No-op when no encoding requests it or the data is pre-aggregated.
+    data = applyAggregation(encodings, data);
 
     // ═══════════════════════════════════════════════════════════════════════
     // PHASE 0: Resolve Semantics (VL-free)
@@ -759,7 +766,10 @@ function buildVLEncodings(
                 }
             }
 
-            // Aggregation handling — data is always pre-aggregated
+            // Aggregation handling — point the encoding at the derived column.
+            // applyAggregation (run before semantics) produces `${field}_${op}`
+            // / `_count` when the caller requests it; a pre-aggregated caller
+            // supplies that column directly.
             if (encoding.aggregate) {
                 if (encoding.aggregate === "count") {
                     encodingObj.field = "_count";

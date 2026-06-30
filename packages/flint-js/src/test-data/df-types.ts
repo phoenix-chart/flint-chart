@@ -41,7 +41,7 @@ export interface FieldItem {
     tableRef: string;
 }
 
-export type AggrOp = 'count' | 'sum' | 'average';
+export type AggrOp = 'count' | 'sum' | 'average' | 'mean';
 
 export interface EncodingItem {
     fieldID?: string;

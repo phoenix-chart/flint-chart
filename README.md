@@ -111,8 +111,8 @@ includes client configuration, usage examples, and links to deeper references.
   <img src="docs/figs/flint-mcp-experience.png" alt="Agent chat showing Flint Chart as an MCP App with a grouped bar chart preview and chart options." width="100%">
 </p>
 
-MCP calls let agents embed rows directly as `data.values`, or read configured
-local JSON, CSV, or TSV files by `data.url`. For agent workflows without MCP,
+MCP calls let agents embed rows directly as `data.values`, or read local JSON,
+CSV, or TSV files by `data.url`. For agent workflows without MCP,
 use the standalone [agent skill](agent-skills/flint-chart-author/SKILL.md).
 
 ## Repository overview

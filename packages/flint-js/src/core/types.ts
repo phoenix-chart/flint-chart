@@ -45,7 +45,7 @@ export const channelGroups: Record<string, string[]> = {
 export interface ChartEncoding {
     field?: string;
     type?: "quantitative" | "nominal" | "ordinal" | "temporal";
-    aggregate?: 'count' | 'sum' | 'average';
+    aggregate?: 'count' | 'sum' | 'average' | 'mean';
     sortOrder?: "ascending" | "descending";
     sortBy?: string;
     scheme?: string;
@@ -948,8 +948,8 @@ export interface ChartAssemblyInput {
      * - `{ values: any[] }` — an array of row objects (like Vega-Lite `data.values`).
     * - `{ url: string }`   — a URL or path reference to JSON/CSV data.
     *   Hosts that need local semantic/layout decisions should resolve this to
-    *   rows before assembly. The MCP renderer supports local JSON/CSV/TSV
-    *   files under configured data roots; it does not fetch remote URLs.
+    *   rows before assembly. The MCP renderer reads local JSON/CSV/TSV
+    *   files referenced by path; it does not fetch remote URLs.
      *
      * At least one of `values` or `url` must be provided.
      */

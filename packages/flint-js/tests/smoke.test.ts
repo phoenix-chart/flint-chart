@@ -122,4 +122,49 @@ describe('public API smoke', () => {
     expect(config.data.datasets[0].data).toHaveLength(1);
     expect(config.data.datasets[1].data).toHaveLength(1);
   });
+
+  it('aggregate encodings compute the derived field from raw rows (count/sum/average/mean)', () => {
+    const makeBar = (aggregate: 'count' | 'sum' | 'average' | 'mean') =>
+      assembleVegaLite({
+        data: {
+          // Raw, un-aggregated rows: method A has times [1, 3], method B has [2, 4].
+          values: [
+            { method: 'A', time: 1 },
+            { method: 'A', time: 3 },
+            { method: 'B', time: 2 },
+            { method: 'B', time: 4 },
+          ],
+        },
+        semantic_types: { method: 'Category', time: 'Quantity' },
+        chart_spec: {
+          chartType: 'Bar Chart',
+          encodings: {
+            x: { field: 'method' },
+            y: { field: 'time', aggregate },
+          },
+        },
+      }) as any;
+
+    // The encoding points at the derived column (`${field}_${aggregate}`; count
+    // uses `_count`) and the type is quantitative.
+    expect(makeBar('sum').encoding.y.field).toBe('time_sum');
+    expect(makeBar('average').encoding.y.field).toBe('time_average');
+    expect(makeBar('mean').encoding.y.field).toBe('time_mean');
+    expect(makeBar('count').encoding.y.field).toBe('_count');
+    for (const agg of ['sum', 'average', 'mean', 'count'] as const) {
+      expect(makeBar(agg).encoding.y.type).toBe('quantitative');
+    }
+
+    // Flint actually computes the aggregation: rows collapse to one per group
+    // (method A, method B) with the correct derived values.
+    const rowsFor = (agg: 'count' | 'sum' | 'average' | 'mean', col: string) =>
+      (makeBar(agg).data.values as any[])
+        .sort((a, b) => String(a.method).localeCompare(String(b.method)))
+        .map(r => r[col]);
+
+    expect(rowsFor('sum', 'time_sum')).toEqual([4, 6]);        // A: 1+3, B: 2+4
+    expect(rowsFor('average', 'time_average')).toEqual([2, 3]); // A: mean(1,3), B: mean(2,4)
+    expect(rowsFor('mean', 'time_mean')).toEqual([2, 3]);       // synonym of average
+    expect(rowsFor('count', '_count')).toEqual([2, 2]);         // 2 rows per group
+  });
 });

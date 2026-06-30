@@ -230,18 +230,19 @@ describe('MCP server', () => {
     expect(bundledSkill).toBe(repoSkill);
   });
 
-  it('passes configured data roots to chart tools', async () => {
-    const dataRoot = mkdtempSync(join(tmpdir(), 'flint-mcp-server-data-'));
-    const dataServer = createServer({ dataRoots: [dataRoot] });
+  it('reads a local data.url file and inlines its rows', async () => {
+    const dataDir = mkdtempSync(join(tmpdir(), 'flint-mcp-server-data-'));
+    const dataServer = createServer();
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
-    const dataClient = new Client({ name: 'flint-data-root-test', version: '0.0.0' });
+    const dataClient = new Client({ name: 'flint-data-file-test', version: '0.0.0' });
     try {
-      writeFileSync(join(dataRoot, 'sales.csv'), 'region,revenue\nNorth,120\nSouth,90\n');
+      const csvPath = join(dataDir, 'sales.csv');
+      writeFileSync(csvPath, 'region,revenue\nNorth,120\nSouth,90\n');
       await dataServer.connect(serverTransport);
       await dataClient.connect(clientTransport);
       const res: any = await dataClient.callTool({
         name: 'compile_chart',
-        arguments: { ...barChart, data: { url: 'sales.csv' }, backend: 'vegalite' },
+        arguments: { ...barChart, data: { url: csvPath }, backend: 'vegalite' },
       });
       const payload = JSON.parse(res.content[0].text);
       expect(payload.backend).toBe('vegalite');
@@ -249,22 +250,23 @@ describe('MCP server', () => {
     } finally {
       await dataClient.close();
       await dataServer.close();
-      rmSync(dataRoot, { recursive: true, force: true });
+      rmSync(dataDir, { recursive: true, force: true });
     }
   });
 
   it('inlines local data.url rows into create_chart_view structuredContent', async () => {
-    const dataRoot = mkdtempSync(join(tmpdir(), 'flint-mcp-view-data-'));
-    const dataServer = createServer({ dataRoots: [dataRoot] });
+    const dataDir = mkdtempSync(join(tmpdir(), 'flint-mcp-view-data-'));
+    const dataServer = createServer();
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
     const dataClient = new Client({ name: 'flint-view-data-test', version: '0.0.0' });
     try {
-      writeFileSync(join(dataRoot, 'sales.csv'), 'region,revenue\nNorth,120\nSouth,90\n');
+      const csvPath = join(dataDir, 'sales.csv');
+      writeFileSync(csvPath, 'region,revenue\nNorth,120\nSouth,90\n');
       await dataServer.connect(serverTransport);
       await dataClient.connect(clientTransport);
       const res: any = await dataClient.callTool({
         name: 'create_chart_view',
-        arguments: { ...barChart, data: { url: 'sales.csv' } },
+        arguments: { ...barChart, data: { url: csvPath } },
       });
       expect(res.isError).toBeFalsy();
       // The host UI renders client-side and cannot read local files, so the
@@ -278,7 +280,7 @@ describe('MCP server', () => {
     } finally {
       await dataClient.close();
       await dataServer.close();
-      rmSync(dataRoot, { recursive: true, force: true });
+      rmSync(dataDir, { recursive: true, force: true });
     }
   });
 });
